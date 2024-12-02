@@ -1,0 +1,17 @@
+How to run this application 
+
+1. need install conda 
+2. change conda enviroment " condata activate mri_data"
+
+Next proccess 
+==============
+1. keep all the model in model folder
+2. need to create in python
+    1. Grad-CAM 
+    2. Occlusion Sensitivity Map
+    3. Combin Grad CAM and LIME
+3. need to make object 
+    1. image 
+    2. result 
+    3. message    
+

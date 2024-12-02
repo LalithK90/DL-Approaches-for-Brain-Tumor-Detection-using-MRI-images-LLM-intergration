@@ -1,0 +1,106 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+    <title>MSc_LV_10</title>
+    <!-- Required meta tags -->
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <link rel="shortcut icon" href="{{ url_for('static', filename='favicon.ico') }}">
+    <!-- Bootstrap CSS -->
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css">
+    <link rel="stylesheet" href="../static/css/app.css">
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@2.0.0"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+
+
+</head>
+
+<body id="main-bg">
+    <div class="conatiner">
+        <div class="row">
+            <!-- header -->
+            <div class="container text-center">
+                <!-- heading -->
+                <div class="container">
+                    <!-- <img src="{{url_for('static', filename='img/main-img.png')}}" class="img" id="main-img" /> -->
+                    <div class="form-group">
+                        <h3 class="text-center">Brain Tumor Detection</h3>
+                        <p class="text-center">This result not use for medical diagnostic purpose.</p>
+                    </div>
+                </div>
+            </div>
+            <!-- form part -->
+            <div class="container">
+                <div class="row">
+                    <div class="col-sm-4">
+                        <div class="row">
+                            <div class="col-sm-9">
+                                <div class="form-group">
+                                    <div class="custom-file">
+                                        <input type="file" name="file" class="custom-file-input form-control"
+                                            id="image-selector">
+                                        <label class="custom-file-label" for="customFile">Choose file</label>
+                                    </div>
+                                    <small id="image-selector" class="form-text text-muted">Image should be .png, .jpg
+                                        or
+                                        .jpeg file
+                                        format</small>
+                                </div>
+                                <button id="predict-button" class="btn btn-outline-info">PREDICT</button>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-sm-8"><img id="selected-image" width="30%" src="" height="30%" class="img-fluid" />
+                    </div>
+                </div>
+            </div>
+            <!-- result image -->
+            <div class="container-fluid" id="result_image_container">
+                <!-- result showing part -->
+                <h3 class="text-center font-weight-lighter alert alert-primary" role="alert">PREDICTION : <span id="result" class="p font-italic">...</span>
+                    PROBABILITY : <span id="probability" class="p font-italic">...</span>
+                    </h2>
+                    <div class="row">
+                        <div class="container">
+                            <img src="" width="" alt="" id="result_image" class="round">
+                        </div>
+                    </div>
+            </div>
+            <!-- code availability  -->
+            <div class="container-fluid">
+                <p class="text-center">
+                    | <a
+                        href="https://www.kaggle.com/code/lalithk90/covid-19-identification-with-chest-x-ray">Kaggle</a>
+                    |
+                    &nbsp;
+                    | <a href="https://github.com/LalithK90/Covid-19-Identification-with-Chest-X-Ray">Github -
+                        Model
+                        Creation Code </a>
+                    |
+                    &nbsp;
+                    | <a href="https://github.com/LalithK90/Covid-19-Identification-with-Chest-X-Ray-Web-app">Github
+                        -
+                        Web App Source Code</a>
+                    |
+                </p>
+            </div>
+            <!-- caution section  -->
+            <div class="container-fluid bg-danger ">
+                <p class="text-center text-white">This is not for medical diagnostic.
+                </p>
+            </div>
+        </div>
+    </div>
+    <!-- Optional JavaScript -->
+    <!-- jQuery first, then Popper.js, then Bootstrap JS -->
+    <script src="https://code.jquery.com/jquery-3.3.1.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js"></script>
+    <script src="../static/js/app.js"></script>
+</body>
+
+
+
+</html>
