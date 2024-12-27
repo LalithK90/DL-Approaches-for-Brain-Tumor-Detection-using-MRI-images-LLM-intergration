@@ -24,6 +24,7 @@ from tf_keras_vis.utils.scores import CategoricalScore
 IMAGE_SIZE=160
 
 app = Flask(__name__)
+
 # make new directory called model and change your model name 
 try:
     model = load_model('model/model.h5')
@@ -39,9 +40,17 @@ def index():
 
 @app.route("/predict", methods=["POST"])
 def predict():
-	message = request.get_json(force=True)
-	encoded = message['image']
-	decoded = base64.b64decode(encoded)
+	data = request.get_json(force=True)
+	image = data['image']
+	smooth_samples = data.get('smooth_samples', 50)
+	smooth_noise = data.get('smooth_noise', 0.1)
+	top_labels = data.get('top_labels', 5)
+	hide_color = data.get('hide_color', 0)
+	num_samples = data.get('num_samples', 1000)
+	num_features = data.get('num_features', 5)
+	min_weight = data.get('min_weight', 0.0)
+    
+	decoded = base64.b64decode(image)
 	dataBytesIO=io.BytesIO(decoded)
 	dataBytesIO.seek(0)
 	image = Image.open(dataBytesIO)
@@ -82,39 +91,58 @@ def predict():
 	explanation = explainer.explain_instance(
 		image=np.squeeze(input_tensor),
 		classifier_fn=predict_proba,
-		top_labels=1,
-		hide_color=0,
-        num_samples=1000
+		top_labels=top_labels,
+		hide_color=hide_color,
+        num_samples=num_samples
 	)
 	lime_img, mask = explanation.get_image_and_mask(
 		label=predicted_class,
 		positive_only=True,
 		hide_rest=False,
-		num_features=5,
-		min_weight=0.0
+		num_features=num_features,
+		min_weight=min_weight
 	)
 	lime_result = mark_boundaries(lime_img / 255, mask)
 
 	# Saliency Map
-	saliency_map = generate_saliency_map(model, input_tensor, predicted_class)
+	saliency_map = generate_saliency_map(model, input_tensor, predicted_class, smooth_samples, smooth_noise)
 
 	# Combine Grad-CAM and LIME
 	gradcam_3d = np.repeat(gradcam[:, :, np.newaxis], 3, axis=2)
 	combined_img = (0.5 * gradcam_3d + 0.5 * lime_img / 255).clip(0, 1)
 
 	# Generate visualization
-	buf = create_visualization(overlay, lime_result, combined_img, saliency_map)
-	encoded_img = base64.b64encode(buf.getvalue()).decode('utf-8')
-
+	# buf = create_visualization(overlay, lime_result, combined_img, saliency_map)
+	# encoded_img = base64.b64encode(buf.getvalue()).decode('utf-8')
+ 
 	# print(f'Prediction : {prediction}, Result : {result}, Accuracy : {accuracy}')
 	# response = {'prediction': {'result' : label, 'accuracy' : accuracy}}
+ 
+	# Generate visualization
+	gradcam_img = (gradcam_3d * 255).astype(np.uint8)
+	lime_explanation = (lime_img * 255).astype(np.uint8)
+	lime_explanation_cam = (lime_result * 255).astype(np.uint8)
+	combined_gradcam_lime_exp = (combined_img * 255).astype(np.uint8)
+	saliency_map_img = (saliency_map * 255).astype(np.uint8)
+ 
+	# Encode images
+	gradcam_img_encoded = base64.b64encode(cv2.imencode('.png', gradcam_img)[1]).decode('utf-8')
+	lime_explanation_encoded = base64.b64encode(cv2.imencode('.png', lime_explanation)[1]).decode('utf-8')
+	combined_gradcam_lime_exp_encoded = base64.b64encode(cv2.imencode('.png', combined_gradcam_lime_exp)[1]).decode('utf-8')
+	saliency_map_encoded = base64.b64encode(cv2.imencode('.png', saliency_map_img)[1]).decode('utf-8')
+	lime_explanation_cam_encoded = base64.b64encode(cv2.imencode('.png', lime_explanation_cam)[1]).decode('utf-8')
 
-	encoded_img = base64.b64encode(buf.getvalue()).decode('utf-8')
-	response = {'prediction': {'result' : label, 'accuracy' : accuracy},'visualization': encoded_img}
+ 
+	response = {
+        'prediction': {'result': label, 'accuracy': accuracy},
+        'gradcam_img': gradcam_img_encoded,
+        'lime_explanation': lime_explanation_encoded,
+        'combined_gradcam_lime_exp': combined_gradcam_lime_exp_encoded,
+        'saliency_map': saliency_map_encoded,
+        'lime_explanation_cam': lime_explanation_cam_encoded
+    }
 
 	return jsonify(response)
-
-app.run(debug=True)
 
 
 
@@ -125,8 +153,6 @@ def get_last_convolutional_layer(model):
         if isinstance(layer, tf.keras.layers.Conv2D):
             last_conv_layer_name = layer.name
             break
-    # print("Name of the last convolutional layer:", last_conv_layer_name)
-    # print(type(model.output))  # Should return <class 'KerasTensor'> or <class 'list'>
     return last_conv_layer_name
 
 # image process 
@@ -179,12 +205,11 @@ def compute_gradcam(model, img_tensor, class_index):
     gradcam /= gradcam.max()
     return gradcam
 
-
 # Saliency Map Function# Generate Saliency Map
-def generate_saliency_map(model, input_tensor, class_index):
+def generate_saliency_map(model, input_tensor, class_index,smooth_samples,smooth_noise):
     score = CategoricalScore([class_index])  # Target the predicted class
     saliency = Saliency(model, clone=False)
-    saliency_map = saliency(score, input_tensor, smooth_samples=20, smooth_noise=0.2)
+    saliency_map = saliency(score, input_tensor, smooth_samples=smooth_samples, smooth_noise=smooth_noise)
     return normalize(saliency_map[0])
 
 def create_visualization(overlay, lime_result, combined_img, saliency_map):
@@ -208,3 +233,6 @@ def create_visualization(overlay, lime_result, combined_img, saliency_map):
     buf.seek(0)
     plt.close(fig)  # Ensure the figure is closed after saving
     return buf
+
+if __name__ == "__main__":
+    app.run(debug=True)
