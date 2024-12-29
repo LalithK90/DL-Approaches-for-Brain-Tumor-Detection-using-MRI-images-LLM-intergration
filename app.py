@@ -32,7 +32,7 @@ try:
 except TypeError as e:
     print("Error Config:", e.args)
 
-label_dict={0:'Glioma', 1:'Meningioma',2:'No tumor',3:'Pituitary'}
+label_dict={0:'Glioma Tumor', 1:'Meningioma Tumor',2:'No tumor',3:'Pituitary Tumor'}
 
 # Get Last Convolutional Layer Name
 def get_last_convolutional_layer(model):
@@ -123,11 +123,13 @@ def create_visualization(overlay, lime_result, combined_img, saliency_map):
 
 @app.route("/")
 def index():
-	return(render_template("index.html"))
+    upload_predefined_responses()
+    return(render_template("index.html"))
 
 @app.route("/predict", methods=["POST"])
 def predict():
 	data = request.get_json(force=True)
+	data_to_print = data.copy()
 	image = data['image']
 	smooth_samples = data.get('smooth_samples', 50)
 	smooth_noise = data.get('smooth_noise', 0.1)
@@ -136,6 +138,12 @@ def predict():
 	num_samples = data.get('num_samples', 1000)
 	num_features = data.get('num_features', 5)
 	min_weight = data.get('min_weight', 0.0)
+    
+	if 'image' in data_to_print:
+		del data_to_print['image']
+
+	for key, value in data_to_print.items():
+		print(f"{key}: {value}")
     
 	decoded = base64.b64decode(image)
 	dataBytesIO=io.BytesIO(decoded)
@@ -251,7 +259,7 @@ import os
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.metrics.pairwise import cosine_similarity
 import pickle
-
+import re
 
 # --- Configuration ---
 # Load configuration from environment variables with default values
@@ -288,6 +296,14 @@ try:
         CREATE INDEX IF NOT EXISTS idx_chat_history_user_session ON chat_history (user_id, session_id);
         CREATE INDEX IF NOT EXISTS idx_chat_history_session ON chat_history (session_id);
     """)
+    pg_cursor.execute("""
+        CREATE TABLE IF NOT EXISTS predefined_responses (
+                id SERIAL PRIMARY KEY,
+                query_pattern TEXT NOT NULL,
+                response TEXT NOT NULL,
+                UNIQUE(query_pattern)
+            );
+    """)
     pg_conn.commit()
 
 except psycopg2.Error as e:
@@ -321,15 +337,40 @@ try:
 except psycopg2.Error as e:
     print(f"Error loading cached responses: {e}")
 
-# --- Helper Functions ---
 
+
+# --- Helper Functions ---
 def get_context_from_db(query, session_id):
-    """Retrieves previous messages from the current session for context."""
+    """Retrieve context strictly related to specified tumor cases and warn for inappropriate content."""
+    relevant_keywords = [
+        "MRI", "brain tumor", "tumor diagnosis", "tumor recovery", "tumor identification",
+        "oncologist", "tumor examination", "tumor education", "Glioma", "Meningioma", 
+        "No tumor", "Pituitary", "tumor symptoms"
+    ]
+    inappropriate_keywords = ["sex", "child abuse", "violence", "harassment"]
+
     try:
-        sql = "SELECT message_text FROM chat_history WHERE session_id = %s ORDER BY timestamp DESC LIMIT 5;"
-        pg_cursor.execute(sql, (session_id,))
+        # Include the user's query as an additional filter
+        sql = """
+            SELECT message_text
+            FROM chat_history
+            WHERE (""" + " OR ".join([f"message_text ILIKE %s" for _ in relevant_keywords]) + """
+            OR message_text ILIKE %s)
+            ORDER BY timestamp DESC
+            LIMIT 10;
+        """
+        # Add the user's query to the parameters
+        parameters = tuple(f"%{keyword}%" for keyword in relevant_keywords) + (f"%{query}%",)
+        pg_cursor.execute(sql, parameters)
         results = pg_cursor.fetchall()
-        context = "\n".join([f"{row[0]}" for row in results[::-1]]) # Reverse to get correct order (oldest first)
+
+        # Prepare context with oldest messages first
+        context = "\n".join([f"{row[0]}" for row in results[::-1]])
+
+        # Check for inappropriate content
+        if any(re.search(rf"\b{keyword}\b", context, re.IGNORECASE) for keyword in inappropriate_keywords):
+            return "Warning: The system detected inappropriate content in the context. Please ensure queries remain professional and relevant."
+
         return context
     except psycopg2.Error as e:
         print(f"Error querying PostgreSQL: {e}")
@@ -365,7 +406,27 @@ def find_cached_response(query, similarity_threshold=SIMILARITY_THRESHOLD):
         return None
 
 # --- Flask Routes ---
+def upload_predefined_responses():
+    """Uploads predefined responses to the database."""
+    predefined_responses = [
+        {"query_pattern": r"your name|what is your name|name", "response": "I am RadioAI, and I specialize in assisting with the identification and guidance related to 'Glioma,' 'Meningioma,' 'No tumor,' and 'Pituitary' using MRI images."},
+        {"query_pattern": r"your purpose|what do you do", "response": "I assist in identifying and providing guidance on brain tumor cases using MRI images."},
+    ]
+    try:
+        # Perform database operations
+        for item in predefined_responses:
+            sql = "INSERT INTO predefined_responses (query_pattern, response) VALUES (%s, %s) ON CONFLICT DO NOTHING;"
+            pg_cursor.execute(sql, (item["query_pattern"], item["response"]))
+        pg_conn.commit()
+        print("Predefined responses uploaded successfully.")
+    except psycopg2.Error as e:
+        # Handle database errors
+        print(f"Error uploading predefined responses: {e}")
+        pg_conn.rollback()  # Rollback in case of an error
 
+
+
+# RAG Process
 @app.route('/rag', methods=['POST'])
 def rag():
     """Handles RAG requests."""
@@ -374,13 +435,28 @@ def rag():
         user_query = data.get('query')
         user_id = data.get('user_id')
         session_id = data.get('session_id')
+
         # Validate input
         if not user_query or not user_id:
             print("Invalid input.")
             return jsonify({"error": "Missing 'query' or 'user_id' parameter"}), 400
+
+        # Check for predefined responses in the database
+        sql = "SELECT response FROM predefined_responses WHERE %s ~* query_pattern LIMIT 1;"
+        pg_cursor.execute(sql, (user_query,))
+        predefined_response = pg_cursor.fetchone()
+        if predefined_response:
+            return jsonify({
+                "response": predefined_response[0],
+                "context_used": None,
+                "session_id": session_id or str(uuid.uuid4()),
+                "cached": False
+            })
+
         # Generate a new session ID if one is not provided
         if not session_id:
             session_id = str(uuid.uuid4())
+
         # Store the user's message in the database
         store_message(user_id, session_id, user_query, 'user')
 
@@ -388,25 +464,31 @@ def rag():
         cached_response = find_cached_response(user_query)
         if cached_response:
             print("Serving cached response.")
-            return jsonify({"response": cached_response, "context_used": "Cached Response", "session_id": session_id, "cached": True})
+            return jsonify({
+                "response": cached_response,
+                "context_used": "Cached Response",
+                "session_id": session_id,
+                "cached": True
+            })
 
         # If no cached response, retrieve context and call Ollama
         db_context = get_context_from_db(user_query, session_id)
-        
-        prompt = f"""Use the following context to answer the question at the end. If you don't find the answer in the context, say "I couldn't find an answer in the provided context."
+
+        prompt = f"""Use the following context to answer the question at the end. 
+        If you don't find the answer in the context, say "I couldn't find an answer in the provided context."
         Context:
         {db_context}
-
-        Question: {user_query}
+        Question: 
+        {user_query}
         """
-
+        print(f"Calling Ollama with prompt: {prompt}")
         ollama_request = {
             "model": "llama3.2-vision:latest",
             "prompt": prompt,
             "stream": False
         }
         ollama_response = requests.post(OLLAMA_API_URL, json=ollama_request)
-        ollama_response.raise_for_status() # Raise HTTPError for bad responses (4xx or 5xx)
+        ollama_response.raise_for_status()  # Raise HTTPError for bad responses (4xx or 5xx)
         ollama_data = ollama_response.json()
         response_text = ollama_data.get("response")
 
@@ -420,10 +502,15 @@ def rag():
         with open(VECTORIZER_FILE, "wb") as f:
             pickle.dump(vectorizer, f)
 
-        return jsonify({"response": response_text, "context_used": db_context, "session_id": session_id, "cached": False})
+        return jsonify({
+            "response": response_text,
+            "context_used": db_context,
+            "session_id": session_id,
+            "cached": False
+        })
 
     except requests.exceptions.RequestException as e:
-        return jsonify
+        return jsonify({"error": f"Error communicating with Ollama: {e}"}), 500
 
 if __name__ == "__main__":
     app.run(debug=True)

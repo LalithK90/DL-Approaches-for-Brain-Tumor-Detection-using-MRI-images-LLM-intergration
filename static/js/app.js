@@ -60,7 +60,7 @@ function getPredictionResult () {
         min_weight: 0.0
     };
 
-    $.post("http://127.0.0.1:5000/predict", JSON.stringify(message),
+    $.post("/predict", JSON.stringify(message),
         function (response) {
             user_id = response.user_id;
             let result = response.prediction.result;
