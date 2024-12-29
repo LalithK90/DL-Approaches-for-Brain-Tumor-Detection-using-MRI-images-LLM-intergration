@@ -123,68 +123,6 @@ const tooltipTriggerList = document.querySelectorAll('[data-bs-toggle="tooltip"]
 const tooltipList = [...tooltipTriggerList].map(tooltipTriggerEl => new bootstrap.Tooltip(tooltipTriggerEl));
 
 // for RAG app
-// Add Document
-$('#add_document_btn').click(function () {
-    const content = $('#document_content').val();
-    if (!content) {
-        alert('Please enter document content');
-        return;
-    }
-    $.ajax({
-        url: '/add_document',
-        method: 'POST',
-        contentType: 'application/json',
-        data: JSON.stringify({ content }),
-        success: function (response) {
-            $('#add_document_status').html(`<div class="alert alert-success">Document added with ID: ${response.id}</div>`);
-            $('#document_content').val('');
-        },
-        error: function () {
-            $('#add_document_status').html('<div class="alert alert-danger">Failed to add document</div>');
-        }
-    });
-});
-
-// Query Llama
-$('#query_btn').click(function () {
-    Swal.fire({
-        title: 'Processing...',
-        text: 'Please wait while we process your request.',
-        allowOutsideClick: false,
-        didOpen: () => {
-            Swal.showLoading();
-        }
-    });
-
-    const query = $('#query_input').val();
-    if (!query) {
-        alert('Please enter a query');
-        return;
-    }
-    $.ajax({
-        url: '/query',
-        method: 'POST',
-        contentType: 'application/json',
-        data: JSON.stringify({ query }),
-        success: function (response) {
-            const converter = new showdown.Converter();
-            $('#query_results').html(`
-                        <h5>Query:</h5>
-                        <p>${response.query}</p>
-                        <h5>Context:</h5>
-                        <p>${response.context}</p>
-                        <h5>Response:</h5>
-                        <p>${converter.makeHtml(response.response)}</p>
-                    `);
-            Swal.close();
-        },
-        error: function () {
-            Swal.close();
-            $('#query_results').html('<div class="alert alert-danger">Failed to retrieve response</div>');
-        }
-    });
-});
-
 $(document).ready(function () {
     let sessionId = null; // Store the session ID
 
@@ -202,14 +140,24 @@ $(document).ready(function () {
             session_id: sessionId // Send the session ID
         };
 
+        Swal.fire({
+            title: 'Processing...',
+            text: 'Please wait while we process your request.',
+            allowOutsideClick: false,
+            didOpen: () => {
+                Swal.showLoading();
+            }
+        });
+
         $.ajax({
             type: "POST",
             url: "/rag", // Your Flask endpoint
             data: JSON.stringify(data),
             contentType: "application/json",
             success: function (response) {
+                const converter = new showdown.Converter();
                 const botMessage = response.response;
-                $("#chat-container").append(`<div class="message bot-message">${botMessage}</div>`);
+                $("#chat-container").append(`<div class="message bot-message">${converter.makeHtml(botMessage)}</div>`);
                 scrollToBottom();
                 if (!sessionId) {
                     sessionId = response.session_id; // Store the session ID from the first response
@@ -217,8 +165,10 @@ $(document).ready(function () {
                 if (response.cached) {
                     console.log("Response was cached!");
                 }
+                Swal.close();
             },
             error: function (error) {
+                Swal.close();
                 console.error("Error:", error);
                 $("#chat-container").append(`<div class="message bot-message text-danger">Error communicating with the server.</div>`);
                 scrollToBottom();
