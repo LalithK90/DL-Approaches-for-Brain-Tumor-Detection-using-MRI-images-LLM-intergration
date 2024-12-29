@@ -4,6 +4,7 @@ import re
 import base64
 import numpy as np
 import cv2
+import requests
 import tensorflow as tf
 import keras
 from keras.models import load_model
@@ -11,13 +12,16 @@ import matplotlib
 matplotlib.use('Agg')  # Set Matplotlib to use a non-GUI backend
 import matplotlib.pyplot as plt
 from PIL import Image
-from flask import Flask, render_template, redirect, url_for, request, jsonify, send_file
+from flask import Flask, render_template, redirect, url_for, request, jsonify, send_file, g
 from lime import lime_image
 from skimage.segmentation import mark_boundaries
 from io import BytesIO
 from tf_keras_vis.saliency import Saliency
 from tf_keras_vis.utils import normalize
 from tf_keras_vis.utils.scores import CategoricalScore
+# for rag app
+import psycopg2
+from sentence_transformers import SentenceTransformer
 
 
 
@@ -34,9 +38,7 @@ except TypeError as e:
 
 label_dict={0:'Glioma', 1:'Meningioma',2:'No tumor',3:'Pituitary'}
 
-@app.route("/")
-def index():
-	return(render_template("index.html"))
+
 
 @app.route("/predict", methods=["POST"])
 def predict():
@@ -44,7 +46,7 @@ def predict():
 	image = data['image']
 	smooth_samples = data.get('smooth_samples', 50)
 	smooth_noise = data.get('smooth_noise', 0.1)
-	top_labels = data.get('top_labels', 5)
+	top_labels = data.get('top_labels', 4)
 	hide_color = data.get('hide_color', 0)
 	num_samples = data.get('num_samples', 1000)
 	num_features = data.get('num_features', 5)
@@ -112,8 +114,8 @@ def predict():
 	combined_img = (0.5 * gradcam_3d + 0.5 * lime_img / 255).clip(0, 1)
 
 	# Generate visualization
-	# buf = create_visualization(overlay, lime_result, combined_img, saliency_map)
-	# encoded_img = base64.b64encode(buf.getvalue()).decode('utf-8')
+	buf = create_visualization(overlay, lime_result, combined_img, saliency_map)
+	encoded_img = base64.b64encode(buf.getvalue()).decode('utf-8')
  
 	# print(f'Prediction : {prediction}, Result : {result}, Accuracy : {accuracy}')
 	# response = {'prediction': {'result' : label, 'accuracy' : accuracy}}
@@ -131,15 +133,23 @@ def predict():
 	combined_gradcam_lime_exp_encoded = base64.b64encode(cv2.imencode('.png', combined_gradcam_lime_exp)[1]).decode('utf-8')
 	saliency_map_encoded = base64.b64encode(cv2.imencode('.png', saliency_map_img)[1]).decode('utf-8')
 	lime_explanation_cam_encoded = base64.b64encode(cv2.imencode('.png', lime_explanation_cam)[1]).decode('utf-8')
+    
+    # Convert input_tensor to image
+	input_tensor_img = np.squeeze(input_tensor)
+	input_tensor_img = (input_tensor_img * 255).astype(np.uint8)
+	submit_img_encoded = base64.b64encode(cv2.imencode('.png', input_tensor_img)[1]).decode('utf-8')
 
  
 	response = {
         'prediction': {'result': label, 'accuracy': accuracy},
+        'img_size': IMAGE_SIZE,
+        'submit_img': submit_img_encoded,
         'gradcam_img': gradcam_img_encoded,
         'lime_explanation': lime_explanation_encoded,
         'combined_gradcam_lime_exp': combined_gradcam_lime_exp_encoded,
         'saliency_map': saliency_map_encoded,
-        'lime_explanation_cam': lime_explanation_cam_encoded
+        'lime_explanation_cam': lime_explanation_cam_encoded,
+        'encoded_img': encoded_img
     }
 
 	return jsonify(response)
@@ -234,5 +244,173 @@ def create_visualization(overlay, lime_result, combined_img, saliency_map):
     plt.close(fig)  # Ensure the figure is closed after saving
     return buf
 
-if __name__ == "__main__":
+
+
+# for RAG app
+
+# PostgreSQL connection
+def get_db_connection():
+    if 'db_conn' not in g:
+        g.db_conn = psycopg2.connect(
+            dbname="mriDb",
+            user="user",
+            password="secret",
+    host="localhost",
+    port="5432"
+)
+    return g.db_conn
+
+@app.teardown_appcontext
+def close_db_connection(exception):
+    db_conn = g.pop('db_conn', None)
+    if db_conn is not None:
+        db_conn.close()
+        
+# SQL to create the table
+CREATE_TABLE_SQL = """
+CREATE TABLE IF NOT EXISTS documents (
+    id SERIAL PRIMARY KEY,
+    content TEXT NOT NULL,
+    embedding vector(768) NOT NULL
+);
+"""
+
+def create_table():
+    print("Creating table...")
+    conn = get_db_connection()
+    try:
+        with conn.cursor() as cursor:
+        # Execute the SQL to create the table
+            cursor.execute(CREATE_TABLE_SQL)
+            
+        conn.commit()  # Commit transaction
+        print("Table created successfully (if not exists).")
+    except Exception as e:
+        conn.rollback()  # Rollback transaction in case of error
+        print(f"Error creating table: {e}")
+
+# Load embedding model
+embedding_model = SentenceTransformer('sentence-transformers/all-mpnet-base-v2')
+
+# Generate embeddings
+def generate_embedding(text):
+    return embedding_model.encode(text).tolist()
+
+# Search the database
+def search_documents(query_embedding, top_k=5):
+    conn = get_db_connection()
+    try:
+        with conn.cursor() as cursor:
+            embedding_str = "[" + ",".join(map(str, query_embedding)) + "]"
+            cursor.execute("""
+                SELECT id, content, embedding
+                FROM documents
+                ORDER BY embedding <-> %s::vector
+                LIMIT %s;
+            """, (embedding_str, top_k))
+            return cursor.fetchall()
+    except Exception as e:
+        conn.rollback()  # Rollback transaction in case of error
+        raise e  
+
+
+# Route to add documents
+@app.route('/add_document', methods=['POST'])
+def add_document():
+    data = request.json
+    content = data.get('content')
+    if not content:
+        return jsonify({'error': 'Content is required'}), 400
+
+    embedding = generate_embedding(content)
+    conn = get_db_connection()
+    try:
+        with conn.cursor() as cursor:
+            cursor.execute("""
+            INSERT INTO documents (content, embedding)
+            VALUES (%s, %s)
+            RETURNING id;
+        """, (content, embedding))
+            doc_id = cursor.fetchone()[0]
+            print(f"Document added with ID: {doc_id}")
+        conn.commit()
+        return jsonify({'message': 'Document added', 'id': doc_id})
+    except Exception as e:
+        conn.rollback()  # Rollback transaction in case of error
+        raise e
+    
+
+# Configuration
+LLAMA_API_URL = "http://localhost:11434/api/chat"
+LLAMA_MODEL = "llama3.2-vision:latest"
+
+# Query Llama with Conversation History
+def query_llama_with_history(model, history):
+    payload = {
+        "model": model,
+        "messages": history,
+        "stream": False
+    }
+    try:
+        # Send request to Llama API
+        response = requests.post(LLAMA_API_URL, json=payload)
+        
+        # Debugging: Log raw response
+        print("Raw response from Llama:", response.text)
+        
+        # Validate and parse JSON response
+        try:
+            response_json = response.json()
+        except json.JSONDecodeError as e:
+            print(f"JSONDecodeError: {e}")
+            raise ValueError("Invalid JSON received from Llama API")
+
+        # Return parsed JSON
+        return response_json
+    except requests.RequestException as e:
+        print(f"RequestException: {e}")
+        raise ValueError("Failed to communicate with Llama API")
+
+
+
+# Flask Route: Query Llama
+@app.route('/query', methods=['POST'])
+def query_llama():
+    try:
+        # Get query from request
+        data = request.json
+        if not data or 'query' not in data:
+            return jsonify({"error": "Invalid input. 'query' is required."}), 400
+        
+        # Build conversation history (example with one user input)
+        conversation_history = [
+            {"role": "user", "content": data['query']}
+        ]
+        
+        # Call the Llama RAG API
+        llama_response = query_llama_with_history(LLAMA_MODEL, conversation_history)
+        
+        # Extract response content
+        response_content = {
+            "query": data['query'],
+            "context": llama_response.get("context", "No context provided"),
+            "response": llama_response.get("message", {}).get("content", "No response provided")
+        }
+        return jsonify(response_content)
+    except ValueError as e:
+        return jsonify({"error": str(e)}), 500
+    except Exception as e:
+        print(f"Unexpected error: {e}")
+        return jsonify({"error": "An unexpected error occurred."}), 500
+
+
+
+
+
+@app.route("/")
+def index():
+    create_table()
+    return(render_template("index.html"))
+
+if __name__ == '__main__':
     app.run(debug=True)

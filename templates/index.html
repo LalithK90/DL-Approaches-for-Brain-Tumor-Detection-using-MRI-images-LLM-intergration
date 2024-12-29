@@ -16,107 +16,177 @@
 
 <body>
     <div class="conatiner">
-        <div class="row">
-            <!-- header -->
-            <div class="container text-center">
-                <div class="form-group">
-                    <h3 class="text-center">Brain Tumor Detection</h3>
-                    <p class="text-center">This result not use for medical diagnostic purpose.</p>
-                </div>
+        <!-- header -->
+        <div class="container text-center">
+            <div class="form-group">
+                <h3 class="text-center">Brain Tumor Detection</h3>
+                <p class="text-center">This result not use for medical diagnostic purpose.</p>
             </div>
-            <!-- form part -->
-            <div class="container">
-                <div class="row">
-                    <form class="form-inline">
-                        <div class="form-group mb-2">
-                            <div class="custom-file">
-                                <input type="file" name="file" class="custom-file-input form-control"
-                                    id="image-selector">
-                                <label class="custom-file-label" for="customFile">Choose file</label>
+        </div>
+        <div class="container">
+            <div class="row">
+                <div class="col-6">
+                    <!-- form part -->
+                    <div class="row">
+                        <form class="form-inline">
+                            <div class="form-group mb-2">
+                                <div class="custom-file">
+                                    <input type="file" name="file" class="custom-file-input form-control"
+                                        id="image-selector">
+                                    <label class="custom-file-label" for="customFile">Choose file</label>
+                                </div>
                             </div>
-                        </div>
-                        &nbsp;
-                        &nbsp;
-                        <button type="button" id="predict-button" class="btn btn-outline-info mb-2">PREDICT</button>
-                    </form>
+                            &nbsp;
+                            &nbsp;
+                            <button type="button" id="predict-button" class="btn btn-outline-info mb-2">PREDICT</button>
+                        </form>
+                    </div>
+                    <small id="image-selector" class="form-text text-muted">
+                        Image should be .png, .jpg or .jpeg file format
+                    </small>
                 </div>
-                <small id="image-selector" class="form-text text-muted">Image should be .png, .jpg
-                    or
-                    .jpeg file
-                    format</small>
-            </div>
-            <div class="container">
-                <div class="d-flex flex-row overflow-auto">
-                    <img id="selected-image" width="50%" src="" height="50%" class="img-fluid" />
-                    <img src="" width="" alt="" id="gradcam_img" class="img-fluid m-2">
-                    <img src="" width="" alt="" id="lime_explanation" class="img-fluid m-2">
-                    <img src="" width="" alt="" id="combined_gradcam_lime_exp" class="img-fluid m-2">
-                    <img src="" width="" alt="" id="saliency_map" class="img-fluid m-2">
+                <div class="col-6">
+                    <img id="selected-image" class="img-fluid m-2" />
                 </div>
             </div>
         </div>
         <!-- result image -->
         <div class="container" id="result_image_container">
             <!-- result showing part -->
-            <h3 class="text-center font-weight-lighter alert alert-primary" role="alert">PREDICTION : <span id="result"
-                    class="p font-italic">...</span>
-                PROBABILITY : <span id="probability" class="p font-italic">...</span>
-                </h2>
-                <div class="row">
-                    <div class="container">
-                        <img src="" width="" alt="" id="result_image" class="round">
+            <h3 class="text-center font-weight-lighter alert alert-primary" role="alert">
+                PREDICTION : <span id="result" class="p font-italic fw-bold"></span>
+                PROBABILITY : <span id="probability" class="p font-italic fw-bold"></span>
+            </h3>
+            <div class="row">
+                <div class="container">
+                    <div class="d-flex flex-row overflow-auto">
+                        <img id="submit_img" class="img-fluid m-2">
+                        <img id="gradcam_img" class="img-fluid m-2">
+                        <img id="lime_explanation" class="img-fluid m-2">
+                        <img id="combined_gradcam_lime_exp" class="img-fluid m-2">
+                        <img id="saliency_map" class="img-fluid m-2">
+                        <img id="lime_explanation_cam" class="img-fluid m-2">
                     </div>
                 </div>
+            </div>
         </div>
         <!-- changing parameter -->
         <div class="container">
             <div class="row" id="parameter_container">
                 <div class="container">
-                    <div class="form-group">
-                        <label for="smooth_samples">Smooth Samples:</label>
-                        <input type="number" id="smooth_samples" class="form-control" value="50">
+                    <h3 class="mb-4 text-center">Model Explanation Settings</h3>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <!-- Saliency Map Parameters -->
+                            <h5 class="mt-3">Saliency Map Parameters</h5>
+                            <form class="row g-3">
+                                <div class="col-md-6">
+                                    <label for="smooth_samples" class="form-label" data-bs-toggle="tooltip"
+                                        title="Number of samples to use for smoothing the saliency map. Higher values yield smoother results but increase computation time.">
+                                        Smooth Samples:
+                                        <span id="smooth_samples_value" class="fw-bold ms-2">50</span>
+                                    </label>
+                                    <input type="range" id="smooth_samples" class="form-range" value="50" min="1"
+                                        max="1000" step="1" oninput="updateValue('smooth_samples_value', this.value)">
+                                </div>
+                                <div class="col-md-6">
+                                    <label for="smooth_noise" class="form-label" data-bs-toggle="tooltip"
+                                        title="Amount of random noise added to the input to stabilize the saliency map. Typically between 0 and 1.">
+                                        Smooth Noise:
+                                        <span id="smooth_noise_value" class="fw-bold ms-2">0.1</span>
+                                    </label>
+                                    <input type="range" id="smooth_noise" class="form-range" value="0.1" min="0" max="1"
+                                        step="0.01" oninput="updateValue('smooth_noise_value', this.value)">
+                                </div>
+                            </form>
+                        </div>
+                        <div class="col-md-6">
+                            <!-- LIME Parameters -->
+                            <h5 class="mt-3">LIME Parameters</h5>
+                            <form class="row g-3">
+                                <div class="col-md-6">
+                                    <label for="top_labels" class="form-label" data-bs-toggle="tooltip"
+                                        title="Number of top predicted labels to explain. Affects which classes are considered in the explanation.">
+                                        Top Labels:
+                                        <span id="top_labels_value" class="fw-bold ms-2">4</span>
+                                    </label>
+                                    <input type="range" id="top_labels" class="form-range" value="4" min="1" max="4"
+                                        step="1" oninput="updateValue('top_labels_value', this.value)">
+                                </div>
+                                <div class="col-md-6">
+                                    <label for="hide_color" class="form-label" data-bs-toggle="tooltip"
+                                        title="Color to use for less important regions in the explanation. Typically 0 (no color hiding) or 1 (fully hide regions).">
+                                        Hide Color:
+                                        <span id="hide_color_value" class="fw-bold ms-2">0</span>
+                                    </label>
+                                    <input type="range" id="hide_color" class="form-range" value="0" min="0" max="1"
+                                        step="1" oninput="updateValue('hide_color_value', this.value)">
+                                </div>
+                                <div class="col-md-6">
+                                    <label for="num_samples" class="form-label" data-bs-toggle="tooltip"
+                                        title="Number of perturbed samples to generate for explanation. Higher values improve accuracy but increase computation time.">
+                                        Number of Samples:
+                                        <span id="num_samples_value" class="fw-bold ms-2">1000</span>
+                                    </label>
+                                    <input type="range" id="num_samples" class="form-range" value="1000" min="10"
+                                        max="5000" step="10" oninput="updateValue('num_samples_value', this.value)">
+                                </div>
+                                <div class="col-md-6">
+                                    <label for="num_features" class="form-label" data-bs-toggle="tooltip"
+                                        title="Number of features to display in the explanation. Adjust based on the desired detail level.">
+                                        Number of Features:
+                                        <span id="num_features_value" class="fw-bold ms-2">5</span>
+                                    </label>
+                                    <input type="range" id="num_features" class="form-range" value="5" min="1" max="20"
+                                        step="1" oninput="updateValue('num_features_value', this.value)">
+                                </div>
+                                <div class="col-md-6">
+                                    <label for="min_weight" class="form-label" data-bs-toggle="tooltip"
+                                        title="Minimum weight threshold for a feature to be displayed in the explanation. Helps filter less significant features.">
+                                        Min Weight:
+                                        <span id="min_weight_value" class="fw-bold ms-2">0.0</span>
+                                    </label>
+                                    <input type="range" id="min_weight" class="form-range" value="0.0" min="0" max="1"
+                                        step="0.01" oninput="updateValue('min_weight_value', this.value)">
+                                </div>
+                            </form>
+                        </div>
                     </div>
-                    <div class="form-group">
-                        <label for="smooth_noise">Smooth Noise:</label>
-                        <input type="number" id="smooth_noise" class="form-control" value="0.1">
+                    <div class="row text-center">
+                        <button id="update-button" type="button" class="btn btn-outline-info mt-3">
+                            UPDATE
+                        </button>
                     </div>
-                    <div class="form-group">
-                        <label for="top_labels">Top Labels:</label>
-                        <input type="number" id="top_labels" class="form-control" value="5">
-                    </div>
-                    <div class="form-group">
-                        <label for="hide_color">Hide Color:</label>
-                        <input type="number" id="hide_color" class="form-control" value="0">
-                    </div>
-                    <div class="form-group">
-                        <label for="num_samples">Number of Samples:</label>
-                        <input type="number" id="num_samples" class="form-control" value="1000">
-                    </div>
-                    <div class="form-group">
-                        <label for="num_features">Number of Features:</label>
-                        <input type="number" id="num_features" class="form-control" value="5">
-                    </div>
-                    <div class="form-group">
-                        <label for="min_weight">Min of Weight:</label>
-                        <input type="number" id="min_weight" class="form-control" value="0.0">
-                    </div>
-                    <button id="update-button" class="btn btn-outline-info" disabled>UPDATE</button>
                 </div>
             </div>
         </div>
         <!-- image visualization -->
         <div class="container">
-            <div class="row" id="visualization_container">
-                <div class="container">
-                    <div class="d-flex flex-row overflow-auto">
-                        <img src="" width="" alt="" id="gradcam_img" class="img-fluid m-2">
-                        <img src="" width="" alt="" id="lime_explanation" class="img-fluid m-2">
-                        <img src="" width="" alt="" id="combined_gradcam_lime_exp" class="img-fluid m-2">
-                        <img src="" width="" alt="" id="saliency_map" class="img-fluid m-2">
-                    </div>
-                </div>
+            <img src="" alt="" id="encoded_img" class="img-fluid m-2">
+        </div>
+
+        <div class="container mt-5">
+            <h1 class="mb-4">RAG Application</h1>
+
+            <!-- Add Document Section -->
+            <div class="mb-4">
+                <h2>Add Document</h2>
+                <textarea id="document_content" class="form-control mb-2" rows="4"
+                    placeholder="Enter document content"></textarea>
+                <button id="add_document_btn" class="btn btn-primary">Add Document</button>
+                <div id="add_document_status" class="mt-2"></div>
+            </div>
+
+            <!-- Query Llama Section -->
+            <div>
+                <h2>Query Llama</h2>
+                <div id="query_results" class="mt-1 mb-2"></div>
+                <input type="text" id="query_input" class="form-control mb-2" placeholder="Enter your query">
+                <button id="query_btn" class="btn btn-success">Query</button>
             </div>
         </div>
+
+
         <!-- code availability  -->
         <div class="container">
             <p class="text-center">
@@ -144,6 +214,7 @@
     <script src="https://code.jquery.com/jquery-3.3.1.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js"></script>
     <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/showdown/2.0.0/showdown.min.js"></script>
     <script src="../static/js/app.js"></script>
 </body>
 
