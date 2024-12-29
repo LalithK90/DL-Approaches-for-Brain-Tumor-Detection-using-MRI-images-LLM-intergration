@@ -3,7 +3,7 @@ $(document).ready(function () {
     result_hide();
     $("#result_image_container, #parameter_container").hide();
 });
-
+let user_id;
 
 
 function result_hide () {
@@ -62,6 +62,7 @@ function getPredictionResult () {
 
     $.post("http://127.0.0.1:5000/predict", JSON.stringify(message),
         function (response) {
+            user_id = response.user_id;
             let result = response.prediction.result;
             $("#result").text(result);
             $("#probability").text(response.prediction.accuracy);
@@ -146,6 +147,15 @@ $('#add_document_btn').click(function () {
 
 // Query Llama
 $('#query_btn').click(function () {
+    Swal.fire({
+        title: 'Processing...',
+        text: 'Please wait while we process your request.',
+        allowOutsideClick: false,
+        didOpen: () => {
+            Swal.showLoading();
+        }
+    });
+
     const query = $('#query_input').val();
     if (!query) {
         alert('Please enter a query');
@@ -166,9 +176,67 @@ $('#query_btn').click(function () {
                         <h5>Response:</h5>
                         <p>${converter.makeHtml(response.response)}</p>
                     `);
+            Swal.close();
         },
         error: function () {
+            Swal.close();
             $('#query_results').html('<div class="alert alert-danger">Failed to retrieve response</div>');
+        }
+    });
+});
+
+$(document).ready(function () {
+    let sessionId = null; // Store the session ID
+
+    $("#send-button").click(function () {
+        const userMessage = $("#user-input").val();
+        if (userMessage.trim() === "") return; // Prevent sending empty messages
+
+        $("#chat-container").append(`<div class="message user-message">${userMessage}</div>`);
+        $("#user-input").val(""); // Clear the input field
+        scrollToBottom();
+
+        const data = {
+            query: userMessage,
+            user_id: user_id, // Replace with actual user ID logic
+            session_id: sessionId // Send the session ID
+        };
+
+        $.ajax({
+            type: "POST",
+            url: "/rag", // Your Flask endpoint
+            data: JSON.stringify(data),
+            contentType: "application/json",
+            success: function (response) {
+                const botMessage = response.response;
+                $("#chat-container").append(`<div class="message bot-message">${botMessage}</div>`);
+                scrollToBottom();
+                if (!sessionId) {
+                    sessionId = response.session_id; // Store the session ID from the first response
+                }
+                if (response.cached) {
+                    console.log("Response was cached!");
+                }
+            },
+            error: function (error) {
+                console.error("Error:", error);
+                $("#chat-container").append(`<div class="message bot-message text-danger">Error communicating with the server.</div>`);
+                scrollToBottom();
+            }
+        });
+    });
+
+    // Function to scroll to the bottom of the chat container
+    function scrollToBottom () {
+        const chatContainer = $("#chat-container");
+        chatContainer.scrollTop(chatContainer[0].scrollHeight);
+    }
+
+    // Handle Enter key press in the input field
+    $("#user-input").keypress(function (event) {
+        if (event.which === 13) { // 13 is the Enter key code
+            $("#send-button").click();
+            event.preventDefault(); // Prevent form submission
         }
     });
 });
