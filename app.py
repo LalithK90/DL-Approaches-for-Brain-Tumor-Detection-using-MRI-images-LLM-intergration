@@ -511,6 +511,98 @@ def rag():
 
     except requests.exceptions.RequestException as e:
         return jsonify({"error": f"Error communicating with Ollama: {e}"}), 500
+    
+    
+    # according to new changes 
+# Segmentation map analysis function
+def analyze_segmentation_map(segmentation_map):
+    binary_map = (segmentation_map > 0.5).astype(np.uint8)
+    contours, _ = cv2.findContours(binary_map, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+    
+    if not contours:
+        return {"has_tumor": False}
 
+    largest_contour = max(contours, key=cv2.contourArea)
+    tumor_area = cv2.contourArea(largest_contour)
+    pixel_to_cm = 0.1
+    tumor_size_cm = tumor_area * (pixel_to_cm ** 2)
+    x, y, w, h = cv2.boundingRect(largest_contour)
+    M = cv2.moments(largest_contour)
+    if M["m00"] != 0:
+        centroid_x = int(M["m10"] / M["m00"])
+        centroid_y = int(M["m01"] / M["m00"])
+    else:
+        centroid_x, centroid_y = None, None
+
+    return {
+        "has_tumor": True,
+        "size": tumor_size_cm,
+        "bounding_box": {"x": x, "y": y, "width": w, "height": h},
+        "centroid": {"x": centroid_x, "y": centroid_y}
+    }
+
+# Tumor visualization function
+def visualize_tumor(image, tumor_details):
+    x, y, w, h = tumor_details["bounding_box"].values()
+    centroid_x, centroid_y = tumor_details["centroid"].values()
+
+    plt.imshow(image, cmap="gray")
+    plt.gca().add_patch(plt.Rectangle((x, y), w, h, edgecolor='red', facecolor='none', lw=2))
+    plt.plot(centroid_x, centroid_y, 'ro')  # Mark centroid
+    plt.title("Tumor Visualization")
+
+    # Save the plot to a bytes buffer
+    buf = io.BytesIO()
+    plt.savefig(buf, format='png')
+    buf.seek(0)
+    plt.close()
+
+    # Encode the image to base64
+    image_base64 = base64.b64encode(buf.read()).decode('utf-8')
+    return image_base64
+
+
+@app.route("/new")
+def indexNew():
+    return(render_template("newIndex.html"))
+
+@app.route('/predict1', methods=['POST'])
+def getResult():
+    try:
+        if 'image' not in request.files:
+            return jsonify({"error": "No image file uploaded"}), 400
+        
+        file = request.files['image']
+        img = Image.open(file).convert("L")  # Convert image to grayscale
+
+        processed_img = preprocess(img)
+        prediction = model.predict(processed_img)
+        result = np.argmax(prediction, axis=1)[0]
+        confidence = float(np.max(prediction))
+        label = label_dict[result]
+
+        segmentation_map = np.random.rand(IMAGE_SIZE, IMAGE_SIZE)  # Replace with real segmentation map
+        tumor_details = analyze_segmentation_map(segmentation_map)
+
+        # Visualize tumor if present
+        visualization = None
+        if tumor_details["has_tumor"]:
+            visualization = visualize_tumor(np.array(img), tumor_details)
+
+        report = {
+            "has_tumor": tumor_details["has_tumor"],
+            "classification": label,
+            "confidence": f"{confidence * 100:.2f}%",
+            "tumor_details": tumor_details,
+            "visualization": visualization,
+            "details": f"The model has classified the provided MRI image as a {label} "
+                       f"with a confidence of {confidence * 100:.2f}%. Tumor details: {tumor_details}."
+        }
+
+        return jsonify(report), 200
+
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+    
 if __name__ == "__main__":
     app.run(debug=True)

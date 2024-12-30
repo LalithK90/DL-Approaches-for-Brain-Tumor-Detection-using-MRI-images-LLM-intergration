@@ -51,15 +51,15 @@ function getPredictionResult () {
 
     let message = {
         image: base64Image,
-        smooth_samples: 50,
-        smooth_noise: 0.1,
-        top_labels: 4,
-        hide_color: 0,
-        num_samples: 1000,
-        num_features: 5,
-        min_weight: 0.0
+        smooth_samples: parseInt($("#smooth_samples").val()),
+        smooth_noise: parseFloat($("#smooth_noise").val()),
+        top_labels: parseInt($("#top_labels").val()),
+        hide_color: parseInt($("#hide_color").val()),
+        num_samples: parseInt($("#num_samples").val()),
+        num_features: parseInt($("#num_features").val()),
+        min_weight: parseFloat($("#min_weight").val()),
     };
-
+    console.log(message);
     $.post("/predict", JSON.stringify(message),
         function (response) {
             user_id = response.user_id;
