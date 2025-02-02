@@ -1,608 +1,433 @@
-import os
 import io
-import re
-import base64
-import uuid
-import numpy as np
-import cv2
+import os
+from flask import Flask, request, render_template, jsonify, send_file, session
 import tensorflow as tf
-import keras
-from keras.models import load_model
-import matplotlib
-matplotlib.use('Agg')  # Set Matplotlib to use a non-GUI backend
-import matplotlib.pyplot as plt
+import numpy as np
 from PIL import Image
-from flask import Flask, render_template, redirect, url_for, request, jsonify, send_file
+import cv2
+from tf_explain.core.grad_cam import GradCAM
+# from tf_explain.core.smoothgrad import SmoothGrad
+# from tf_explain.core.integrated_gradients import IntegratedGradients
+# from tf_explain.core.occlusion_sensitivity import OcclusionSensitivity
+
+import saliency.core as saliency
+from saliency.core.xrai import XRAI
+from saliency.core.xrai import XRAI
+
 from lime import lime_image
 from skimage.segmentation import mark_boundaries
+import matplotlib.pyplot as plt
+import base64
 from io import BytesIO
-from tf_keras_vis.saliency import Saliency
-from tf_keras_vis.utils import normalize
-from tf_keras_vis.utils.scores import CategoricalScore
+import json
+import keras
 
+from io import BytesIO
 
+from PIL import Image
+import numpy as np
+import base64
+from io import BytesIO
+import secrets
+import requests
 
-IMAGE_SIZE=160
+tf.data.experimental.enable_debug_mode()
+
+# Enable eager execution explicitly
+tf.config.run_functions_eagerly(True)
 
 app = Flask(__name__)
 
-# make new directory called model and change your model name 
+
 try:
-    model = load_model('model/model.h5')
-except TypeError as e:
-    print("Error Config:", e.args)
+    # model = tf.keras.models.load_model('model/propose_224_model.h5')
+    # model = tf.keras.models.load_model('model/restnet50_inbalance-model.h5')
+    model = tf.keras.models.load_model('model/googleLeNet_inbalance-model.h5')
+    # model = tf.keras.models.load_model('model/nin_inbalance-model.h5')
+    # model = tf.keras.models.load_model('model/vgg16_inbalance-model.h5')
+    print("Model loaded successfully.")
+except Exception as e:
+    raise ValueError(f"Failed to load the model: {str(e)}")
 
-label_dict={0:'Glioma Tumor', 1:'Meningioma Tumor',2:'No tumor',3:'Pituitary Tumor'}
 
-# Get Last Convolutional Layer Name
+IMG_SIZE = 224
+CLASS_NAMES = ['Glioma', 'Meningioma', 'Notumor', 'Pituitary']
+
+def preprocess_image(img):
+    img = np.array(img)
+    img = cv2.bilateralFilter(img, d=2, sigmaColor=50, sigmaSpace=50)
+	# Apply a colormap (COLORMAP_BONE in this case)
+    img = cv2.applyColorMap(img, cv2.COLORMAP_BONE)
+	# Resize the image to the target size
+    img = cv2.resize(img, (IMG_SIZE, IMG_SIZE), interpolation=cv2.INTER_AREA)
+	# Convert the image to a Keras-compatible array
+    array = keras.utils.img_to_array(img)
+	# Expand dimensions to match the input shape required by the model
+    array = np.expand_dims(array, axis=0)
+    return array
+
 def get_last_convolutional_layer(model):
-    last_conv_layer_name = None
     for layer in reversed(model.layers):
         if isinstance(layer, tf.keras.layers.Conv2D):
-            last_conv_layer_name = layer.name
-            break
-    return last_conv_layer_name
+            return layer.name
+    raise ValueError("No Conv2D layer found in the model.")
 
-# image process 
-def preprocess(img):
-	img = np.array(img)
-	img = cv2.bilateralFilter(img, d=2, sigmaColor=50, sigmaSpace=50)
-	# Apply a colormap (COLORMAP_BONE in this case)
-	img = cv2.applyColorMap(img, cv2.COLORMAP_BONE)
-	# Resize the image to the target size
-	img = cv2.resize(img, (IMAGE_SIZE, IMAGE_SIZE), interpolation=cv2.INTER_AREA)
-	# Convert the image to a Keras-compatible array
-	array = keras.utils.img_to_array(img)
-	# Expand dimensions to match the input shape required by the model
-	array = np.expand_dims(array, axis=0)
-	return array
+def predict_tumor(image):
+    processed_image = preprocess_image(image)
+    predictions = model(processed_image)  # Use model as a callable
+    predicted_class = np.argmax(predictions, axis=1)[0]
+    probabilities = predictions.numpy()[0]  # Convert EagerTensor to NumPy array
+    return CLASS_NAMES[predicted_class], probabilities
 
-# Grad-CAM Function
-def compute_gradcam(model, img_tensor, class_index):
-    last_conv_layer_name = get_last_convolutional_layer(model)
+def grad_cam_explanation(image):
+    processed_image = preprocess_image(image)
+    predictions = model(processed_image)
+    predicted_class_index = np.argmax(predictions.numpy(), axis=1)[0]
     
-    # Handle multiple outputs
-    model_output = model.output[0] if isinstance(model.output, (list, tuple)) else model.output
-    
-    # Create Grad-CAM model
-    grad_model = tf.keras.models.Model(
-        inputs=model.inputs,
-        outputs=[
-            model.get_layer(last_conv_layer_name).output, 
-            model_output
-        ]
+    explainer = GradCAM()
+    grid = explainer.explain(
+        validation_data=(processed_image, None),
+        model=model,
+        class_index=predicted_class_index,
+        layer_name=get_last_convolutional_layer(model)
     )
     
-    # Compute Grad-CAM
+    # Normalize the heatmap safely
+    heatmap = grid.astype(np.float32)
+    if heatmap.max() > heatmap.min():
+        heatmap = (heatmap - heatmap.min()) / (heatmap.max() - heatmap.min())
+    else:
+        heatmap = np.zeros_like(heatmap)  # Handle invalid heatmaps gracefully
+    
+    return heatmap
+
+def lime_explanation(image):
+    # Preprocess image once
+    processed_image = np.array(image.resize((IMG_SIZE, IMG_SIZE), Image.Resampling.BILINEAR)) / 255.0
+
+    # Create explainer with optimized settings
+    explainer = lime_image.LimeImageExplainer(feature_selection='auto')
+
+    # Define prediction function outside explain_instance for better performance
+    def predict_fn(x):
+        return model.predict(x.reshape(-1, IMG_SIZE, IMG_SIZE, 3), batch_size=32)
+
+    # Get explanation with optimized parameters
+    explanation = explainer.explain_instance(
+        processed_image,
+        predict_fn,
+        top_labels=1,  # Reduced from 4 since we only use first label
+        hide_color=0,
+        num_samples=10,  # Reduced samples for better performance while maintaining quality
+        batch_size=32
+    )
+
+    # Get visualization
+    temp, mask = explanation.get_image_and_mask(
+        explanation.top_labels[0],
+        positive_only=True,
+        num_features=4,
+        hide_rest=False
+    )
+
+    return mark_boundaries(temp / 2 + 0.5, mask)
+
+# Define preprocessing function
+def preprocess_image(image):
+    image = image.resize((IMG_SIZE, IMG_SIZE))  # Resize to match model's input size
+    image = np.array(image)
+    if len(image.shape) == 2:  # If grayscale, convert to RGB
+        image = np.stack((image,) * 3, axis=-1)
+    image = image / 255.0   # Normalize pixel values to [0, 1]
+    image = np.expand_dims(image, axis=0)  # Add batch dimension
+    return image
+
+# Define call_model_function for saliency computation
+def call_model_function(images, call_model_args=None, expected_keys=None):
+    target_class_idx = call_model_args['class_index']
     with tf.GradientTape() as tape:
-        conv_outputs, predictions = grad_model(img_tensor)
-        loss = predictions[:, class_index]
+        inputs = tf.convert_to_tensor(images)
+        tape.watch(inputs)
+        predictions = model(inputs)
+        output_layer = predictions[:, target_class_idx]
+    gradients = tape.gradient(output_layer, inputs)
+    return {saliency.INPUT_OUTPUT_GRADIENTS: gradients}
 
-    grads = tape.gradient(loss, conv_outputs)
-    pooled_grads = tf.reduce_mean(grads, axis=(0, 1, 2))
-    conv_outputs = conv_outputs[0]
+def encode_image_to_base64(img):
+    try:
+        # Ensure the image is in the range [0, 255] and convert to uint8
+        if img.dtype == np.float32 or img.dtype == np.float64:
+            img = (img * 255).astype(np.uint8)
+        elif img.dtype != np.uint8:
+            raise ValueError("Image must be a NumPy array with dtype float or uint8.")
 
-    gradcam = np.zeros(conv_outputs.shape[:2], dtype=np.float32)
-    for i, w in enumerate(pooled_grads):
-        gradcam += w * conv_outputs[:, :, i]
+        # Convert the NumPy array to a PIL Image
+        pil_img = Image.fromarray(img)
 
-    gradcam = np.maximum(gradcam, 0)
-    gradcam = cv2.resize(gradcam, (IMAGE_SIZE,IMAGE_SIZE))
-    gradcam -= gradcam.min()
-    gradcam /= gradcam.max()
-    return gradcam
+        # Save the PIL Image to a BytesIO buffer in PNG format
+        buffer = BytesIO()
+        pil_img.save(buffer, format="PNG")
+        buffer.seek(0)  # Rewind the buffer to the beginning
 
-# Saliency Map Function# Generate Saliency Map
-def generate_saliency_map(model, input_tensor, class_index,smooth_samples,smooth_noise):
-    score = CategoricalScore([class_index])  # Target the predicted class
-    saliency = Saliency(model, clone=False)
-    saliency_map = saliency(score, input_tensor, smooth_samples=smooth_samples, smooth_noise=smooth_noise)
-    return normalize(saliency_map[0])
+        # Encode the buffer content to base64
+        base64_encoded = base64.b64encode(buffer.getvalue()).decode("utf-8")
 
-def create_visualization(overlay, lime_result, combined_img, saliency_map):
-    """Generate visualization plots and save them to a buffer."""
-    fig, axes = plt.subplots(2, 2, figsize=(10, 10))
-    axes[0, 0].imshow(overlay)
-    axes[0, 0].set_title("Grad-CAM")
-    axes[0, 0].axis("off")
-    axes[0, 1].imshow(lime_result)
-    axes[0, 1].set_title("LIME Explanation")
-    axes[0, 1].axis("off")
-    axes[1, 0].imshow(combined_img)
-    axes[1, 0].set_title("Combined Grad-CAM & LIME")
-    axes[1, 0].axis("off")
-    axes[1, 1].imshow(saliency_map, cmap="hot")
-    axes[1, 1].set_title("Saliency Map")
-    axes[1, 1].axis("off")
+        return base64_encoded
 
-    buf = BytesIO()
-    plt.savefig(buf, format="png")
-    buf.seek(0)
-    plt.close(fig)  # Ensure the figure is closed after saving
-    return buf
+    except Exception as e:
+        raise RuntimeError(f"Error encoding image to base64: {str(e)}")
 
-@app.route("/")
-def index():
-    upload_predefined_responses()
-    return(render_template("index.html"))
+def compute_xrai(image, prediction_class):
 
-@app.route("/predict", methods=["POST"])
-def predict():
-	data = request.get_json(force=True)
-	data_to_print = data.copy()
-	image = data['image']
-	smooth_samples = data.get('smooth_samples', 50)
-	smooth_noise = data.get('smooth_noise', 0.1)
-	top_labels = data.get('top_labels', 5)
-	hide_color = data.get('hide_color', 0)
-	num_samples = data.get('num_samples', 1000)
-	num_features = data.get('num_features', 5)
-	min_weight = data.get('min_weight', 0.0)
+    try:
+        processed_image = preprocess_image(image)
+        
+        # Step 4: Compute XRAI attributions
+        xrai_object = saliency.XRAI()
+        # Ensure input is 3D (height, width, channels)
+        input_image = processed_image[0]
+        if len(input_image.shape) == 2:
+            input_image = np.stack((input_image,) * 3, axis=-1)
+            
+        xrai_attributions = xrai_object.GetMask(
+            input_image,
+            call_model_function,
+            {'class_index': prediction_class}
+        )
+        
+        # Reshape attributions to include channel dimension if necessary
+        if len(xrai_attributions.shape) == 2:
+            xrai_attributions = np.expand_dims(xrai_attributions, axis=-1)
+            xrai_attributions = np.repeat(xrai_attributions, 3, axis=-1)
+        
+        # Step 5: Visualize the XRAI attributions
+        if len(xrai_attributions.shape) == 2:
+            xrai_attributions_3d = np.expand_dims(xrai_attributions, axis=-1)
+            xrai_attributions_3d = np.repeat(xrai_attributions_3d, 3, axis=-1)
+        else:
+            xrai_attributions_3d = xrai_attributions
+            
+        grayscale_viz = saliency.VisualizeImageGrayscale(xrai_attributions_3d)
+        overlay_viz = saliency.VisualizeImageDiverging(xrai_attributions_3d)
+       
+        
+        return {
+            'grayscale_viz': grayscale_viz,
+            'overlay_viz': overlay_viz
+        }
     
-	if 'image' in data_to_print:
-		del data_to_print['image']
+    except Exception as e:
+        raise RuntimeError(f"Error computing XRAI: {str(e)}")
 
-	for key, value in data_to_print.items():
-		print(f"{key}: {value}")
-    
-	decoded = base64.b64decode(image)
-	dataBytesIO=io.BytesIO(decoded)
-	dataBytesIO.seek(0)
-	image = Image.open(dataBytesIO)
+@app.route('/upload', methods=['POST'])
+def upload_image():
+    if 'file' not in request.files:
+        return jsonify({'error': 'No file part'}), 400
+    file = request.files['file']
+    if file.filename == '':
+        return jsonify({'error': 'No selected file'}), 400
 
-	test_image=preprocess(image)
+    if file and file.filename.lower().endswith(('.png', '.jpg', '.jpeg')):
+        image = Image.open(file.stream)
+        prediction, probabilities = predict_tumor(image)
 
-	input_tensor = test_image
+        labeled_probabilities = {
+            CLASS_NAMES[i]: str(probabilities[i])
+            for i in range(len(CLASS_NAMES))
+        }
+        grad_cam = grad_cam_explanation(image)
+        lime_img = lime_explanation(image)
+        # explanation_ig = generate_integrated_gradients(image)
+        # explanation_occlusion = generate_occlusion_sensitivity(image)
+        # explanation_scorecam = generate_scorecam(image)
 
-	prediction = model.predict(test_image)
+        # Convert explanations to base64
+        def to_base64(img):
+            buffer = BytesIO()
+            # Normalize image to [0,1] range and handle NaN values
+            img = np.nan_to_num(img, nan=0.0)
+            img = np.clip(img, 0, 1)
+            # Convert to uint8 range [0,255]
+            img_uint8 = (img * 255).astype(np.uint8)
+            Image.fromarray(img_uint8).save(buffer, format="PNG")
+            return base64.b64encode(buffer.getvalue()).decode("utf-8")
 
+        # Compute XRAI attributions
+        xrai_result = compute_xrai(image, np.argmax(probabilities))
 
-	result=np.argmax(prediction,axis=1)[0]
-	accuracy=str(np.max(prediction,axis=1)[0])
+        response_data = {
+            'prediction': prediction,
+            'probabilities': labeled_probabilities,
+            'grad_cam': to_base64(grad_cam),
+            'lime': to_base64(np.array(lime_img)),
+            'grayscale_viz': to_base64(xrai_result['grayscale_viz']),
+            'overlay_viz': to_base64(xrai_result['overlay_viz'])
+        }
+        return jsonify(response_data)
 
-	label=label_dict[result]
+    return jsonify({'error': 'Invalid file format'}), 400
 
-		# Grad-CAM
-	predictions = model.predict(input_tensor)
-	predicted_class = np.argmax(predictions[0])
-	gradcam = compute_gradcam(model, input_tensor, predicted_class)
-	# Handle invalid values and normalize gradcam to [0, 1]
-	gradcam = np.nan_to_num(gradcam)  # Replace NaN and Inf with 0
-	gradcam_min = gradcam.min()
-	gradcam_max = gradcam.max()
-	if gradcam_max - gradcam_min > 0:
-		gradcam = (gradcam - gradcam_min) / (gradcam_max - gradcam_min)  # Normalize
-	else:
-		gradcam = np.zeros_like(gradcam)  # If gradcam is constant, set all values to 0
-	# Convert to uint8 for color mapping
-	overlay = cv2.applyColorMap(np.uint8(255 * gradcam), cv2.COLORMAP_JET)
-	overlay = cv2.cvtColor(overlay, cv2.COLOR_BGR2RGB)
+app.secret_key = secrets.token_hex(32)
 
-	def predict_proba(test_image):
-		return model.predict(test_image)
+# Default Ollama API URL
+OLLAMA_API_URL = os.environ.get("OLLAMA_API_URL", "http://localhost:11434/api/generate")
 
-    # LIME
-	explainer = lime_image.LimeImageExplainer()
-	explanation = explainer.explain_instance(
-		image=np.squeeze(input_tensor),
-		classifier_fn=predict_proba,
-		top_labels=top_labels,
-		hide_color=hide_color,
-        num_samples=num_samples
-	)
-	lime_img, mask = explanation.get_image_and_mask(
-		label=predicted_class,
-		positive_only=True,
-		hide_rest=False,
-		num_features=num_features,
-		min_weight=min_weight
-	)
-	lime_result = mark_boundaries(lime_img / 255, mask)
+@app.route('/chat', methods=['POST'])
+def chat():
+    # Initialize session for conversation history if not already present
+    if 'conversation_history' not in session:
+        session['conversation_history'] = []
 
-	# Saliency Map
-	saliency_map = generate_saliency_map(model, input_tensor, predicted_class, smooth_samples, smooth_noise)
+    # Extract form data
+    medical_history = request.form.get('medical_history', '')
+    pt_description = request.form.get('pt_description', '')
+    symptoms = request.form.get('symptoms', '')
+    prediction = request.form.get('prediction', '')
+    user_message = request.form.get('message', '')
 
-	# Combine Grad-CAM and LIME
-	gradcam_3d = np.repeat(gradcam[:, :, np.newaxis], 3, axis=2)
-	combined_img = (0.5 * gradcam_3d + 0.5 * lime_img / 255).clip(0, 1)
+    # Handle file if it exists
+    file_data = None
+    if 'file' in request.files:
+        file = request.files['file']
+        if file and file.filename.lower().endswith(('.png', '.jpg', '.jpeg')):
+            file_data = base64.b64encode(file.read()).decode('utf-8')
 
-	# Generate visualization
-	buf = create_visualization(overlay, lime_result, combined_img, saliency_map)
-	encoded_img = base64.b64encode(buf.getvalue()).decode('utf-8')
- 
-# Convert input_tensor to image
-	input_tensor_img = np.squeeze(input_tensor)
-	input_tensor_img = (input_tensor_img * 255).astype(np.uint8)
-	submit_img_encoded = base64.b64encode(cv2.imencode('.png', input_tensor_img)[1]).decode('utf-8')
- 
-	# Generate visualization
-	gradcam_img = (gradcam_3d * 255).astype(np.uint8)
-	lime_explanation = (lime_img * 255).astype(np.uint8)
-	lime_explanation_cam = (lime_result * 255).astype(np.uint8)
-	combined_gradcam_lime_exp = (combined_img * 255).astype(np.uint8)
-	saliency_map_img = (saliency_map * 255).astype(np.uint8)
- 
-	# Encode images
-	gradcam_img_encoded = base64.b64encode(cv2.imencode('.png', gradcam_img)[1]).decode('utf-8')
-	lime_explanation_encoded = base64.b64encode(cv2.imencode('.png', lime_explanation)[1]).decode('utf-8')
-	combined_gradcam_lime_exp_encoded = base64.b64encode(cv2.imencode('.png', combined_gradcam_lime_exp)[1]).decode('utf-8')
-	saliency_map_encoded = base64.b64encode(cv2.imencode('.png', saliency_map_img)[1]).decode('utf-8')
-	lime_explanation_cam_encoded = base64.b64encode(cv2.imencode('.png', lime_explanation_cam)[1]).decode('utf-8')
+    # Debugging logs
+    print(f"Medical History: {medical_history}")
+    print(f"Patient Description: {pt_description}")
+    print(f"Symptoms: {symptoms}")
+    print(f"Prediction: {prediction}")
+    print(f"User Message: {user_message}")
+    print(f"File: {file_data if file_data else 'No file'}")
 
- 
-	response = {
-        'prediction': {'result': label, 'accuracy': accuracy},
-        'user_id': str(uuid.uuid4()),
-        'img_size': IMAGE_SIZE,
-        'submit_img': submit_img_encoded,
-        'gradcam_img': gradcam_img_encoded,
-        'lime_explanation': lime_explanation_encoded,
-        'combined_gradcam_lime_exp': combined_gradcam_lime_exp_encoded,
-        'saliency_map': saliency_map_encoded,
-        'lime_explanation_cam': lime_explanation_cam_encoded,
-        'encoded_img': encoded_img
+    # Build the payload for Ollama API
+    conversation_history = session['conversation_history']
+    conversation_history.append({"role": "user", "content": user_message})
+
+    payload = {
+        "model": "llama3.2-vision:latest",  # Replace with your preferred model
+        "prompt": f"""
+            You are named RadioAI.
+            You are a medical expert in oncology. Based on the MRI image analysis, the patient has been diagnosed with cancer.
+            The AI has identified a brain tumor. Please provide step-by-step guidance for the next steps:
+            
+            Patient Information (if available):
+            - Patient Details: {pt_description}
+            - Medical History: {medical_history}
+            - Symptoms: {symptoms}
+            
+            MRI Analysis Results:
+            - Tumor Type: {prediction}
+            
+            Uploaded Image: {file_data} if there is image, describe this image
+            
+            Previous Conversation History:
+            {conversation_history}
+            
+            Current User Message: {user_message} if there is no user message that means this is the first message so make sure to give propoper descriptinve alalysis about the case if you need more details please ask the user
+            
+            Provide a clear, actionable plan for the next steps in diagnosis and treatment.
+        """
     }
 
-	return jsonify(response)
-
-@app.route('/health', methods=['GET'])
-def health_check():
-    return jsonify({"status": "ok"}), 200
-
-
-# for RAG app
-
-import requests
-import psycopg2
-import uuid
-import os
-from sklearn.feature_extraction.text import TfidfVectorizer
-from sklearn.metrics.pairwise import cosine_similarity
-import pickle
-import re
-
-# --- Configuration ---
-# Load configuration from environment variables with default values
-OLLAMA_API_URL = os.environ.get("OLLAMA_API_URL", "http://localhost:11434/api/generate")
-PG_HOST = os.environ.get("PG_HOST", "localhost")
-PG_PORT = int(os.environ.get("PG_PORT", 5432))
-PG_DATABASE = os.environ.get("PG_DATABASE", "mriDb")
-PG_USER = os.environ.get("PG_USER", "user")
-PG_PASSWORD = os.environ.get("PG_PASSWORD", "secret")
-SIMILARITY_THRESHOLD = float(os.environ.get("SIMILARITY_THRESHOLD", 0.8))
-
-# File to store the TF-IDF vectorizer
-VECTORIZER_FILE = "tfidf_vectorizer.pkl"
-
-# --- Database Connection and Table Setup ---
-try:
-    # Establish PostgreSQL connection
-    pg_conn = psycopg2.connect(
-        host=PG_HOST, port=PG_PORT, database=PG_DATABASE, user=PG_USER, password=PG_PASSWORD
-    )
-    pg_cursor = pg_conn.cursor()
-    print("Connected to PostgreSQL successfully!")
-
-    # Create chat_history table if it doesn't exist (idempotent)
-    pg_cursor.execute("""
-        CREATE TABLE IF NOT EXISTS chat_history (
-            id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-            user_id UUID NOT NULL,
-            session_id UUID NOT NULL,
-            message_text TEXT NOT NULL,
-            sender VARCHAR(20) NOT NULL CHECK (sender IN ('user', 'bot')),
-            timestamp TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
-        );
-        CREATE INDEX IF NOT EXISTS idx_chat_history_user_session ON chat_history (user_id, session_id);
-        CREATE INDEX IF NOT EXISTS idx_chat_history_session ON chat_history (session_id);
-    """)
-    pg_cursor.execute("""
-        CREATE TABLE IF NOT EXISTS predefined_responses (
-                id SERIAL PRIMARY KEY,
-                query_pattern TEXT NOT NULL,
-                response TEXT NOT NULL,
-                UNIQUE(query_pattern)
-            );
-    """)
-    pg_conn.commit()
-
-except psycopg2.Error as e:
-    print(f"Error connecting to/setting up PostgreSQL: {e}")
-    exit()
-
-# --- Load/Initialize TF-IDF Vectorizer and Cached Responses ---
-try:
-    # Try to load the vectorizer from file
-    with open(VECTORIZER_FILE, "rb") as f:
-        vectorizer = pickle.load(f)
-except FileNotFoundError:
-    # If file not found, create a new vectorizer
-    vectorizer = TfidfVectorizer()
-
-cached_responses = {}
-try:
-    # Load cached responses from the database
-    pg_cursor.execute("SELECT message_text, sender FROM chat_history WHERE sender = 'user'")
-    user_messages = pg_cursor.fetchall()
-    if user_messages:
-        texts = [message[0] for message in user_messages]
-        vectorizer.fit(texts) # Fit vectorizer to existing user queries
-        with open(VECTORIZER_FILE, "wb") as f:
-            pickle.dump(vectorizer, f) # Save the vectorizer
-        for message in user_messages:
-            pg_cursor.execute("SELECT message_text FROM chat_history WHERE sender = 'bot' AND message_text LIKE %s", ('%'+message[0]+'%',))
-            bot_message = pg_cursor.fetchone()
-            if bot_message:
-                cached_responses[message[0]] = bot_message[0]
-except psycopg2.Error as e:
-    print(f"Error loading cached responses: {e}")
-
-
-
-# --- Helper Functions ---
-def get_context_from_db(query, session_id):
-    """Retrieve context strictly related to specified tumor cases and warn for inappropriate content."""
-    relevant_keywords = [
-        "MRI", "brain tumor", "tumor diagnosis", "tumor recovery", "tumor identification",
-        "oncologist", "tumor examination", "tumor education", "Glioma", "Meningioma", 
-        "No tumor", "Pituitary", "tumor symptoms"
-    ]
-    inappropriate_keywords = ["sex", "child abuse", "violence", "harassment"]
+    # Prepare the Ollama API request
+    ollama_request = {
+        "model": "llama3.2-vision:latest",
+        "prompt": payload,
+        "stream": False
+    }
 
     try:
-        # Include the user's query as an additional filter
-        sql = """
-            SELECT message_text
-            FROM chat_history
-            WHERE (""" + " OR ".join([f"message_text ILIKE %s" for _ in relevant_keywords]) + """
-            OR message_text ILIKE %s)
-            ORDER BY timestamp DESC
-            LIMIT 10;
-        """
-        # Add the user's query to the parameters
-        parameters = tuple(f"%{keyword}%" for keyword in relevant_keywords) + (f"%{query}%",)
-        pg_cursor.execute(sql, parameters)
-        results = pg_cursor.fetchall()
-
-        # Prepare context with oldest messages first
-        context = "\n".join([f"{row[0]}" for row in results[::-1]])
-
-        # Check for inappropriate content
-        if any(re.search(rf"\b{keyword}\b", context, re.IGNORECASE) for keyword in inappropriate_keywords):
-            return "Warning: The system detected inappropriate content in the context. Please ensure queries remain professional and relevant."
-
-        return context
-    except psycopg2.Error as e:
-        print(f"Error querying PostgreSQL: {e}")
-        return ""
-
-def store_message(user_id, session_id, message_text, sender):
-    """Stores a message in the chat history database."""
-    try:
-        sql = "INSERT INTO chat_history (user_id, session_id, message_text, sender) VALUES (%s, %s, %s, %s);"
-        pg_cursor.execute(sql, (user_id, session_id, message_text, sender))
-        pg_conn.commit()
-    except psycopg2.Error as e:
-        print(f"Error storing message: {e}")
-
-def find_cached_response(query, similarity_threshold=SIMILARITY_THRESHOLD):
-    """Finds a cached response for a similar query using TF-IDF and cosine similarity."""
-    if not cached_responses:
-        return None
-    try:
-        query_vec = vectorizer.transform([query]) # Vectorize the input query
-        similarities = []
-        for cached_query in cached_responses:
-            cached_query_vec = vectorizer.transform([cached_query]) # Vectorize the cached query
-            similarity = cosine_similarity(query_vec, cached_query_vec)[0][0] # Calculate cosine similarity
-            similarities.append((cached_query, similarity))
-
-        best_match, max_similarity = max(similarities, key=lambda item: item[1]) if similarities else (None, 0)
-        if max_similarity >= similarity_threshold: # Check if similarity is above the threshold
-            return cached_responses[best_match] # Return the cached response
-        return None
-    except Exception as e:
-        print(f"Error during similarity check: {e}")
-        return None
-
-# --- Flask Routes ---
-def upload_predefined_responses():
-    """Uploads predefined responses to the database."""
-    predefined_responses = [
-        {"query_pattern": r"your name|what is your name|name", "response": "I am RadioAI, and I specialize in assisting with the identification and guidance related to 'Glioma,' 'Meningioma,' 'No tumor,' and 'Pituitary' using MRI images."},
-        {"query_pattern": r"your purpose|what do you do", "response": "I assist in identifying and providing guidance on brain tumor cases using MRI images."},
-    ]
-    try:
-        # Perform database operations
-        for item in predefined_responses:
-            sql = "INSERT INTO predefined_responses (query_pattern, response) VALUES (%s, %s) ON CONFLICT DO NOTHING;"
-            pg_cursor.execute(sql, (item["query_pattern"], item["response"]))
-        pg_conn.commit()
-        print("Predefined responses uploaded successfully.")
-    except psycopg2.Error as e:
-        # Handle database errors
-        print(f"Error uploading predefined responses: {e}")
-        pg_conn.rollback()  # Rollback in case of an error
-
-
-
-# RAG Process
-@app.route('/rag', methods=['POST'])
-def rag():
-    """Handles RAG requests."""
-    try:
-        data = request.get_json()
-        user_query = data.get('query')
-        user_id = data.get('user_id')
-        session_id = data.get('session_id')
-
-        # Validate input
-        if not user_query or not user_id:
-            print("Invalid input.")
-            return jsonify({"error": "Missing 'query' or 'user_id' parameter"}), 400
-
-        # Check for predefined responses in the database
-        sql = "SELECT response FROM predefined_responses WHERE %s ~* query_pattern LIMIT 1;"
-        pg_cursor.execute(sql, (user_query,))
-        predefined_response = pg_cursor.fetchone()
-        if predefined_response:
-            return jsonify({
-                "response": predefined_response[0],
-                "context_used": None,
-                "session_id": session_id or str(uuid.uuid4()),
-                "cached": False
-            })
-
-        # Generate a new session ID if one is not provided
-        if not session_id:
-            session_id = str(uuid.uuid4())
-
-        # Store the user's message in the database
-        store_message(user_id, session_id, user_query, 'user')
-
-        # Check for cached response
-        cached_response = find_cached_response(user_query)
-        if cached_response:
-            print("Serving cached response.")
-            return jsonify({
-                "response": cached_response,
-                "context_used": "Cached Response",
-                "session_id": session_id,
-                "cached": True
-            })
-
-        # If no cached response, retrieve context and call Ollama
-        db_context = get_context_from_db(user_query, session_id)
-
-        prompt = f"""Use the following context to answer the question at the end. 
-        If you don't find the answer in the context, say "I couldn't find an answer in the provided context."
-        Context:
-        {db_context}
-        Question: 
-        {user_query}
-        """
-        print(f"Calling Ollama with prompt: {prompt}")
-        ollama_request = {
-            "model": "llama3.2-vision:latest",
-            "prompt": prompt,
-            "stream": False
-        }
+        # Send the request to Ollama API
         ollama_response = requests.post(OLLAMA_API_URL, json=ollama_request)
         ollama_response.raise_for_status()  # Raise HTTPError for bad responses (4xx or 5xx)
         ollama_data = ollama_response.json()
-        response_text = ollama_data.get("response")
-
-        # Store the bot's response
-        store_message(user_id, session_id, response_text, 'bot')
-
-        # Update the cache and vectorizer
-        cached_responses[user_query] = response_text
-        texts = list(cached_responses.keys())
-        vectorizer.fit(texts)
-        with open(VECTORIZER_FILE, "wb") as f:
-            pickle.dump(vectorizer, f)
-
-        return jsonify({
-            "response": response_text,
-            "context_used": db_context,
-            "session_id": session_id,
-            "cached": False
-        })
-
+        response_text = ollama_data.get("response", "Sorry, I couldn't generate a response.")
     except requests.exceptions.RequestException as e:
-        return jsonify({"error": f"Error communicating with Ollama: {e}"}), 500
-    
-    
-    # according to new changes 
-# Segmentation map analysis function
-def analyze_segmentation_map(segmentation_map):
-    binary_map = (segmentation_map > 0.5).astype(np.uint8)
-    contours, _ = cv2.findContours(binary_map, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
-    
-    if not contours:
-        return {"has_tumor": False}
+        return jsonify({'error': f'Failed to communicate with Ollama API: {str(e)}'}), 500
 
-    largest_contour = max(contours, key=cv2.contourArea)
-    tumor_area = cv2.contourArea(largest_contour)
-    pixel_to_cm = 0.1
-    tumor_size_cm = tumor_area * (pixel_to_cm ** 2)
-    x, y, w, h = cv2.boundingRect(largest_contour)
-    M = cv2.moments(largest_contour)
-    if M["m00"] != 0:
-        centroid_x = int(M["m10"] / M["m00"])
-        centroid_y = int(M["m01"] / M["m00"])
-    else:
-        centroid_x, centroid_y = None, None
+    # Append the AI's response to the conversation history
+    conversation_history.append({"role": "assistant", "content": response_text})
+    session['conversation_history'] = conversation_history
 
-    return {
-        "has_tumor": True,
-        "size": tumor_size_cm,
-        "bounding_box": {"x": x, "y": y, "width": w, "height": h},
-        "centroid": {"x": centroid_x, "y": centroid_y}
-    }
+    # Return the AI's response
+    return jsonify({'response': response_text})
 
-# Tumor visualization function
-def visualize_tumor(image, tumor_details):
-    x, y, w, h = tumor_details["bounding_box"].values()
-    centroid_x, centroid_y = tumor_details["centroid"].values()
+def is_medical_related(message):
+    medical_keywords = [
+    # General Medical Terms
+    "anatomy", "biology", "diagnosis", "disease", "healthcare", "medicine",
+    "pathology", "physiology", "prescription", "prognosis", "symptom", "treatment",
 
-    plt.imshow(image, cmap="gray")
-    plt.gca().add_patch(plt.Rectangle((x, y), w, h, edgecolor='red', facecolor='none', lw=2))
-    plt.plot(centroid_x, centroid_y, 'ro')  # Mark centroid
-    plt.title("Tumor Visualization")
+    # Body Systems and Organs
+    "brain", "heart", "lungs", "liver", "kidney", "stomach", "intestine", "pancreas",
+    "thyroid", "nervous system", "cardiovascular", "respiratory", "digestive",
+    "immune system", "musculoskeletal", "endocrine",
 
-    # Save the plot to a bytes buffer
-    buf = io.BytesIO()
-    plt.savefig(buf, format='png')
-    buf.seek(0)
-    plt.close()
+    # Medical Specialties
+    "oncology", "cardiology", "neurology", "dermatology", "orthopedics", "pediatrics",
+    "radiology", "surgery", "gynecology", "urology", "ophthalmology", "psychiatry",
+    "pulmonology", "gastroenterology", "rheumatology", "nephrology",
 
-    # Encode the image to base64
-    image_base64 = base64.b64encode(buf.read()).decode('utf-8')
-    return image_base64
+    # Diseases and Conditions
+    "cancer", "diabetes", "hypertension", "asthma", "arthritis", "infection",
+    "inflammation", "tumor", "stroke", "heart attack", "pneumonia", "tuberculosis",
+    "migraine", "epilepsy", "depression", "anxiety", "obesity", "anemia",
+    "fibromyalgia", "osteoporosis", "alzheimer's", "parkinson's", "multiple sclerosis",
+    "crohn's disease", "ulcerative colitis",
 
+    # Symptoms
+    "pain", "fever", "headache", "nausea", "vomiting", "dizziness", "fatigue", "cough",
+    "shortness of breath", "chest pain", "abdominal pain", "swelling", "rash", "itching",
+    "numbness", "weakness", "blurred vision", "insomnia", "diarrhea", "constipation",
 
-@app.route("/new")
-def indexNew():
-    return(render_template("newIndex.html"))
+    # Diagnostic Procedures
+    "mri", "ct scan", "x-ray", "ultrasound", "biopsy", "blood test", "urine test",
+    "ecg", "eeg", "endoscopy", "colonoscopy", "mammogram", "pet scan", "angiography",
+    "lumbar puncture",
 
-@app.route('/predict1', methods=['POST'])
-def getResult():
-    try:
-        if 'image' not in request.files:
-            return jsonify({"error": "No image file uploaded"}), 400
-        
-        file = request.files['image']
-        img = Image.open(file).convert("L")  # Convert image to grayscale
+    # Treatments and Interventions
+    "chemotherapy", "radiation therapy", "surgery", "medication", "antibiotics",
+    "antiviral", "vaccine", "immunotherapy", "physical therapy", "occupational therapy",
+    "dialysis", "transplantation", "hormone therapy", "laser treatment", "acupuncture",
+    "chiropractic",
 
-        processed_img = preprocess(img)
-        prediction = model.predict(processed_img)
-        result = np.argmax(prediction, axis=1)[0]
-        confidence = float(np.max(prediction))
-        label = label_dict[result]
+    # Medications and Drugs
+    "aspirin", "ibuprofen", "acetaminophen", "insulin", "metformin", "statins",
+    "antibiotics", "antihistamines", "antidepressants", "antipsychotics", "opioids",
+    "steroids", "anticoagulants", "beta-blockers", "ace inhibitors",
 
-        segmentation_map = np.random.rand(IMAGE_SIZE, IMAGE_SIZE)  # Replace with real segmentation map
-        tumor_details = analyze_segmentation_map(segmentation_map)
+    # Medical Imaging
+    "radiology", "mri", "ct scan", "ultrasound", "x-ray", "fluoroscopy", "pet scan",
+    "mammography", "tomography",
 
-        # Visualize tumor if present
-        visualization = None
-        if tumor_details["has_tumor"]:
-            visualization = visualize_tumor(np.array(img), tumor_details)
+    # Patient Information
+    "medical history", "family history", "allergies", "medications", "diagnosis",
+    "prognosis", "treatment plan", "follow-up", "lab results", "vital signs", "bmi",
 
-        report = {
-            "has_tumor": tumor_details["has_tumor"],
-            "classification": label,
-            "confidence": f"{confidence * 100:.2f}%",
-            "tumor_details": tumor_details,
-            "visualization": visualization,
-            "details": f"The model has classified the provided MRI image as a {label} "
-                       f"with a confidence of {confidence * 100:.2f}%. Tumor details: {tumor_details}."
-        }
+    # Healthcare Professionals
+    "doctor", "physician", "surgeon", "nurse", "pharmacist", "radiologist", "oncologist",
+    "therapist", "dentist", "optometrist", "psychiatrist", "pediatrician", "cardiologist",
 
-        return jsonify(report), 200
+    # Health and Wellness
+    "diet", "nutrition", "exercise", "fitness", "weight loss", "mental health",
+    "stress management", "sleep hygiene", "smoking cessation", "alcohol consumption",
+    "hydration",
 
-    except Exception as e:
-        return jsonify({"error": str(e)}), 500
-    
-if __name__ == "__main__":
+    # Emergency and First Aid
+    "cpr", "first aid", "emergency", "trauma", "ambulance", "defibrillator", "aed",
+    "poison control", "choking", "burns", "fractures",
+
+    # Miscellaneous
+    "clinical trial", "research study", "placebo", "side effects", "overdose",
+    "addiction", "rehabilitation", "palliative care", "hospice", "telemedicine",
+    "electronic health record"
+]
+    return any(keyword in message.lower() for keyword in medical_keywords)
+
+@app.route("/")
+def index():
+    return render_template("index.html")
+
+if __name__ == '__main__':
     app.run(debug=True)

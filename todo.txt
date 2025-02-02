@@ -1,0 +1,25 @@
+lime iteration count should be 1000
+
+
+Medical History:
+
+Diagnosed with Stage II Breast Cancer in 2022.
+Underwent chemotherapy (6 cycles) and radiation therapy.
+Family history of cancer (mother diagnosed with ovarian cancer at age 50).
+History of hypertension and Type 2 diabetes.
+Allergic to penicillin.
+
+Patient Description:
+
+52-year-old female, non-smoker, occasional alcohol consumption.
+Height: 162 cm, Weight: 68 kg (BMI: 25.9).
+Works as a school teacher, moderate physical activity.
+No significant past surgeries except lumpectomy in 2022.
+
+Symptoms:
+
+Persistent fatigue and weakness.
+Lump in the left breast with occasional pain.
+Unexplained weight loss (5 kg in 3 months).
+Loss of appetite and nausea.
+Slight swelling in the underarm area.
