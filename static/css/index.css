@@ -1,0 +1,27 @@
+ .image-container {
+            display: inline-block;
+            border: 2px dashed #ccc;
+            padding: 5px;
+            max-width: 100%;
+            overflow: hidden;
+        }
+
+        .image {
+            width: 100%;
+            height: auto;
+            display: block;
+        }
+        textarea {
+            width: 100%;
+            resize: none;  /* Prevent manual resizing */
+            overflow: hidden;  /* Hide scrollbars */
+            min-height: 50px;  /* Optional: Set a minimum height */
+            padding: 8px;
+            font-size: 16px;
+            box-sizing: border-box;
+        }
+       #chatBox {
+    height: 100%;  /* Adjust based on parent container height */
+    max-height: 80vh;  /* Optional: ensures that it doesn't grow too big on larger screens */
+    overflow-y: auto; /* Ensures scrolling when the content overflows */
+}

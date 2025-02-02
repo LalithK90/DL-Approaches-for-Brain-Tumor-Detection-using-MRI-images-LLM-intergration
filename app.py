@@ -1,6 +1,6 @@
-import io
-import os
-from flask import Flask, request, render_template, jsonify, send_file, session
+
+from flask import Flask, request, render_template, jsonify,  session
+import ollama
 import tensorflow as tf
 import numpy as np
 from PIL import Image
@@ -19,7 +19,6 @@ from skimage.segmentation import mark_boundaries
 import matplotlib.pyplot as plt
 import base64
 from io import BytesIO
-import json
 import keras
 
 from io import BytesIO
@@ -29,7 +28,6 @@ import numpy as np
 import base64
 from io import BytesIO
 import secrets
-import requests
 
 tf.data.experimental.enable_debug_mode()
 
@@ -269,89 +267,121 @@ def upload_image():
 
 app.secret_key = secrets.token_hex(32)
 
-# Default Ollama API URL
-OLLAMA_API_URL = os.environ.get("OLLAMA_API_URL", "http://localhost:11434/api/generate")
 
 @app.route('/chat', methods=['POST'])
 def chat():
     # Initialize session for conversation history if not already present
     if 'conversation_history' not in session:
         session['conversation_history'] = []
-
+    data = request.get_json()
     # Extract form data
-    medical_history = request.form.get('medical_history', '')
-    pt_description = request.form.get('pt_description', '')
-    symptoms = request.form.get('symptoms', '')
-    prediction = request.form.get('prediction', '')
-    user_message = request.form.get('message', '')
+    medical_history = data.get('medical_history')
+    pt_description = data.get('pt_description')
+    symptoms = data.get('symptoms')
+    prediction = data.get('prediction')
+    user_message = data.get('message')
+    base64_image = data.get("file", "")
 
-    # Handle file if it exists
-    file_data = None
-    if 'file' in request.files:
-        file = request.files['file']
-        if file and file.filename.lower().endswith(('.png', '.jpg', '.jpeg')):
-            file_data = base64.b64encode(file.read()).decode('utf-8')
+    if not base64_image:
+        return jsonify({"status": "error", "message": "No image provided"}), 400
 
-    # Debugging logs
-    print(f"Medical History: {medical_history}")
-    print(f"Patient Description: {pt_description}")
-    print(f"Symptoms: {symptoms}")
-    print(f"Prediction: {prediction}")
-    print(f"User Message: {user_message}")
-    print(f"File: {file_data if file_data else 'No file'}")
+        # Save the image
+    image_path = save_base64_image(base64_image)
+
+    if not image_path:
+        return jsonify({"status": "error", "message": "Image decoding failed"}), 500
+
+    # Check if there is a message or not
+    if not user_message or user_message.strip() == "":
+        user_message= "there is no message so i was unable to understand the queary"
+    else:
+        if not is_medical_related(user_message):
+            user_message + "This is not a medical-related question, so please make sure that your question is medical-related. Thank you!"
 
     # Build the payload for Ollama API
     conversation_history = session['conversation_history']
     conversation_history.append({"role": "user", "content": user_message})
 
-    payload = {
-        "model": "llama3.2-vision:latest",  # Replace with your preferred model
-        "prompt": f"""
+    first_payload = { f"""
             You are named RadioAI.
             You are a medical expert in oncology. Based on the MRI image analysis, the patient has been diagnosed with cancer.
+            According to the detected cancer explain how to located in the mri image with descriptive way.
+            If patient has been diagnosed with no tumor but then give actional plan according to the patient medical history and symptoms.
+            Is there with image plz explain the image charactoristics and identify changes from it and possible location on the mri brain image.
             The AI has identified a brain tumor. Please provide step-by-step guidance for the next steps:
-            
+
             Patient Information (if available):
             - Patient Details: {pt_description}
             - Medical History: {medical_history}
             - Symptoms: {symptoms}
-            
+
             MRI Analysis Results:
             - Tumor Type: {prediction}
-            
-            Uploaded Image: {file_data} if there is image, describe this image
-            
+
+            Uploaded Image: if there is image, describe this image as well if there is no image please ignore this part
+
             Previous Conversation History:
             {conversation_history}
-            
-            Current User Message: {user_message} if there is no user message that means this is the first message so make sure to give propoper descriptinve alalysis about the case if you need more details please ask the user
-            
+            if there is any posibility to suggest medicine make sure that mention medicine generic name and dose according to the british national formulary.
             Provide a clear, actionable plan for the next steps in diagnosis and treatment.
         """
     }
 
-    # Prepare the Ollama API request
-    ollama_request = {
-        "model": "llama3.2-vision:latest",
-        "prompt": payload,
-        "stream": False
+
+    second_payload = { f"""
+            You are named RadioAI.
+            You are a medical expert in oncology. Based on the MRI image analysis, the patient has been diagnosed with cancer.
+
+            Previous Conversation History:
+            {conversation_history}
+
+            according to the priviouse conversation and current queary {user_message}.
+            if the current queary is not related to the medical field please make sure that the queary is related to the medical field.
+            Provide a clear, actionable plan for the next steps in diagnosis and treatment.
+        """
     }
 
+
     try:
-        # Send the request to Ollama API
-        ollama_response = requests.post(OLLAMA_API_URL, json=ollama_request)
-        ollama_response.raise_for_status()  # Raise HTTPError for bad responses (4xx or 5xx)
-        ollama_data = ollama_response.json()
-        response_text = ollama_data.get("response", "Sorry, I couldn't generate a response.")
-    except requests.exceptions.RequestException as e:
-        return jsonify({'error': f'Failed to communicate with Ollama API: {str(e)}'}), 500
+        if not user_message or user_message.strip() == "":
+            stream = ollama.chat(
+                model="llama3.2-vision:latest",
+                messages=[{
+                    "role": "user",
+                    "content": str(first_payload),
+                    "images": image_path
+                        }],
+                stream=True,
+            )
+        else:
+            stream = ollama.chat(
+                model="llama3.2-vision:latest",
+                messages=[{
+                    "role": "user",
+                    "content": str(second_payload),
+                        }],
+                stream=True,
+            )
 
-    # Append the AI's response to the conversation history
-    conversation_history.append({"role": "assistant", "content": response_text})
-    session['conversation_history'] = conversation_history
+        response_text = ""
+        # # Append the AI's response to the conversation history
+        conversation_history.append({"role": "assistant", "content": response_text})
+        session['conversation_history'] = conversation_history
 
-    # Return the AI's response
-    return jsonify({'response': response_text})
+        for chunk in stream:
+            response_text += chunk["message"]["content"]
+        print(response_text)
+        return jsonify({"response": response_text})
+
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+ # Function to check the message and respond if it's not medical-related
+def check_message(message):
+    if is_medical_related(message):
+        return True
+    else:
+        return "This is not a medical-related question, so please make sure that your question is medical-related. Thank you!"
 
 def is_medical_related(message):
     medical_keywords = [
@@ -424,6 +454,25 @@ def is_medical_related(message):
     "electronic health record"
 ]
     return any(keyword in message.lower() for keyword in medical_keywords)
+
+def save_base64_image(base64_string, output_path="uploaded_image.jpg"):
+    try:
+        # Remove the data URL prefix (e.g., "data:image/jpeg;base64,")
+        if "," in base64_string:
+            base64_string = base64_string.split(",", 1)[1]
+
+        # Decode Base64 string
+        image_bytes = base64.b64decode(base64_string)
+
+        # Save the image file
+        with open(output_path, "wb") as image_file:
+            image_file.write(image_bytes)
+
+        return output_path  # Return the file path
+
+    except Exception as e:
+        print("Error decoding base64 image:", str(e))
+        return None
 
 @app.route("/")
 def index():
