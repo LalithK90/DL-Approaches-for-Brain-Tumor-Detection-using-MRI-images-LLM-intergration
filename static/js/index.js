@@ -61,8 +61,8 @@ $(document).ready(function () {
                             }
                             $('#grad-cam').attr('src', 'data:image/png;base64,' + response.grad_cam).css({ "max-width": "100%" });
                             $('#lime').attr('src', 'data:image/png;base64,' + response.lime).css({ "max-width": "100%" });
-                            $('#grayscale_viz').attr('src', 'data:image/png;base64,' + response.grayscale_viz).css({ "max-width": "100%" });
-                            $('#overlay_viz').attr('src', 'data:image/png;base64,' + response.overlay_viz).css({ "max-width": "100%" });
+                            // $('#grayscale_viz').attr('src', 'data:image/png;base64,' + response.grayscale_viz).css({ "max-width": "100%" });
+                            // $('#overlay_viz').attr('src', 'data:image/png;base64,' + response.overlay_viz).css({ "max-width": "100%" });
 
                             $('#results').show();
                         };
