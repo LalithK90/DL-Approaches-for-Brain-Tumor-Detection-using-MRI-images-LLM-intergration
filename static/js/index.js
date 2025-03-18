@@ -49,8 +49,8 @@ $(document).ready(function () {
                         const img = new Image();
                         img.src = event.target.result;
                         img.onload = function () {
-                            imgWidth = img.naturalWidth;
-                            imgHeight = img.naturalHeight;
+                            imgWidth = img.naturalWidth * 0.75;
+                            imgHeight = img.naturalHeight * 0.75;
 
                             // Update the UI with the uploaded image and prediction results
                             $('#uploadedImage').attr('src', uploadedImageSrc).css({ "max-width": "100%" });
@@ -79,7 +79,7 @@ $(document).ready(function () {
 
     $('#submitModalForm').off('click').on('click', function () {
         $(".image-container").css({ "width": imgWidth, "height": imgHeight });
-        $("#uploadedImage, #grad-cam, #lime, #grayscale_viz, #overlay_viz").css({ "width": imgWidth * 0.75, "height": imgHeight * 0.75 });
+        $("#uploadedImage, #grad-cam, #lime, #grayscale_viz, #overlay_viz").css({ "width": imgWidth, "height": imgHeight });
         $('.image-container').resizable();
         startProgressAlert();
         modal.hide();
@@ -132,19 +132,13 @@ $(document).ready(function () {
 
 
     $('#sendChat').on('click', function () {
+        startProgressAlert();
         const message = $('#chatInput').val();
         if (message.trim() === '') return;
 
         $('#chatBox').append(`<p><strong>You:</strong> ${message}</p>`);
         $('#chatInput').val('');
-        Swal.fire({
-            title: 'Processing...',
-            text: 'Please wait while we process your request.',
-            allowOutsideClick: false,
-            didOpen: () => {
-                Swal.showLoading();
-            }
-        });
+
         const formData = {
             message: message,
         };
@@ -157,14 +151,15 @@ $(document).ready(function () {
                 endProgressAlert();
                 $('#chatBox').append(`<p><strong>RadioAI:</strong> ${convertMarkdownToText(response.response)}</p>`);
                 console.log('Additional data saved successfully.', response);
-
+                $('#chatBox').animate({
+                    scrollTop: $('#chatBox')[0].scrollHeight
+                }, 300);
             },
             error: function (xhr) {
                 console.error('Error saving additional data:', xhr.responseText);
             }
         });
 
-        Swal.close();
     });
 
     function convertMarkdownToText (markdown) {
@@ -193,8 +188,8 @@ $(document).ready(function () {
         $(this).height(this.scrollHeight);  // Set the height to fit content
     });
     // Initialize tooltips
-    var tooltipTriggerList = Array.from(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
-    var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+    let tooltipTriggerList = Array.from(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+    let tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
         return new bootstrap.Tooltip(tooltipTriggerEl);
     });
 

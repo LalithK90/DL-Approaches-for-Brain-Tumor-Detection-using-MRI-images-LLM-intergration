@@ -1,19 +1,20 @@
 
 from flask import Flask, request, render_template, jsonify,  session
+from typing import Tuple, Dict, Any
 import ollama
 import tensorflow as tf
 import numpy as np
 from PIL import Image
 import cv2
 from tf_explain.core.grad_cam import GradCAM
+from skimage.segmentation import quickshift
+from skimage.segmentation import slic
 # from tf_explain.core.smoothgrad import SmoothGrad
 # from tf_explain.core.integrated_gradients import IntegratedGradients
 # from tf_explain.core.occlusion_sensitivity import OcclusionSensitivity
 
 import saliency.core as saliency
 from saliency.core.xrai import XRAI
-from saliency.core.xrai import XRAI
-
 from lime import lime_image
 from skimage.segmentation import mark_boundaries
 import matplotlib.pyplot as plt
@@ -30,6 +31,7 @@ from io import BytesIO
 import secrets
 
 tf.data.experimental.enable_debug_mode()
+tf.get_logger().setLevel('ERROR')
 
 # Enable eager execution explicitly
 tf.config.run_functions_eagerly(True)
@@ -39,10 +41,10 @@ app = Flask(__name__)
 
 try:
     # model = tf.keras.models.load_model('model/propose_224_model.h5')
-    # model = tf.keras.models.load_model('model/restnet50_inbalance-model.h5')
-    model = tf.keras.models.load_model('model/googleLeNet_inbalance-model.h5')
-    # model = tf.keras.models.load_model('model/nin_inbalance-model.h5')
-    # model = tf.keras.models.load_model('model/vgg16_inbalance-model.h5')
+    model = tf.keras.models.load_model('model/restnet50_inbalance_224-model.h5')
+    # model = tf.keras.models.load_model('model/googleLeNet_inbalance_224-model.h5')
+    # model = tf.keras.models.load_model('model/nin_inbalance_224-model.h5')
+    # model = tf.keras.models.load_model('model/vgg16_inbalance_224-model.h5')
     print("Model loaded successfully.")
 except Exception as e:
     raise ValueError(f"Failed to load the model: {str(e)}")
@@ -54,13 +56,9 @@ CLASS_NAMES = ['Glioma', 'Meningioma', 'Notumor', 'Pituitary']
 def preprocess_image(img):
     img = np.array(img)
     img = cv2.bilateralFilter(img, d=2, sigmaColor=50, sigmaSpace=50)
-	# Apply a colormap (COLORMAP_BONE in this case)
     img = cv2.applyColorMap(img, cv2.COLORMAP_BONE)
-	# Resize the image to the target size
     img = cv2.resize(img, (IMG_SIZE, IMG_SIZE), interpolation=cv2.INTER_AREA)
-	# Convert the image to a Keras-compatible array
     array = keras.utils.img_to_array(img)
-	# Expand dimensions to match the input shape required by the model
     array = np.expand_dims(array, axis=0)
     return array
 
@@ -72,9 +70,9 @@ def get_last_convolutional_layer(model):
 
 def predict_tumor(image):
     processed_image = preprocess_image(image)
-    predictions = model(processed_image)  # Use model as a callable
+    predictions = model(processed_image) 
     predicted_class = np.argmax(predictions, axis=1)[0]
-    probabilities = predictions.numpy()[0]  # Convert EagerTensor to NumPy array
+    probabilities = predictions.numpy()[0] 
     return CLASS_NAMES[predicted_class], probabilities
 
 def grad_cam_explanation(image):
@@ -90,57 +88,61 @@ def grad_cam_explanation(image):
         layer_name=get_last_convolutional_layer(model)
     )
     
-    # Normalize the heatmap safely
     heatmap = grid.astype(np.float32)
     if heatmap.max() > heatmap.min():
         heatmap = (heatmap - heatmap.min()) / (heatmap.max() - heatmap.min())
     else:
-        heatmap = np.zeros_like(heatmap)  # Handle invalid heatmaps gracefully
+        heatmap = np.zeros_like(heatmap)  
     
     return heatmap
 
 def lime_explanation(image):
-    # Preprocess image once
     processed_image = np.array(image.resize((IMG_SIZE, IMG_SIZE), Image.Resampling.BILINEAR)) / 255.0
+    def custom_segmentation_slic(image):
+        return slic(image, n_segments=100, compactness=10, sigma=1)
+    
+    # explainer = lime_image.LimeImageExplainer(feature_selection='auto', segmentation_fn=custom_segmentation_slic)
 
-    # Create explainer with optimized settings
+    def custom_segmentation(image):
+        return quickshift(image, kernel_size=4, max_dist=2, ratio=0.5)
+    
+    # explainer = lime_image.LimeImageExplainer(feature_selection='auto', segmentation_fn=custom_segmentation)
+
     explainer = lime_image.LimeImageExplainer(feature_selection='auto')
 
-    # Define prediction function outside explain_instance for better performance
     def predict_fn(x):
         return model.predict(x.reshape(-1, IMG_SIZE, IMG_SIZE, 3), batch_size=32)
 
-    # Get explanation with optimized parameters
     explanation = explainer.explain_instance(
         processed_image,
         predict_fn,
-        top_labels=1,  # Reduced from 4 since we only use first label
+        top_labels=1,  
         hide_color=0,
-        num_samples=10,  # Reduced samples for better performance while maintaining quality
+        num_samples=100,  
         batch_size=32
     )
 
-    # Get visualization
     temp, mask = explanation.get_image_and_mask(
         explanation.top_labels[0],
         positive_only=True,
-        num_features=4,
+        num_features=10,
         hide_rest=False
     )
 
     return mark_boundaries(temp / 2 + 0.5, mask)
 
-# Define preprocessing function
+
+
 def preprocess_image(image):
-    image = image.resize((IMG_SIZE, IMG_SIZE))  # Resize to match model's input size
+    image = image.resize((IMG_SIZE, IMG_SIZE)) 
     image = np.array(image)
-    if len(image.shape) == 2:  # If grayscale, convert to RGB
+    if len(image.shape) == 2:  
         image = np.stack((image,) * 3, axis=-1)
-    image = image / 255.0   # Normalize pixel values to [0, 1]
-    image = np.expand_dims(image, axis=0)  # Add batch dimension
+    image = image / 255.0  
+    image = np.expand_dims(image, axis=0)  
     return image
 
-# Define call_model_function for saliency computation
+
 def call_model_function(images, call_model_args=None, expected_keys=None):
     target_class_idx = call_model_args['class_index']
     with tf.GradientTape() as tape:
@@ -153,21 +155,20 @@ def call_model_function(images, call_model_args=None, expected_keys=None):
 
 def encode_image_to_base64(img):
     try:
-        # Ensure the image is in the range [0, 255] and convert to uint8
+        
         if img.dtype == np.float32 or img.dtype == np.float64:
             img = (img * 255).astype(np.uint8)
         elif img.dtype != np.uint8:
             raise ValueError("Image must be a NumPy array with dtype float or uint8.")
 
-        # Convert the NumPy array to a PIL Image
+    
         pil_img = Image.fromarray(img)
 
-        # Save the PIL Image to a BytesIO buffer in PNG format
+       
         buffer = BytesIO()
         pil_img.save(buffer, format="PNG")
-        buffer.seek(0)  # Rewind the buffer to the beginning
-
-        # Encode the buffer content to base64
+        buffer.seek(0)  
+       
         base64_encoded = base64.b64encode(buffer.getvalue()).decode("utf-8")
 
         return base64_encoded
@@ -179,10 +180,9 @@ def compute_xrai(image, prediction_class):
 
     try:
         processed_image = preprocess_image(image)
-        
-        # Step 4: Compute XRAI attributions
+ 
         xrai_object = saliency.XRAI()
-        # Ensure input is 3D (height, width, channels)
+ 
         input_image = processed_image[0]
         if len(input_image.shape) == 2:
             input_image = np.stack((input_image,) * 3, axis=-1)
@@ -193,12 +193,12 @@ def compute_xrai(image, prediction_class):
             {'class_index': prediction_class}
         )
         
-        # Reshape attributions to include channel dimension if necessary
+      
         if len(xrai_attributions.shape) == 2:
             xrai_attributions = np.expand_dims(xrai_attributions, axis=-1)
             xrai_attributions = np.repeat(xrai_attributions, 3, axis=-1)
         
-        # Step 5: Visualize the XRAI attributions
+     
         if len(xrai_attributions.shape) == 2:
             xrai_attributions_3d = np.expand_dims(xrai_attributions, axis=-1)
             xrai_attributions_3d = np.repeat(xrai_attributions_3d, 3, axis=-1)
@@ -242,10 +242,8 @@ def upload_image():
         # Convert explanations to base64
         def to_base64(img):
             buffer = BytesIO()
-            # Normalize image to [0,1] range and handle NaN values
             img = np.nan_to_num(img, nan=0.0)
             img = np.clip(img, 0, 1)
-            # Convert to uint8 range [0,255]
             img_uint8 = (img * 255).astype(np.uint8)
             Image.fromarray(img_uint8).save(buffer, format="PNG")
             return base64.b64encode(buffer.getvalue()).decode("utf-8")
@@ -267,116 +265,121 @@ def upload_image():
 
 app.secret_key = secrets.token_hex(32)
 
-
 @app.route('/chat', methods=['POST'])
 def chat():
-    # Initialize session for conversation history if not already present
     if 'conversation_history' not in session:
         session['conversation_history'] = []
+
     data = request.get_json()
-    # Extract form data
-    medical_history = data.get('medical_history')
-    pt_description = data.get('pt_description')
-    symptoms = data.get('symptoms')
-    prediction = data.get('prediction')
-    user_message = data.get('message')
-    base64_image = data.get("file", "")
+    medical_history = data.get('medical_history', '')
+    pt_description = data.get('pt_description', '')
+    symptoms = data.get('symptoms', '')
+    prediction = data.get('prediction', '')
+    user_message = data.get('message', '').strip()
+    base64_image = data.get("file", "") 
 
-    if not base64_image:
-        return jsonify({"status": "error", "message": "No image provided"}), 400
+    if not user_message:
+        return jsonify({"status": "error", "message": "No message provided"}), 400
 
-        # Save the image
-    image_path = save_base64_image(base64_image)
+    if not is_medical_related(user_message):
+        user_message += " (Note: Please keep questions medically relevant)"
 
-    if not image_path:
-        return jsonify({"status": "error", "message": "Image decoding failed"}), 500
+    image_description = None
+    if base64_image:
+        try:
+            image_path = save_base64_image(base64_image)
+            if not image_path:
+                return jsonify({"status": "error", "message": "Image decoding failed"}), 500
 
-    # Check if there is a message or not
-    if not user_message or user_message.strip() == "":
-        user_message= "there is no message so i was unable to understand the queary"
-    else:
-        if not is_medical_related(user_message):
-            user_message + "This is not a medical-related question, so please make sure that your question is medical-related. Thank you!"
+            image_response = ollama.chat(
+                model='llama3.2-vision:latest',
+                # model='deepseek-r1:14b ',
+                messages=[{
+                    'role': 'user',
+                    'content': 'Describe this medical image in detail',
+                    'images': [image_path]
+                }]
+            )
+            image_description = image_response.message['content']
+        except Exception as e:
+            return jsonify({"status": "error", "message": f"Image analysis failed: {str(e)}"}), 500
 
-    # Build the payload for Ollama API
     conversation_history = session['conversation_history']
-    conversation_history.append({"role": "user", "content": user_message})
+    is_initial_request = len(conversation_history) == 0
 
-    first_payload = { f"""
-            You are named RadioAI.
-            You are a medical expert in oncology. Based on the MRI image analysis, the patient has been diagnosed with cancer.
-            According to the detected cancer explain how to located in the mri image with descriptive way.
-            If patient has been diagnosed with no tumor but then give actional plan according to the patient medical history and symptoms.
-            Is there with image plz explain the image charactoristics and identify changes from it and possible location on the mri brain image.
-            The AI has identified a brain tumor. Please provide step-by-step guidance for the next steps:
-
-            Patient Information (if available):
-            - Patient Details: {pt_description}
-            - Medical History: {medical_history}
+    if is_initial_request:
+        system_prompt = f"""
+            You are RadioAI, a medical imaging specialist, and a medical expert in oncology. Analyze this case:
+            Patient Overview:
+            - Condition: {pt_description}
+            - History: {medical_history}
             - Symptoms: {symptoms}
-
-            MRI Analysis Results:
-            - Tumor Type: {prediction}
-
-            Uploaded Image: if there is image, describe this image as well if there is no image please ignore this part
-
-            Previous Conversation History:
-            {conversation_history}
-            if there is any posibility to suggest medicine make sure that mention medicine generic name and dose according to the british national formulary.
+            Imaging Findings:
+            - Preliminary Analysis: {image_description if image_description else "No image provided"}
+            - AI Prediction: {prediction}
+            - Always before taking AI prediction, check whether the image preliminary analysis matches the AI prediction or not. If not, provide the correct prediction.
+            Image look like according to the AI prediction:
+            - Describe the key features in the image
+            - Explain the clinical implications
+            Make sure to give responses according to the patient's medical history and symptoms, and finally, recommend consulting a doctor who specializes in the given patient condition, history, and symptoms.
+            Instructions:
+            1. Describe key features in the image
+            2. Explain clinical implications
+            3. Suggest next diagnostic steps
+            4. If recommending treatment:
+            - Use BNF-compliant medication names
+            - Include standard dosages
+            - Note contraindications
+            5. How to {prediction} shown in the brain MRI ?
+                - How to see in the brain MRI Axial View?
+                - How to see in the brain MRI Coronal View?
+                - How to see in the brain MRI Sagittal View?
+            Explain the above views in detail, and is there way to show webite links for the above views?
+            If the current query is not related to the medical field, ensure the query is related to the medical field.
             Provide a clear, actionable plan for the next steps in diagnosis and treatment.
         """
-    }
-
-
-    second_payload = { f"""
-            You are named RadioAI.
-            You are a medical expert in oncology. Based on the MRI image analysis, the patient has been diagnosed with cancer.
-
-            Previous Conversation History:
-            {conversation_history}
-
-            according to the priviouse conversation and current queary {user_message}.
-            if the current queary is not related to the medical field please make sure that the queary is related to the medical field.
-            Provide a clear, actionable plan for the next steps in diagnosis and treatment.
-        """
-    }
-
+        messages = [{
+            'role': 'user',
+            'content': system_prompt,
+            'images': [image_path] if base64_image else []
+        }]
+    else:
+        messages = conversation_history.copy()
+        messages.append({'role': 'user', 'content': user_message +"""If the current query is not related to the medical field, ensure the query is related to the medical field.
+            Provide a clear, actionable plan for the next steps in diagnosis and treatment, based on the patient's medical history and symptoms in the history."""})
 
     try:
-        if not user_message or user_message.strip() == "":
-            stream = ollama.chat(
-                model="llama3.2-vision:latest",
-                messages=[{
-                    "role": "user",
-                    "content": str(first_payload),
-                    "images": image_path
-                        }],
-                stream=True,
-            )
-        else:
-            stream = ollama.chat(
-                model="llama3.2-vision:latest",
-                messages=[{
-                    "role": "user",
-                    "content": str(second_payload),
-                        }],
-                stream=True,
-            )
+
+        stream = ollama.chat(
+            model='deepseek-r1:14b',  # Exact match from your installed models
+            messages=messages,
+            stream=True,
+            options={
+                # Best balance for this model (0.1-0.5)
+                'temperature': 0.3,
+                'num_ctx': 4096,          # Use full context window
+                'top_p': 0.9,             # Controls response diversity
+                'repeat_penalty': 1.1     # Reduce repetition
+            }
+        )
+
 
         response_text = ""
-        # # Append the AI's response to the conversation history
-        conversation_history.append({"role": "assistant", "content": response_text})
+        for chunk in stream:
+            content = chunk.get('message', {}).get('content', '')
+            print(content, end='', flush=True)  # Proper streaming display
+            response_text += content
+
+        conversation_history.extend([
+            {'role': 'user', 'content': user_message},
+            {'role': 'assistant', 'content': response_text}
+        ])
         session['conversation_history'] = conversation_history
 
-        for chunk in stream:
-            response_text += chunk["message"]["content"]
-        print(response_text)
         return jsonify({"response": response_text})
-
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
- # Function to check the message and respond if it's not medical-related
 def check_message(message):
     if is_medical_related(message):
         return True
@@ -457,18 +460,15 @@ def is_medical_related(message):
 
 def save_base64_image(base64_string, output_path="uploaded_image.jpg"):
     try:
-        # Remove the data URL prefix (e.g., "data:image/jpeg;base64,")
         if "," in base64_string:
             base64_string = base64_string.split(",", 1)[1]
 
-        # Decode Base64 string
         image_bytes = base64.b64decode(base64_string)
 
-        # Save the image file
         with open(output_path, "wb") as image_file:
             image_file.write(image_bytes)
 
-        return output_path  # Return the file path
+        return output_path
 
     except Exception as e:
         print("Error decoding base64 image:", str(e))
@@ -477,6 +477,7 @@ def save_base64_image(base64_string, output_path="uploaded_image.jpg"):
 @app.route("/")
 def index():
     return render_template("index.html")
+
 
 if __name__ == '__main__':
     app.run(debug=True)

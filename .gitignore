@@ -92,3 +92,4 @@ ipython_config.py
 .DS_Store
 /model
 uploaded_image.jpg
+/example

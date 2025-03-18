@@ -1,106 +1,37 @@
- .image-container {
-     display: inline-block;
-     border: 2px dashed #ccc;
-     padding: 5px;
-     max-width: 100%;
-     overflow: hidden;
- }
+.image-container {
+    display: inline-block;
+    border: 2px dashed #ccc;
+    padding: 5px;
+    max-width: 100%;
+    overflow: hidden;
+}
 
- .image {
-     width: 100%;
-     height: auto;
-     display: block;
- }
+.image {
+    width: 100%;
+    height: auto;
+    display: block;
+}
 
- textarea {
-     width: 100%;
-     resize: none;
-     /* Prevent manual resizing */
-     overflow: hidden;
-     /* Hide scrollbars */
-     min-height: 50px;
-     /* Optional: Set a minimum height */
-     padding: 8px;
-     font-size: 16px;
-     box-sizing: border-box;
- }
+textarea {
+    width: 100%;
+    resize: none;
+    overflow: hidden;
+    min-height: 50px;
+    padding: 8px;
+    font-size: 16px;
+    box-sizing: border-box;
+}
+/* 
+#chatBox {
+    height: 100%;
+    max-height: 80vh;
+    overflow-y: auto;
+} */
 
- #chatBox {
-     height: 100%;
-     /* Adjust based on parent container height */
-     max-height: 80vh;
-     /* Optional: ensures that it doesn't grow too big on larger screens */
-     overflow-y: auto;
-     /* Ensures scrolling when the content overflows */
- }
-
- /* Style for the progress spinner */
- #progressSpinner {
-     display: none;
-     /* Initially hidden */
-     padding: 20px;
-     border-radius: 10px;
-     position: relative;
-     overflow: hidden;
-     /* Ensure gradient doesn't overflow */
- }
-
- /* Gradient animation */
- #progressSpinner::before {
-     content: "";
-     position: absolute;
-     top: 0;
-     left: 0;
-     width: 200%;
-     /* Double width for diagonal movement */
-     height: 200%;
-     /* Double height for diagonal movement */
-     background: linear-gradient(45deg,
-             /* Diagonal angle */
-             #6495ED,
-             /* Cornflower Blue */
-             #40E0D0,
-             /* Turquoise */
-             #7B68EE,
-             /* Medium Slate Blue */
-             #00CED1,
-             /* Dark Turquoise */
-             #87CEFA,
-             /* Light Sky Blue */
-             #4682B4,
-             /* Steel Blue */
-             #00BFFF,
-             /* Deep Sky Blue */
-             #1E90FF,
-             /* Dodger Blue */
-             #ADD8E6,
-             /* Light Blue */
-             #B0E0E6
-             /* Powder Blue */
-         );
-     animation: moveGradient 5s linear infinite;
-     /* Smooth gradient animation */
-     transform: rotate(45deg);
-     /* Rotate gradient for diagonal effect */
-     z-index: -1;
-     /* Place behind content */
- }
-
- /* Animation keyframes */
- @keyframes moveGradient {
-     0% {
-         transform: translateX(-50%) translateY(50%) rotate(45deg);
-         /* Start from bottom-left */
-     }
-
-     100% {
-         transform: translateX(50%) translateY(-50%) rotate(45deg);
-         /* End at top-right */
-     }
- }
-
- /* Spinner styles */
- .spinner-border {
-     width: 3rem;
-     height: 3rem;
- }
+#chatBox {
+    overflow-y: hidden;
+    min-height: 100px;
+    height: auto;
+    word-break: break-word;
+    white-space: pre-wrap;
+}
