@@ -1,0 +1,45 @@
+# CNN Explainable AI Methods
+
+## Gradient-based Methods
+### Grad-CAM (Gradient-weighted Class Activation Mapping)
+Grad-CAM generates class-discriminative localization maps by computing gradients of the target class concerning the feature maps in the final convolutional layer. The resulting heatmaps highlight the regions of the input image that contribute the most to the model's prediction .
+
+### Integrated Gradients
+This method calculates the contribution of each input feature to a model's output by integrating the gradients of the model's prediction with respect to its inputs along the path from a baseline to the actual input .
+
+### Saliency Maps
+Saliency maps show which parts of the input data have the biggest impact on the model's prediction. They are frequently employed in computer vision and draw attention to the areas or pixels in an image that are most crucial for a particular prediction .
+
+## Perturbation-based Methods
+### LIME (Local Interpretable Model-agnostic Explanations)
+LIME approximates the model's behavior by generating perturbed versions of the input image and fitting an interpretable model (such as a linear model) to the local predictions. The LIME explanations provide a feature importance map, indicating which parts of the image were critical for the classification decision .
+
+### SHAP (Shapley Additive Explanations)
+SHAP values provide a unified approach to explain the output of any machine learning model. They connect game theory with local explanations, ensuring that the total sum of SHAP values for each prediction equals the difference between the model output and the average model output .
+
+## Attention-based Methods
+### Attention Mechanisms
+Attention mechanisms allow the model to focus on specific parts of the input when making predictions. These mechanisms can be visualized to show which regions of an image the model is paying attention to when making decisions .
+
+## Surrogate Models
+Surrogate models involve training a simpler, easier-to-understand model to approximate the predictions of the complex CNN. Common surrogate models include decision trees, linear models, and rule-based models .
+
+## Hybrid Approaches
+Hybrid approaches combine the advantages of various explainability techniques. For example, combining saliency maps with model-agnostic methods like LIME can provide richer explanations that balance interpretability and accuracy .
+
+## Self-explaining Architectures
+### Feature Saliency Networks
+These networks are designed to inherently provide feature importance scores as part of their prediction process.
+
+### Prototype Networks
+Prototype networks identify representative examples (prototypes) from the training data that are similar to the input being classified, making the decision process more transparent .
+
+### SENNs (Self-Explaining Neural Networks)
+SENNs incorporate explanation capabilities directly into the network architecture, allowing them to provide both predictions and explanations simultaneously .
+
+## Counterfactual Explanations
+Counterfactual explanations describe how to change the input to achieve a different prediction. For CNNs, this might involve showing which parts of an image need to be altered to change the classification .
+
+These methods help address the "black-box" nature of CNNs by providing insights into how these models make decisions, which is crucial for building trust and ensuring responsible AI deployment.
+
+
