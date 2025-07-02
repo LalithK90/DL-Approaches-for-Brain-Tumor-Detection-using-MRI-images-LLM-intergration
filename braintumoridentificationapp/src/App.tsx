@@ -1,8 +1,15 @@
-import { IonApp, IonRouterOutlet, IonSplitPane, setupIonicReact } from '@ionic/react';
+import {
+  IonApp,
+  IonContent,
+  IonHeader,
+  IonPage,
+  IonRouterOutlet,
+  IonTitle,
+  IonToolbar,
+  setupIonicReact,
+} from '@ionic/react';
 import { IonReactRouter } from '@ionic/react-router';
-import { Redirect, Route } from 'react-router-dom';
-import Menu from './components/Menu';
-import Page from './pages/Page';
+import { Route } from 'react-router-dom';
 
 /* Core CSS required for Ionic components to work properly */
 import '@ionic/react/css/core.css';
@@ -36,21 +43,33 @@ import './theme/variables.css';
 
 setupIonicReact();
 
+const BrowserPage: React.FC = () => {
+  return (
+    <IonPage>
+    {/* //   <IonHeader>
+    //     <IonToolbar>
+    //       <IonTitle>Localhost Browser</IonTitle>
+    //     </IonToolbar>
+    //   </IonHeader> */}
+      <IonContent fullscreen>
+        <iframe
+          src="http://127.0.0.1:5000/"
+          style={{ width: '100%', height: '100%', border: 'none' }}
+        />
+      </IonContent>
+    </IonPage>
+  );
+};
+
 const App: React.FC = () => {
   return (
     <IonApp>
       <IonReactRouter>
-        <IonSplitPane contentId="main">
-          <Menu />
-          <IonRouterOutlet id="main">
-            <Route path="/" exact={true}>
-              <Redirect to="/folder/Inbox" />
-            </Route>
-            <Route path="/folder/:name" exact={true}>
-              <Page />
-            </Route>
-          </IonRouterOutlet>
-        </IonSplitPane>
+        <IonRouterOutlet>
+          <Route path="/" exact={true}>
+            <BrowserPage />
+          </Route>
+        </IonRouterOutlet>
       </IonReactRouter>
     </IonApp>
   );
