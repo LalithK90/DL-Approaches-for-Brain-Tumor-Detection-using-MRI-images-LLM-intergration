@@ -1,19 +1,14 @@
-
-from flask import Flask, request, render_template, jsonify,  session
+from flask import Flask, request, render_template, jsonify, session
 from typing import Tuple, Dict, Any
 import ollama
 import tensorflow as tf
 import numpy as np
 from PIL import Image
 import cv2
+# This is from your old code, but we'll use a custom one
 from tf_explain.core.grad_cam import GradCAM
-from skimage.segmentation import quickshift
-from skimage.segmentation import slic
-# from tf_explain.core.smoothgrad import SmoothGrad
-# from tf_explain.core.integrated_gradients import IntegratedGradients
-# from tf_explain.core.occlusion_sensitivity import OcclusionSensitivity
-
 import saliency.core as saliency
+# This is from your old code, but we'll use a custom one
 from saliency.core.xrai import XRAI
 from lime import lime_image
 from skimage.segmentation import mark_boundaries
@@ -21,14 +16,13 @@ import matplotlib.pyplot as plt
 import base64
 from io import BytesIO
 import keras
-
-from io import BytesIO
-
-from PIL import Image
-import numpy as np
-import base64
-from io import BytesIO
 import secrets
+
+# Import the necessary components for the new GradCAM (likely from 'tf_keras_vis')
+# Assuming you have tf-keras-vis installed: pip install tf-keras-vis
+from tf_keras_vis.gradcam import Gradcam
+from tf_keras_vis.utils.model_modifiers import ReplaceToLinear
+from tf_keras_vis.utils.scores import CategoricalScore
 
 tf.data.experimental.enable_debug_mode()
 tf.get_logger().setLevel('ERROR')
@@ -38,184 +32,243 @@ tf.config.run_functions_eagerly(True)
 
 app = Flask(__name__)
 
-
 try:
-    # model = tf.keras.models.load_model('model/propose_224_model.h5')
-    model = tf.keras.models.load_model('model/restnet50_inbalance_224-model.h5')
-    # model = tf.keras.models.load_model('model/googleLeNet_inbalance_224-model.h5')
-    # model = tf.keras.models.load_model('model/nin_inbalance_224-model.h5')
-    # model = tf.keras.models.load_model('model/vgg16_inbalance_224-model.h5')
+    model = tf.keras.models.load_model('model/propose_balance.h5')
     print("Model loaded successfully.")
 except Exception as e:
     raise ValueError(f"Failed to load the model: {str(e)}")
 
-
 IMG_SIZE = 224
 CLASS_NAMES = ['Glioma', 'Meningioma', 'Notumor', 'Pituitary']
 
-def preprocess_image(img):
-    img = np.array(img)
+# --- New Functions from your request ---
+
+
+def read_image(image_size, image_path):
+    """
+    Reads an image from a given path, applies CLAHE, bilateral filter,
+    color mapping, and resizing.
+    """
+    img = cv2.imread(image_path, cv2.IMREAD_GRAYSCALE)
+    if img is None:
+        raise FileNotFoundError(f"Image not found at path: {image_path}")
+
+    clahe = cv2.createCLAHE(clipLimit=2.0, tileGridSize=(8, 8))
+    img = clahe.apply(img)
     img = cv2.bilateralFilter(img, d=2, sigmaColor=50, sigmaSpace=50)
     img = cv2.applyColorMap(img, cv2.COLORMAP_BONE)
-    img = cv2.resize(img, (IMG_SIZE, IMG_SIZE), interpolation=cv2.INTER_AREA)
-    array = keras.utils.img_to_array(img)
-    array = np.expand_dims(array, axis=0)
-    return array
+    img = cv2.resize(img, (image_size, image_size),
+                     interpolation=cv2.INTER_AREA)
+    return img
+
+
+def z_score_per_image(img_array):
+    """
+    Applies Z-score normalization per image.
+    """
+    mean = np.mean(img_array, axis=(1, 2, 3), keepdims=True)
+    std = np.std(img_array, axis=(1, 2, 3), keepdims=True)
+    return (img_array - mean) / (std + 1e-8)
+
 
 def get_last_convolutional_layer(model):
+    """
+    Finds the name of the last convolutional layer in the model.
+    """
+    last_conv_layer_name = None
     for layer in reversed(model.layers):
         if isinstance(layer, tf.keras.layers.Conv2D):
-            return layer.name
-    raise ValueError("No Conv2D layer found in the model.")
+            last_conv_layer_name = layer.name
+            break
+    return last_conv_layer_name
 
-def predict_tumor(image):
-    processed_image = preprocess_image(image)
-    predictions = model(processed_image) 
-    predicted_class = np.argmax(predictions, axis=1)[0]
-    probabilities = predictions.numpy()[0] 
-    return CLASS_NAMES[predicted_class], probabilities
 
-def grad_cam_explanation(image):
-    processed_image = preprocess_image(image)
-    predictions = model(processed_image)
-    predicted_class_index = np.argmax(predictions.numpy(), axis=1)[0]
-    
-    explainer = GradCAM()
-    grid = explainer.explain(
-        validation_data=(processed_image, None),
-        model=model,
-        class_index=predicted_class_index,
-        layer_name=get_last_convolutional_layer(model)
-    )
-    
-    heatmap = grid.astype(np.float32)
-    if heatmap.max() > heatmap.min():
-        heatmap = (heatmap - heatmap.min()) / (heatmap.max() - heatmap.min())
-    else:
-        heatmap = np.zeros_like(heatmap)  
-    
-    return heatmap
+def generate_gradcam(img_array, model):
+    """
+    Generates a Grad-CAM heatmap for the given image and model.
+    """
+    layer_name = get_last_convolutional_layer(model)
+    if not layer_name:
+        raise ValueError("No convolutional layer found in the model")
 
-def lime_explanation(image):
-    processed_image = np.array(image.resize((IMG_SIZE, IMG_SIZE), Image.Resampling.BILINEAR)) / 255.0
-    def custom_segmentation_slic(image):
-        return slic(image, n_segments=100, compactness=10, sigma=1)
-    
-    # explainer = lime_image.LimeImageExplainer(feature_selection='auto', segmentation_fn=custom_segmentation_slic)
+    gradcam = Gradcam(model, model_modifier=ReplaceToLinear(), clone=True)
+    predictions = model.predict(img_array)
+    class_idx = np.argmax(predictions[0])
+    cam = gradcam(CategoricalScore(class_idx), img_array,
+                  penultimate_layer=layer_name)
 
-    def custom_segmentation(image):
-        return quickshift(image, kernel_size=4, max_dist=2, ratio=0.5)
-    
-    # explainer = lime_image.LimeImageExplainer(feature_selection='auto', segmentation_fn=custom_segmentation)
+    cam = np.squeeze(cam)
+    cam = (cam - np.min(cam)) / (np.max(cam) - np.min(cam) + 1e-8)
+    cam = np.uint8(255 * cam)
 
-    explainer = lime_image.LimeImageExplainer(feature_selection='auto')
+    heatmap = cv2.applyColorMap(cam, cv2.COLORMAP_JET)
+    base_img = img_array[0]
+    # Ensure base_img is 3-channel for blending if it's grayscale
+    if base_img.ndim == 2:
+        base_img = cv2.cvtColor(base_img, cv2.COLOR_GRAY2BGR)
+    # Ensure base_img is uint8 and in range [0, 255] if it was float
+    if base_img.dtype == np.float32 or base_img.dtype == np.float64:
+        base_img = (base_img * 255).astype(np.uint8)
 
-    def predict_fn(x):
-        return model.predict(x.reshape(-1, IMG_SIZE, IMG_SIZE, 3), batch_size=32)
+    superimposed_img = heatmap * 0.4 + base_img * 0.6
+    superimposed_img = np.clip(superimposed_img, 0, 255).astype(np.uint8)
 
+    # Return cam for Guided GradCAM (if you plan to implement it later)
+    return superimposed_img, cam
+
+
+def generate_saliency_map(img_array, model):
+    """
+    Generates a basic saliency map using gradients.
+    """
+    img_tensor = tf.convert_to_tensor(
+        img_array, dtype=tf.float32)  # Ensure float32
+    with tf.GradientTape() as tape:
+        tape.watch(img_tensor)
+        predictions = model(img_tensor)
+        class_idx = tf.argmax(predictions[0])
+        loss = predictions[:, class_idx]
+
+    grads = tape.gradient(loss, img_tensor)
+    saliency = tf.reduce_max(tf.abs(grads), axis=-1).numpy()[0]
+    saliency = (saliency - np.min(saliency)) / \
+        (np.max(saliency) - np.min(saliency) + 1e-8)
+
+    saliency = np.uint8(255 * saliency)
+    saliency = cv2.applyColorMap(saliency, cv2.COLORMAP_JET)
+    return saliency
+
+
+def generate_lime(img_array, model):
+    """
+    Generates a LIME explanation for the given image and model.
+    """
+    # LIME explainer expects unnormalized image [0-255] and its own predict_fn
+    # The input to model.predict should match the training data's preprocessing (e.g., [0,1] or normalized)
+    # Here, we'll preprocess inside predict_fn to match our model's expectation
+    def lime_predict_fn(images):
+        # images from LIME are typically 0-1, so we convert them to match model's expected input
+        processed_images = []
+        for img in images:
+            # Resize and apply z-score normalization as per our preprocess_image pipeline
+            resized_img = cv2.resize(
+                img, (IMG_SIZE, IMG_SIZE), interpolation=cv2.INTER_AREA)
+            # Ensure 3 channels if it's grayscale
+            if len(resized_img.shape) == 2:
+                resized_img = np.stack((resized_img,) * 3, axis=-1)
+            # Apply Z-score if model expects it
+            # The model expects batched input, so we add batch dimension here temporarily
+            temp_array = np.expand_dims(resized_img, axis=0)
+            normalized_array = z_score_per_image(
+                temp_array.astype(np.float32))  # Ensure float32
+            # Remove batch dim after normalization
+            processed_images.append(normalized_array[0])
+
+        return model.predict(np.array(processed_images))
+
+    explainer = lime_image.LimeImageExplainer()
     explanation = explainer.explain_instance(
-        processed_image,
-        predict_fn,
-        top_labels=1,  
+        # LIME typically expects uint8 [0-255]
+        (img_array[0] * 255).astype(np.uint8),
+        lime_predict_fn,
+        top_labels=1,
         hide_color=0,
-        num_samples=100,  
-        batch_size=32
+        num_samples=1000
     )
 
     temp, mask = explanation.get_image_and_mask(
         explanation.top_labels[0],
         positive_only=True,
-        num_features=10,
+        num_features=5,
         hide_rest=False
     )
 
-    return mark_boundaries(temp / 2 + 0.5, mask)
+    # Convert temp (LIME's image output, typically 0-1 float) back to uint8 for mark_boundaries if needed
+    # mark_boundaries expects float [0,1] or uint8, it handles it.
+    # LIME's temp is often centered around 0, so adjust
+    lime_img = mark_boundaries(temp / 2 + 0.5, mask)
+    # Convert to uint8 [0-255] for consistent output
+    lime_img = np.uint8(lime_img * 255)
+
+    return lime_img
+
+# --- Modified Existing Functions ---
 
 
+def preprocess_image_for_model(img_pil: Image.Image):
+    """
+    Preprocesses PIL image for model prediction using the new read_image and z_score_per_image functions.
+    """
+    # Save the PIL image to a temporary file path
+    temp_img_path = "temp_upload_image.png"
+    img_pil.save(temp_img_path)
 
-def preprocess_image(image):
-    image = image.resize((IMG_SIZE, IMG_SIZE)) 
-    image = np.array(image)
-    if len(image.shape) == 2:  
-        image = np.stack((image,) * 3, axis=-1)
-    image = image / 255.0  
-    image = np.expand_dims(image, axis=0)  
-    return image
+    # Use the new read_image function
+    img_processed = read_image(IMG_SIZE, temp_img_path)
+
+    # Ensure it's 3 channels if it's grayscale from read_image (which applies colormap, so usually 3)
+    if len(img_processed.shape) == 2:
+        img_processed = np.stack((img_processed,) * 3, axis=-1)
+
+    # Add batch dimension and apply Z-score normalization
+    img_array = np.expand_dims(img_processed, axis=0)
+    img_array = z_score_per_image(img_array.astype(
+        np.float32))  # Ensure float32 for model input
+    return img_array
 
 
-def call_model_function(images, call_model_args=None, expected_keys=None):
-    target_class_idx = call_model_args['class_index']
-    with tf.GradientTape() as tape:
-        inputs = tf.convert_to_tensor(images)
-        tape.watch(inputs)
-        predictions = model(inputs)
-        output_layer = predictions[:, target_class_idx]
-    gradients = tape.gradient(output_layer, inputs)
-    return {saliency.INPUT_OUTPUT_GRADIENTS: gradients}
+def predict_tumor(image_pil: Image.Image):
+    """
+    Predicts tumor type using the preprocessed image.
+    """
+    processed_image_array = preprocess_image_for_model(image_pil)
+    predictions = model(processed_image_array)
+    predicted_class = np.argmax(predictions, axis=1)[0]
+    probabilities = predictions.numpy()[0]
+    # Return img_array for explanations
+    return CLASS_NAMES[predicted_class], probabilities, processed_image_array
 
-def encode_image_to_base64(img):
+
+def encode_image_to_base64(img_array):
+    """
+    Encodes a NumPy array image to a base64 string.
+    Handles different dtypes and scales to 0-255 for encoding.
+    """
     try:
-        
-        if img.dtype == np.float32 or img.dtype == np.float64:
-            img = (img * 255).astype(np.uint8)
-        elif img.dtype != np.uint8:
-            raise ValueError("Image must be a NumPy array with dtype float or uint8.")
+        # Convert to 0-255 range and uint8 if not already
+        if img_array.dtype == np.float32 or img_array.dtype == np.float64:
+            # If the image is a float and assumed to be [0,1], scale it.
+            # If it's already a processed image (like GradCAM output), it might be 0-255.
+            # We need to be careful here. Assuming explanation outputs are already in [0,1] or [0,255].
+            # For simplicity, let's clip and scale to 0-255 if it's float.
+            img_to_encode = (np.clip(img_array, 0, 1) * 255).astype(np.uint8)
+        elif img_array.dtype == np.uint8:
+            img_to_encode = img_array
+        else:
+            raise ValueError(
+                f"Unsupported image dtype: {img_array.dtype}. Must be float or uint8.")
 
-    
-        pil_img = Image.fromarray(img)
+        # Ensure 3 channels for consistent PNG saving, if it's grayscale
+        if len(img_to_encode.shape) == 2:
+            img_to_encode = cv2.cvtColor(img_to_encode, cv2.COLOR_GRAY2BGR)
 
-       
+        pil_img = Image.fromarray(img_to_encode)
         buffer = BytesIO()
         pil_img.save(buffer, format="PNG")
-        buffer.seek(0)  
-       
+        buffer.seek(0)
         base64_encoded = base64.b64encode(buffer.getvalue()).decode("utf-8")
-
         return base64_encoded
 
     except Exception as e:
         raise RuntimeError(f"Error encoding image to base64: {str(e)}")
 
-def compute_xrai(image, prediction_class):
+# Remove XRAI function if you're not using it anymore, or keep it if needed for future
+# def compute_xrai(image, prediction_class):
+#     # ... (your existing XRAI code) ...
+#     pass
 
-    try:
-        processed_image = preprocess_image(image)
- 
-        xrai_object = saliency.XRAI()
- 
-        input_image = processed_image[0]
-        if len(input_image.shape) == 2:
-            input_image = np.stack((input_image,) * 3, axis=-1)
-            
-        xrai_attributions = xrai_object.GetMask(
-            input_image,
-            call_model_function,
-            {'class_index': prediction_class}
-        )
-        
-      
-        if len(xrai_attributions.shape) == 2:
-            xrai_attributions = np.expand_dims(xrai_attributions, axis=-1)
-            xrai_attributions = np.repeat(xrai_attributions, 3, axis=-1)
-        
-     
-        if len(xrai_attributions.shape) == 2:
-            xrai_attributions_3d = np.expand_dims(xrai_attributions, axis=-1)
-            xrai_attributions_3d = np.repeat(xrai_attributions_3d, 3, axis=-1)
-        else:
-            xrai_attributions_3d = xrai_attributions
-            
-        grayscale_viz = saliency.VisualizeImageGrayscale(xrai_attributions_3d)
-        overlay_viz = saliency.VisualizeImageDiverging(xrai_attributions_3d)
-       
-        
-        return {
-            'grayscale_viz': grayscale_viz,
-            'overlay_viz': overlay_viz
-        }
-    
-    except Exception as e:
-        raise RuntimeError(f"Error computing XRAI: {str(e)}")
+# --- Flask Routes ---
+
 
 @app.route('/upload', methods=['POST'])
 def upload_image():
@@ -226,44 +279,39 @@ def upload_image():
         return jsonify({'error': 'No selected file'}), 400
 
     if file and file.filename.lower().endswith(('.png', '.jpg', '.jpeg')):
-        image = Image.open(file.stream)
-        prediction, probabilities = predict_tumor(image)
+        image_pil = Image.open(file.stream).convert(
+            'RGB')  # Ensure RGB for consistency
+
+        # Pass the PIL image and get the preprocessed array back for explanations
+        prediction, probabilities, processed_image_array = predict_tumor(
+            image_pil)
 
         labeled_probabilities = {
             CLASS_NAMES[i]: str(probabilities[i])
             for i in range(len(CLASS_NAMES))
         }
-        grad_cam = grad_cam_explanation(image)
-        lime_img = lime_explanation(image)
-        # explanation_ig = generate_integrated_gradients(image)
-        # explanation_occlusion = generate_occlusion_sensitivity(image)
-        # explanation_scorecam = generate_scorecam(image)
 
-        # Convert explanations to base64
-        def to_base64(img):
-            buffer = BytesIO()
-            img = np.nan_to_num(img, nan=0.0)
-            img = np.clip(img, 0, 1)
-            img_uint8 = (img * 255).astype(np.uint8)
-            Image.fromarray(img_uint8).save(buffer, format="PNG")
-            return base64.b64encode(buffer.getvalue()).decode("utf-8")
-
-        # Compute XRAI attributions
-        xrai_result = compute_xrai(image, np.argmax(probabilities))
+        # Generate explanations using the new functions
+        grad_cam_img, _ = generate_gradcam(
+            processed_image_array, model)  # _ for 'cam' value if not used
+        lime_img = generate_lime(processed_image_array, model)
+        saliency_map_img = generate_saliency_map(processed_image_array, model)
 
         response_data = {
             'prediction': prediction,
             'probabilities': labeled_probabilities,
-            'grad_cam': to_base64(grad_cam),
-            'lime': to_base64(np.array(lime_img)),
-            'grayscale_viz': to_base64(xrai_result['grayscale_viz']),
-            'overlay_viz': to_base64(xrai_result['overlay_viz'])
+            'grad_cam': encode_image_to_base64(grad_cam_img),
+            'lime': encode_image_to_base64(lime_img),
+            # New saliency map
+            'saliency_map': encode_image_to_base64(saliency_map_img)
         }
         return jsonify(response_data)
 
     return jsonify({'error': 'Invalid file format'}), 400
 
+
 app.secret_key = secrets.token_hex(32)
+
 
 @app.route('/chat', methods=['POST'])
 def chat():
@@ -276,14 +324,17 @@ def chat():
     symptoms = data.get('symptoms', '')
     prediction = data.get('prediction', '')
     user_message = data.get('message', '').strip()
-    base64_image = data.get("file", "") 
+    base64_image = data.get("file", "")
 
     if not user_message:
         return jsonify({"status": "error", "message": "No message provided"}), 400
 
     if not is_medical_related(user_message):
+        # This line adds a note if not medical related, but still processes.
+        # Consider if you want to completely block non-medical questions.
         user_message += " (Note: Please keep questions medically relevant)"
 
+    image_path = None
     image_description = None
     if base64_image:
         try:
@@ -293,7 +344,6 @@ def chat():
 
             image_response = ollama.chat(
                 model='llama3.2-vision:latest',
-                # model='deepseek-r1:14b ',
                 messages=[{
                     'role': 'user',
                     'content': 'Describe this medical image in detail',
@@ -345,29 +395,26 @@ def chat():
         }]
     else:
         messages = conversation_history.copy()
-        messages.append({'role': 'user', 'content': user_message +"""If the current query is not related to the medical field, ensure the query is related to the medical field.
+        messages.append({'role': 'user', 'content': user_message + """If the current query is not related to the medical field, ensure the query is related to the medical field.
             Provide a clear, actionable plan for the next steps in diagnosis and treatment, based on the patient's medical history and symptoms in the history."""})
 
     try:
-
         stream = ollama.chat(
-            model='deepseek-r1:14b',  # Exact match from your installed models
+            model='deepseek-r1:14b',
             messages=messages,
             stream=True,
             options={
-                # Best balance for this model (0.1-0.5)
                 'temperature': 0.3,
-                'num_ctx': 4096,          # Use full context window
-                'top_p': 0.9,             # Controls response diversity
-                'repeat_penalty': 1.1     # Reduce repetition
+                'num_ctx': 4096,
+                'top_p': 0.9,
+                'repeat_penalty': 1.1
             }
         )
-
 
         response_text = ""
         for chunk in stream:
             content = chunk.get('message', {}).get('content', '')
-            print(content, end='', flush=True)  # Proper streaming display
+            print(content, end='', flush=True)
             response_text += content
 
         conversation_history.extend([
@@ -380,83 +427,86 @@ def chat():
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
+
 def check_message(message):
     if is_medical_related(message):
         return True
     else:
         return "This is not a medical-related question, so please make sure that your question is medical-related. Thank you!"
 
+
 def is_medical_related(message):
     medical_keywords = [
-    # General Medical Terms
-    "anatomy", "biology", "diagnosis", "disease", "healthcare", "medicine",
-    "pathology", "physiology", "prescription", "prognosis", "symptom", "treatment",
+        # General Medical Terms
+        "anatomy", "biology", "diagnosis", "disease", "healthcare", "medicine",
+        "pathology", "physiology", "prescription", "prognosis", "symptom", "treatment",
 
-    # Body Systems and Organs
-    "brain", "heart", "lungs", "liver", "kidney", "stomach", "intestine", "pancreas",
-    "thyroid", "nervous system", "cardiovascular", "respiratory", "digestive",
-    "immune system", "musculoskeletal", "endocrine",
+        # Body Systems and Organs
+        "brain", "heart", "lungs", "liver", "kidney", "stomach", "intestine", "pancreas",
+        "thyroid", "nervous system", "cardiovascular", "respiratory", "digestive",
+        "immune system", "musculoskeletal", "endocrine",
 
-    # Medical Specialties
-    "oncology", "cardiology", "neurology", "dermatology", "orthopedics", "pediatrics",
-    "radiology", "surgery", "gynecology", "urology", "ophthalmology", "psychiatry",
-    "pulmonology", "gastroenterology", "rheumatology", "nephrology",
+        # Medical Specialties
+        "oncology", "cardiology", "neurology", "dermatology", "orthopedics", "pediatrics",
+        "radiology", "surgery", "gynecology", "urology", "ophthalmology", "psychiatry",
+        "pulmonology", "gastroenterology", "rheumatology", "nephrology",
 
-    # Diseases and Conditions
-    "cancer", "diabetes", "hypertension", "asthma", "arthritis", "infection",
-    "inflammation", "tumor", "stroke", "heart attack", "pneumonia", "tuberculosis",
-    "migraine", "epilepsy", "depression", "anxiety", "obesity", "anemia",
-    "fibromyalgia", "osteoporosis", "alzheimer's", "parkinson's", "multiple sclerosis",
-    "crohn's disease", "ulcerative colitis",
+        # Diseases and Conditions
+        "cancer", "diabetes", "hypertension", "asthma", "arthritis", "infection",
+        "inflammation", "tumor", "stroke", "heart attack", "pneumonia", "tuberculosis",
+        "migraine", "epilepsy", "depression", "anxiety", "obesity", "anemia",
+        "fibromyalgia", "osteoporosis", "alzheimer's", "parkinson's", "multiple sclerosis",
+        "crohn's disease", "ulcerative colitis",
 
-    # Symptoms
-    "pain", "fever", "headache", "nausea", "vomiting", "dizziness", "fatigue", "cough",
-    "shortness of breath", "chest pain", "abdominal pain", "swelling", "rash", "itching",
-    "numbness", "weakness", "blurred vision", "insomnia", "diarrhea", "constipation",
+        # Symptoms
+        "pain", "fever", "headache", "nausea", "vomiting", "dizziness", "fatigue", "cough",
+        "shortness of breath", "chest pain", "abdominal pain", "swelling", "rash", "itching",
+        "numbness", "weakness", "blurred vision", "insomnia", "diarrhea", "constipation",
 
-    # Diagnostic Procedures
-    "mri", "ct scan", "x-ray", "ultrasound", "biopsy", "blood test", "urine test",
-    "ecg", "eeg", "endoscopy", "colonoscopy", "mammogram", "pet scan", "angiography",
-    "lumbar puncture",
+        # Diagnostic Procedures
+        "mri", "ct scan", "x-ray", "ultrasound", "biopsy", "blood test", "urine test",
+        "ecg", "eeg", "endoscopy", "colonoscopy", "mammogram", "pet scan", "angiography",
+        "lumbar puncture",
 
-    # Treatments and Interventions
-    "chemotherapy", "radiation therapy", "surgery", "medication", "antibiotics",
-    "antiviral", "vaccine", "immunotherapy", "physical therapy", "occupational therapy",
-    "dialysis", "transplantation", "hormone therapy", "laser treatment", "acupuncture",
-    "chiropractic",
+        # Treatments and Interventions
+        "chemotherapy", "radiation therapy", "surgery", "medication", "antibiotics",
+        "antiviral", "vaccine", "immunotherapy", "physical therapy", "occupational therapy",
+        "dialysis", "transplantation", "hormone therapy", "laser treatment", "acupuncture",
+        "chiropractic",
 
-    # Medications and Drugs
-    "aspirin", "ibuprofen", "acetaminophen", "insulin", "metformin", "statins",
-    "antibiotics", "antihistamines", "antidepressants", "antipsychotics", "opioids",
-    "steroids", "anticoagulants", "beta-blockers", "ace inhibitors",
+        # Medications and Drugs
+        "aspirin", "ibuprofen", "acetaminophen", "insulin", "metformin", "statins",
+        "antibiotics", "antihistamines", "antidepressants", "antipsychotics", "opioids",
+        "steroids", "anticoagulants", "beta-blockers", "ace inhibitors",
 
-    # Medical Imaging
-    "radiology", "mri", "ct scan", "ultrasound", "x-ray", "fluoroscopy", "pet scan",
-    "mammography", "tomography",
+        # Medical Imaging
+        "radiology", "mri", "ct scan", "ultrasound", "x-ray", "fluoroscopy", "pet scan",
+        "mammography", "tomography",
 
-    # Patient Information
-    "medical history", "family history", "allergies", "medications", "diagnosis",
-    "prognosis", "treatment plan", "follow-up", "lab results", "vital signs", "bmi",
+        # Patient Information
+        "medical history", "family history", "allergies", "medications", "diagnosis",
+        "prognosis", "treatment plan", "follow-up", "lab results", "vital signs", "bmi",
 
-    # Healthcare Professionals
-    "doctor", "physician", "surgeon", "nurse", "pharmacist", "radiologist", "oncologist",
-    "therapist", "dentist", "optometrist", "psychiatrist", "pediatrician", "cardiologist",
+        # Healthcare Professionals
+        "doctor", "physician", "surgeon", "nurse", "pharmacist", "radiologist", "oncologist",
+        "therapist", "dentist", "optometrist", "psychiatrist", "pediatrician", "cardiologist",
 
-    # Health and Wellness
-    "diet", "nutrition", "exercise", "fitness", "weight loss", "mental health",
-    "stress management", "sleep hygiene", "smoking cessation", "alcohol consumption",
-    "hydration",
+        # Health and Wellness
+        "diet", "nutrition", "exercise", "fitness", "weight loss", "mental health",
+        "stress management", "sleep hygiene", "smoking cessation", "alcohol consumption",
+        "hydration",
 
-    # Emergency and First Aid
-    "cpr", "first aid", "emergency", "trauma", "ambulance", "defibrillator", "aed",
-    "poison control", "choking", "burns", "fractures",
+        # Emergency and First Aid
+        "cpr", "first aid", "emergency", "trauma", "ambulance", "defibrillator", "aed",
+        "poison control", "choking", "burns", "fractures",
 
-    # Miscellaneous
-    "clinical trial", "research study", "placebo", "side effects", "overdose",
-    "addiction", "rehabilitation", "palliative care", "hospice", "telemedicine",
-    "electronic health record"
-]
+        # Miscellaneous
+        "clinical trial", "research study", "placebo", "side effects", "overdose",
+        "addiction", "rehabilitation", "palliative care", "hospice", "telemedicine",
+        "electronic health record"
+    ]
     return any(keyword in message.lower() for keyword in medical_keywords)
+
 
 def save_base64_image(base64_string, output_path="uploaded_image.jpg"):
     try:
@@ -473,6 +523,7 @@ def save_base64_image(base64_string, output_path="uploaded_image.jpg"):
     except Exception as e:
         print("Error decoding base64 image:", str(e))
         return None
+
 
 @app.route("/")
 def index():

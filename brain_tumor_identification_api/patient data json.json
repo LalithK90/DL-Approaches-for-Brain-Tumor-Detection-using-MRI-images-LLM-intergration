@@ -1,0 +1,222 @@
+{
+  "patients": [
+    {
+      "patient_id": "PT_001",
+      "medical_history": {
+        "past_diagnoses": [
+          {"condition": "Hypertension", "duration_years": 8},
+          {"condition": "Type 2 Diabetes", "duration_years": 5}
+        ],
+        "family_history": [
+          {"relation": "mother", "condition": "Pituitary Adenoma"},
+          {"relation": "father", "condition": "Stroke"}
+        ],
+        "surgeries": [
+          {"procedure": "Appendectomy", "year": 2010},
+          {"procedure": "Cataract Surgery", "year": 2020}
+        ],
+        "medications": ["Lisinopril 10mg", "Metformin 500mg", "Aspirin 81mg"],
+        "allergies": ["Penicillin"]
+      },
+      "patient_description": {
+        "demographics": {
+          "name": "Sarah Johnson",
+          "age": 58,
+          "gender": "female",
+          "ethnicity": "Caucasian"
+        },
+        "vitals": {
+          "height_cm": 163,
+          "weight_kg": 78,
+          "bmi": 29.4,
+          "blood_pressure": "148/92",
+          "pulse": 84
+        },
+        "lifestyle": {
+          "occupation": "Retired teacher",
+          "smoking_status": "never",
+          "alcohol_use": "occasional",
+          "exercise_frequency": "sedentary"
+        },
+        "mri_indication": "Routine screening for vision changes",
+        "last_physician_visit": "2023-11-15"
+      },
+      "symptoms": [
+        {
+          "description": "Peripheral vision loss",
+          "onset": "Gradual over 6 months",
+          "severity": "Moderate",
+          "pattern": "Worse in left eye",
+          "triggers": "Night driving"
+        },
+        {
+          "description": "Unexplained weight gain",
+          "onset": "Over 1 year",
+          "severity": "Mild",
+          "weight_change_kg": "+12"
+        },
+        {
+          "description": "Chronic frontal headaches",
+          "onset": "3 months",
+          "frequency": "Daily",
+          "pain_scale": "5/10",
+          "relieved_by": "Darkness and rest"
+        }
+      ],
+      "imaging": {
+        "mri_modality": "3T MRI with contrast",
+        "mri_path": "/imaging/radiology/MRI_PT001_20230715.dcm",
+        "scan_date": "2023-07-15",
+        "findings_summary": "10mm sellar mass with suprasellar extension"
+      },
+      "diagnosis": {
+        "tumor_type": "pituitary",
+        "confidence": "high",
+        "differential_diagnosis": ["Prolactinoma", "Non-functioning adenoma"]
+      }
+    },
+    {
+      "patient_id": "PT_002",
+      "patient_description": {
+        "demographics": {
+          "name": "Robert Chen",
+          "age": 72,
+          "gender": "male",
+          "ethnicity": "Asian"
+        },
+        "vitals": {
+          "height_cm": 175,
+          "weight_kg": 85,
+          "bmi": 27.8,
+          "blood_pressure": "136/88",
+          "pulse": 76
+        },
+        "lifestyle": {
+          "occupation": "Accountant",
+          "smoking_status": "former (quit 2005)",
+          "alcohol_use": "moderate",
+          "exercise_frequency": "weekly"
+        },
+        "mri_indication": "Investigate new-onset seizures",
+        "last_physician_visit": "2023-12-01"
+      },
+      "symptoms": [
+        {
+          "description": "Focal seizures",
+          "onset": "Sudden 2 months ago",
+          "frequency": "3 episodes",
+          "character": "Right arm jerking with aura"
+        },
+        {
+          "description": "Progressive weakness",
+          "onset": "Over 4 months",
+          "location": "Left hand",
+          "functional_impact": "Difficulty writing"
+        },
+        {
+          "description": "Personality changes",
+          "onset": "Gradual",
+          "observed_changes": ["Irritability", "Reduced social engagement"]
+        }
+      ],
+      "diagnosis": {
+        "tumor_type": "meningioma",
+        "confidence": "moderate",
+        "differential_diagnosis": ["Metastasis", "Schwannoma"]
+      }
+    },
+    {
+      "patient_id": "PT_003",
+      "patient_description": {
+        "demographics": {
+          "name": "James Wilson",
+          "age": 48,
+          "gender": "male",
+          "ethnicity": "African American"
+        },
+        "vitals": {
+          "height_cm": 182,
+          "weight_kg": 79,
+          "bmi": 23.9,
+          "blood_pressure": "122/78",
+          "pulse": 68
+        },
+        "lifestyle": {
+          "occupation": "Software engineer",
+          "smoking_status": "never",
+          "alcohol_use": "light",
+          "exercise_frequency": "regular"
+        },
+        "mri_indication": "Evaluation of speech difficulties and headaches",
+        "last_physician_visit": "2023-11-20"
+      },
+      "symptoms": [
+        {
+          "description": "Expressive aphasia",
+          "onset": "Progressive over 3 months",
+          "examples": ["Word-finding difficulty", "Grammatical errors"]
+        },
+        {
+          "description": "Morning headaches",
+          "onset": "Daily for 1 month",
+          "severity": "Severe (7/10)",
+          "vomiting": "frequent"
+        },
+        {
+          "description": "Short-term memory loss",
+          "onset": "Noticeable decline",
+          "impact": "Forgets recent conversations"
+        }
+      ],
+      "diagnosis": {
+        "tumor_type": "glioma",
+        "confidence": "high",
+        "differential_diagnosis": ["Glioblastoma", "Anaplastic astrocytoma"]
+      }
+    },
+    {
+      "patient_id": "PT_004",
+      "patient_description": {
+        "demographics": {
+          "name": "Emily Rodriguez",
+          "age": 34,
+          "gender": "female",
+          "ethnicity": "Hispanic"
+        },
+        "vitals": {
+          "height_cm": 158,
+          "weight_kg": 62,
+          "bmi": 24.8,
+          "blood_pressure": "118/76",
+          "pulse": 72
+        },
+        "lifestyle": {
+          "occupation": "Nurse",
+          "smoking_status": "never",
+          "alcohol_use": "rare",
+          "exercise_frequency": "active"
+        },
+        "mri_indication": "Persistent tension headaches",
+        "last_physician_visit": "2023-10-30"
+      },
+      "symptoms": [
+        {
+          "description": "Band-like headaches",
+          "onset": "6 months",
+          "pattern": "Bilateral, worsens with stress",
+          "pain_scale": "4/10"
+        },
+        {
+          "description": "Visual aura without headache",
+          "onset": "Occasional",
+          "description": "Flickering lights lasting 20 minutes"
+        }
+      ],
+      "diagnosis": {
+        "tumor_type": "no_tumor",
+        "confidence": "high",
+        "differential_diagnosis": ["Migraine", "Tension headache"]
+      }
+    }
+  ]
+}

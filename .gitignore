@@ -1,0 +1,30 @@
+# Python
+.python-version
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.venv/
+env/
+venv/
+ENV/
+env.bak/
+venv.bak/
+
+# Flask
+instance/
+.flaskenv
+.env
+
+# Ionic
+platforms/
+plugins/
+www/
+node_modules/
+.vscode/
+*.js.map
+*.css.map
+dist/
+
+# Jupyter Notebook
+.ipynb_checkpoints/

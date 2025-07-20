@@ -1,59 +1,58 @@
 import {
   IonApp,
   IonContent,
-  IonHeader,
   IonPage,
   IonRouterOutlet,
-  IonTitle,
-  IonToolbar,
   setupIonicReact,
+  useIonViewWillEnter,
 } from '@ionic/react';
 import { IonReactRouter } from '@ionic/react-router';
 import { Route } from 'react-router-dom';
+import { useRef } from 'react';
 
 /* Core CSS required for Ionic components to work properly */
 import '@ionic/react/css/core.css';
-
-/* Basic CSS for apps built with Ionic */
 import '@ionic/react/css/normalize.css';
 import '@ionic/react/css/structure.css';
 import '@ionic/react/css/typography.css';
-
-/* Optional CSS utils that can be commented out */
 import '@ionic/react/css/padding.css';
 import '@ionic/react/css/float-elements.css';
 import '@ionic/react/css/text-alignment.css';
 import '@ionic/react/css/text-transformation.css';
 import '@ionic/react/css/flex-utils.css';
 import '@ionic/react/css/display.css';
-
-/**
- * Ionic Dark Mode
- * -----------------------------------------------------
- * For more info, please see:
- * https://ionicframework.com/docs/theming/dark-mode
- */
-
-/* import '@ionic/react/css/palettes/dark.always.css'; */
-/* import '@ionic/react/css/palettes/dark.class.css'; */
 import '@ionic/react/css/palettes/dark.system.css';
-
-/* Theme variables */
 import './theme/variables.css';
 
 setupIonicReact();
 
-const BrowserPage: React.FC = () => {
+// It's a good practice to store configuration values like URLs in a central place
+// or in environment variables (e.g., using .env files).
+const FLASK_APP_URL = "http://127.0.0.1:5000/";
+
+const BrowserPage = () => {
+  const iframeRef = useRef<HTMLIFrameElement>(null);
+
+  useIonViewWillEnter(() => {
+    // This logic forces the iframe to reload its content every time the page is viewed.
+    // In an SPA, the component might stay in the DOM, and without this, the iframe
+    // could show stale content when navigating back to this page.
+    if (iframeRef.current) {
+      iframeRef.current.src = "about:blank";
+      setTimeout(() => {
+        if (iframeRef.current) {
+          iframeRef.current.src = FLASK_APP_URL;
+        }
+      }, 10);
+    }
+  });
+
   return (
     <IonPage>
-    {/* //   <IonHeader>
-    //     <IonToolbar>
-    //       <IonTitle>Localhost Browser</IonTitle>
-    //     </IonToolbar>
-    //   </IonHeader> */}
       <IonContent fullscreen>
         <iframe
-          src="http://127.0.0.1:5000/"
+          ref={iframeRef}
+          src={FLASK_APP_URL}
           style={{ width: '100%', height: '100%', border: 'none' }}
         />
       </IonContent>
@@ -61,7 +60,7 @@ const BrowserPage: React.FC = () => {
   );
 };
 
-const App: React.FC = () => {
+const App = () => {
   return (
     <IonApp>
       <IonReactRouter>
