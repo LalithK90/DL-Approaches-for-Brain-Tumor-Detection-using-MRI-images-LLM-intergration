@@ -2,208 +2,416 @@
 <html lang="en">
 
 <head>
-    <title>MSc_LV_10</title>
-    <!-- Required meta tags -->
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Medical Image XAI Platform</title>
     <link rel="shortcut icon" href="{{ url_for('static', filename='favicon.ico') }}">
-
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css">
+    <style link="stylesheet" href="{{ url_for('static', filename='css/app.css') }}"></style>
 
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
-
-    <link rel="stylesheet" href="https://code.jquery.com/ui/1.12.1/themes/smoothness/jquery-ui.css">
-
-    <style link="stylesheet" href="{{ url_for('static', filename='css/index.css') }}"></style>
-
-    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
-
-    <!-- jQuery and jQuery UI -->
-    <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
-    <script src="{{ url_for('static', filename='js/index.js') }}"></script>
-
-    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
 
 </head>
 
-<body>
-    <div class="container mt-2">
-        <h2 class="text-center">Enhanced Deep Learning Techniques for Brain Tumour Detection and Segmentation in MRI
-            Images.</h2>
-        <form id="uploadForm" enctype="multipart/form-data">
-            <div class="row">
-                <div class="col-md-6">
-                    <div class="mb-3">
-                        <label for="imageUpload" class="form-label">Upload Image (.png, .jpg, .jpeg)</label>
-                        <input class="form-control" type="file" id="imageUpload" accept=".png,.jpg,.jpeg" required>
-                    </div>
-                </div>
-                <div class="col-md-6 p-4"><button type="submit" class="btn btn-primary">Upload & Analyze</button></div>
+<body class="bg-light">
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark shadow-sm">
+        <div class="container">
+            <a class="navbar-brand fw-bold" href="{{ url_for('main.index') }}">Medical Image XAI</a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav"
+                aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto">
+                    {% if current_user.is_authenticated %}
+                    <li class="nav-item">
+                        <span class="navbar-text me-3">Welcome, {{ current_user.username }}!</span>
+                    </li>
+                    <li class="nav-item">
+                        <a class="btn btn-outline-light" href="{{ url_for('auth.logout') }}">Logout</a>
+                    </li>
+                    {% endif %}
+                </ul>
             </div>
-        </form>
+        </div>
+    </nav>
 
-        <div id="results" class="mt-2" style="display:none;">
-            <h3 class="text-center">Results</h3>
-            <div class="row">
-                <div class="col-md-4">
-                    <h5 class="text-center">Uploaded Image</h5>
-                    <div class="image-container">
-                        <img id="uploadedImage" src="" alt="Uploaded Image" class="image">
-                    </div>
-                </div>
-                <div class="col-md-4">
-                    <h5 class="text-center">Grad-CAM</h5>
-                    <div class="image-container">
-                        <img id="grad-cam" src="" alt="Grad-CAM" class="image">
-                    </div>
-                </div>
-                <div class="col-md-4">
-                    <h5 class="text-center">LIME</h5>
-                    <div class="image-container">
-                        <img id="lime" src="" alt="LIME" class="image">
-                    </div>
-                </div>
-            </div>
-            <!-- <div class="row">
-                <div class="col-md-4">
-                    <h5>Grayscale Viz</h5>
-                    <div class="image-container">
-                        <img id="grayscale_viz" src="" alt="LIME" class="image">
-                    </div>
-                </div>
-                <div class="col-md-4">
-                    <h5>Overlay viz</h5>
-                    <div class="image-container">
-                        <img id="overlay_viz" src="" alt="LIME" class="image">
-                    </div>
-                </div>
-            </div> -->
-            <div class="row">
-                <div class="col-md-6">
-                    <div id="probabilities">
-                    </div>
-                </div>
-                <div class="col-md-6">
-                    <div id="predictionResult">
-                    </div>
-                </div>
-            </div>
-            <!-- <div class="row">
-                <div id="chatSection" class="mt-5">
-                    <h3 class="text-end">Chat with Radio AI</h3>
-                    <div id="chatBox" class="border p-3 mb-3" style="height: 400px; overflow-y: scroll;"></div>
-                    <textarea type="text" id="chatInput" class="form-control"
-                        placeholder="Type your message..."></textarea>
-                    <button id="sendChat" class="btn btn-success mt-2">Send</button>
-                </div>
-            </div> -->
-            <div class="row">
-                <div id="chatSection" class="mt-5">
-                    <h3 class="text-end">Chat with Radio AI</h3>
-                    <div id="chatBox" class="border p-3 mb-3" style="overflow-y: hidden; min-height: 400px;">
-                        <!-- Chat messages will go here -->
-                    </div>
-                    <textarea type="text" id="chatInput" class="form-control"
-                        placeholder="Type your message..."></textarea>
-                    <button id="sendChat" class="btn btn-success mt-2">Send</button>
-                </div>
-            </div>
+    <div class="container pt-4 pb-5">
+        <h1 class="display-6 fw-bold mb-4 text-center text-primary">Explainable AI for Medical Imaging</h1>
+    </div>
 
+    <div class="row justify-content-center mb-4">
+        <div class="col-12 col-sm-10 col-md-10">
+            <div class="card shadow-sm">
+                <div class="card-header bg-primary text-white fw-bold">
+                    Upload Image for Analysis
+                </div>
+                <div class="card-body">
+                    <div class="d-flex flex-nowrap align-items-center mb-3">
+                        <div class="input-group shadow-sm me-2" style="flex-shrink: 0; width: 350px;">
+                            <label class="input-group-text" for="modelSelect">Model</label>
+                            <select id="modelSelect" class="form-select">
+                                <option value="propose_balance">Proposed (Balanced)</option>
+                                <option value="propose_inbalance">Proposed (Imbalanced)</option>
+                                <option value="vgg19_balance">VGG19 (Balanced)</option>
+                                <option value="vgg19_inbalance">VGG19 (Imbalanced)</option>
+                                <option value="vgg16_balance">VGG16 (Balanced)</option>
+                                <option value="vgg16_inbalance">VGG16 (Imbalanced)</option>
+                                <option value="ResNet50_balance">ResNet50 (Balanced)</option>
+                                <option value="ResNet50_inbalance">ResNet50 (Imbalanced)</option>
+                                <option value="MobileVNet_balance">MobileVNet (Balanced)</option>
+                                <option value="MobileVNet_inbalance">MobileVNet (Imbalanced)</option>
+                                <option value="GoogleLeNet_balance">GoogleLeNet (Balanced)</option>
+                                <option value="GoogleLeNet_inbalance">GoogleLeNet (Imbalanced)</option>
+                            </select>
+                        </div>
+                        <div class="input-group" style="flex: 1 1 auto;">
+                            <input type="file" id="imageInput" accept="image/*" class="form-control">
+                            <button id="uploadButton" class="btn btn-primary" data-predict-url="{{ url_for('main.predict') }}">
+                                Upload & Analyze
+                            </button>
+                        </div>
+                    </div>
+
+                    <small class="form-text text-muted mt-2">
+                        Please upload a medical image (MRI) for AI-powered analysis.
+                    </small>
+                </div>
+            </div>
+        </div>
+        <!-- images section -->
+        <div class="row justify-content-center mt-4 d-none" id="result_images">
+            <div class="row g-4">
+                <div id="original" class="col-12 col-md-6 col-lg-3">
+                    <div class="card h-100 shadow-sm">
+                        <img id="originalImg" class="card-img-top rounded" alt="Original">
+                        <div class="card-body text-center">
+                            <h2 class="card-title h6">Original Image</h2>
+                            <div class="small text-muted mt-1">The unprocessed input image uploaded for analysis.
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div id="gradcam" class="col-12 col-md-6 col-lg-3">
+                    <div class="card h-100 shadow-sm">
+                        <img id="gradcamImg" class="card-img-top rounded" alt="Grad-CAM">
+                        <div class="card-body text-center">
+                            <h2 class="card-title h6">Grad-CAM</h2>
+                            <div class="small text-muted mt-1">Highlights regions most influential for the prediction.
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div id="gradcam-analysis" class="col-12 col-md-6 col-lg-3">
+                    <div class="card h-100 shadow-sm">
+                        <img id="gradcamAnalysisImg" class="card-img-top rounded" alt="Grad-CAM Analysis">
+                        <div class="card-body text-center">
+                            <h2 class="card-title h6">Grad-CAM Analysis</h2>
+                            <div class="small text-muted mt-1">Overlays the heatmap on the original image for contextual
+                                understanding.</div>
+                        </div>
+                    </div>
+                </div>
+                <div id="gradcam-heatmap" class="col-12 col-md-6 col-lg-3">
+                    <div class="card h-100 shadow-sm">
+                        <img id="gradcamHeatmapImg" class="card-img-top rounded" alt="Grad-CAM Heatmap">
+                        <div class="card-body text-center">
+                            <h2 class="card-title h6">Grad-CAM Heatmap</h2>
+                            <div class="small text-muted mt-1">The raw heatmap showing model focus. Hotter areas are
+                                more important.</div>
+                        </div>
+                    </div>
+                </div>
+                <div id="lime" class="col-12 col-md-6 col-lg-3">
+                    <div class="card h-100 shadow-sm">
+                        <img id="limeImg" class="card-img-top rounded" alt="LIME">
+                        <div class="card-body text-center">
+                            <h2 class="card-title h6">LIME</h2>
+                            <div class="small text-muted mt-1">Identifies key image segments (superpixels) that support
+                                the prediction.</div>
+                        </div>
+                    </div>
+                </div>
+                <div id="saliency" class="col-12 col-md-6 col-lg-3">
+                    <div class="card h-100 shadow-sm">
+                        <img id="saliencyImg" class="card-img-top rounded" alt="Saliency Map">
+                        <div class="card-body text-center">
+                            <h2 class="card-title h6">Saliency Map</h2>
+                            <div class="small text-muted mt-1">Shows pixel-level importance. Brighter pixels impact the
+                                decision more.</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
 
-        <div class="row">
-            <!-- caution section  -->
-            <div class="container-fluid bg-danger ">
-                <p class="text-center text-white">This is not for medical diagnostic. </p>
+        <div class="accordion d-none" id="accordionPanelsStayOpenExample">
+            <div class="accordion-item">
+                <h2 class="accordion-header" id="panelsStayOpen-headingOne">
+                    <button class="accordion-button" type="button" data-bs-toggle="collapse"
+                        data-bs-target="#panelsStayOpen-collapseOne" aria-expanded="true"
+                        aria-controls="panelsStayOpen-collapseOne">
+                        <div class="fw-bold">
+                            Prediction & Explanation Metrics
+                        </div>
+                    </button>
+                </h2>
+                <div id="panelsStayOpen-collapseOne" class="accordion-collapse collapse show"
+                    aria-labelledby="panelsStayOpen-headingOne">
+                    <div class="accordion-body">
+                        <div class="col-12 mb-4 d-none" id="metrics-table-container">
+                            <div class="card shadow-sm h-100">
+                                <div class="card-body p-0">
+                                    <div class="table-responsive">
+                                        <table class="table table-bordered mb-0">
+                                            <tbody>
+                                                <tr>
+                                                    <th data-bs-toggle="tooltip" data-bs-placement="top"
+                                                        title="The most likely diagnosis predicted by the model.">
+                                                        Predicted Class
+                                                    </th>
+                                                    <td id="prediction-value">Meningioma</td>
+                                                </tr>
+                                                <tr>
+                                                    <th data-bs-toggle="tooltip" data-bs-placement="top"
+                                                        title="The model's confidence in its prediction. Good: Closer to 100%. Bad: Closer to 0%.">
+                                                        Confidence
+                                                    </th>
+                                                    <td id="confidence-value">99.89%</td>
+                                                </tr>
+                                                <tr>
+                                                    <th data-bs-toggle="tooltip" data-bs-placement="top"
+                                                        title="The model's confidence scores for the three most likely classes.">
+                                                        Top-3 Probabilities
+                                                    </th>
+                                                    <td id="top3-value">Meningioma: 99.89%, Notumor: 0.10%, Pituitary:
+                                                        0.00%</td>
+                                                </tr>
+                                                <tr>
+                                                    <th data-bs-toggle="tooltip" data-bs-placement="top"
+                                                        title="Percentage of the Grad-CAM heatmap that is 'activated'. Interpretation: A very low value might mean the model isn't finding a clear feature. A very high value could mean it's looking at everything, lacking focus.">
+                                                        Activation Ratio
+                                                        <small class="text-muted d-block">Heatmap activation
+                                                            percentage.</small>
+                                                    </th>
+                                                    <td id="activation-ratio-value">15.93%</td>
+                                                </tr>
+                                                <tr>
+                                                    <th data-bs-toggle="tooltip" data-bs-placement="top"
+                                                        title="Distance from the image center to the heatmap's center of mass. Good: Lower value (focus is central). Bad: Higher value (focus is on the edge).">
+                                                        Grad-CAM Center Distance
+                                                        <small class="text-muted d-block">Distance from image center to
+                                                            heatmap
+                                                            center.</small>
+                                                    </th>
+                                                    <td id="center-distance-value">4.59</td>
+                                                </tr>
+                                                <tr>
+                                                    <th data-bs-toggle="tooltip" data-bs-placement="top"
+                                                        title="Measures overlap between Grad-CAM and LIME. Good: Closer to 1 (high agreement). Bad: Closer to 0 (low agreement).">
+                                                        Dice (Grad-CAM vs LIME)
+                                                        <small class="text-muted d-block">Overlap between Grad-CAM and
+                                                            LIME.</small>
+                                                    </th>
+                                                    <td id="dice-value">5.75%</td>
+                                                </tr>
+                                                <tr>
+                                                    <th data-bs-toggle="tooltip" data-bs-placement="top"
+                                                        title="Intersection over Union, another overlap metric. Good: Closer to 1 (high agreement). Bad: Closer to 0 (low agreement).">
+                                                        IoU (Grad-CAM vs LIME)
+                                                        <small class="text-muted d-block">Intersection over Union of
+                                                            heatmaps.</small>
+                                                    </th>
+                                                    <td id="iou-value">2.96%</td>
+                                                </tr>
+                                                <tr>
+                                                    <th data-bs-toggle="tooltip" data-bs-placement="top"
+                                                        title="Measures the model's uncertainty. Good: Lower value (more certain). Bad: Higher value (less certain).">
+                                                        Softmax Entropy
+                                                        <small class="text-muted d-block">Model's uncertainty in
+                                                            prediction.</small>
+                                                    </th>
+                                                    <td id="entropy-value">0.012</td>
+                                                </tr>
+                                                <tr>
+                                                    <th data-bs-toggle="tooltip" data-bs-placement="top"
+                                                        title="Difference between the top two predictions. Good: Larger value (more decisive). Bad: Smaller value (less decisive).">
+                                                        Margin Score
+                                                        <small class="text-muted d-block">Decisiveness between top two
+                                                            predictions.</small>
+                                                    </th>
+                                                    <td id="margin-value">0.998</td>
+                                                </tr>
+                                                <tr>
+                                                    <th data-bs-toggle="tooltip" data-bs-placement="top"
+                                                        title="Estimates model uncertainty. Good: Lower variance (more stable/certain). Bad: Higher variance (less stable/certain).">
+                                                        MC Dropout Variance
+                                                        <small class="text-muted d-block">Estimates model uncertainty
+                                                            (variance).</small>
+                                                    </th>
+                                                    <td id="mc-variance-value">0.000</td>
+                                                </tr>
+                                                <tr>
+                                                    <th data-bs-toggle="tooltip" data-bs-placement="top"
+                                                        title="The 95% confidence interval for the top prediction's probability, based on MC Dropout. Interpretation: A narrower interval indicates higher certainty.">
+                                                        MC Dropout Confidence Interval
+                                                        <small class="text-muted d-block">95% CI for top prediction
+                                                            probability.</small>
+                                                    </th>
+                                                    <td id="mc-ci-value">[0.99, 1.00]</td>
+                                                </tr>
+                                                <tr>
+                                                    <th data-bs-toggle="tooltip" data-bs-placement="top"
+                                                        title="Measures the accuracy of probabilistic predictions. Good: Closer to 0 (perfect score). Bad: Higher value.">
+                                                        Brier Score
+                                                        <small class="text-muted d-block">Accuracy of probabilistic
+                                                            predictions.</small>
+                                                    </th>
+                                                    <td id="brier-value">0.000</td>
+                                                </tr>
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </div>
-            <!-- code availability  -->
-            <div class="container">
-                <p class="text-center">
-                    |
-                    <a href="https://www.kaggle.com/code/lalithk90/covid-19-identification-with-chest-x-ray">Kaggle</a>
-                    |
-                    &nbsp;
-                    |
-                    <a href="https://github.com/LalithK90/Covid-19-Identification-with-Chest-X-Ray">Github - Model
-                        Creation Code </a>
-                    |
-                    &nbsp;
-                    |
-                    <a href="https://github.com/LalithK90/Covid-19-Identification-with-Chest-X-Ray-Web-app">Github - Web
-                        App Source Code</a>
-                    |
-                </p>
+            <div class="accordion-item">
+                <h2 class="accordion-header" id="panelsStayOpen-headingTwo">
+                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse"
+                        data-bs-target="#panelsStayOpen-collapseTwo" aria-expanded="false"
+                        aria-controls="panelsStayOpen-collapseTwo">
+                        <div class="fw-bold">
+                            Matching Patient Profile (Sample Data)
+                        </div>
+                    </button>
+                </h2>
+                <div id="panelsStayOpen-collapseTwo" class="accordion-collapse collapse" aria-labelledby="panelsStayOpen-headingTwo">
+                    <div class="accordion-body">
+                        <div id="patient-info-card" class="col-12 mb-4 d-none">
+                            <div class="card shadow-sm h-100">
+                                <div class="card-body">
+                                    <h5 class="card-title" id="patient-name"></h5>
+                                    <p class="card-text mb-1">
+                                        <strong>Patient ID:</strong> <span id="patient-id"></span>
+                                    </p>
+                                    <p class="card-text mb-1">
+                                        <strong>Age:</strong> <span id="patient-age"></span> |
+                                        <strong>Gender:</strong> <span id="patient-gender"></span> |
+                                        <strong>Ethnicity:</strong> <span id="patient-ethnicity"></span>
+                                    </p>
+                                    <p class="card-text mb-1">
+                                        <strong>Vitals:</strong> Height: <span id="patient-height"></span> cm,
+                                        Weight: <span id="patient-weight"></span> kg,
+                                        BMI: <span id="patient-bmi"></span>,
+                                        Blood Pressure: <span id="patient-bp"></span>,
+                                        Pulse: <span id="patient-pulse"></span> bpm
+                                    </p>
+                                    <p class="card-text mb-1">
+                                        <strong>Lifestyle:</strong> Occupation: <span id="patient-occupation"></span>,
+                                        Smoking: <span id="patient-smoking"></span>,
+                                        Alcohol: <span id="patient-alcohol"></span>,
+                                        Exercise: <span id="patient-exercise"></span>
+                                    </p>
+                                    <p class="card-text mb-1">
+                                        <strong>Last Physician Visit:</strong> <span id="patient-last-visit"></span>
+                                    </p>
+                                    <p class="card-text mb-1">
+                                        <strong>MRI Indication:</strong> <span id="patient-mri-indication"></span>
+                                    </p>
+                                    <h6 class="mt-3">Symptoms Reported:</h6>
+                                    <ul id="patient-symptoms" class="list-group list-group-flush mb-3"></ul>
+                                    <h6>Medical History:</h6>
+                                    <p class="card-text mb-1"><strong>Past Diagnoses:</strong></p>
+                                    <ul id="patient-past-diagnoses" class="list-group list-group-flush mb-2"></ul>
+                                    <p class="card-text mb-1"><strong>Family History:</strong></p>
+                                    <ul id="patient-family-history" class="list-group list-group-flush mb-2"></ul>
+                                    <p class="card-text mb-1"><strong>Surgeries:</strong></p>
+                                    <ul id="patient-surgeries" class="list-group list-group-flush mb-2"></ul>
+                                    <p class="card-text mb-1"><strong>Medications:</strong> <span id="patient-medications"></span>
+                                    </p>
+                                    <p class="card-text mb-1"><strong>Allergies:</strong> <span id="patient-allergies"></span></p>
+                                    <h6 class="mt-3">Imaging Details:</h6>
+                                    <p class="card-text mb-1">
+                                        <strong>MRI Modality:</strong> <span id="patient-mri-modality"></span>
+                                    </p>
+                                    <p class="card-text mb-1">
+                                        <strong>Scan Date:</strong> <span id="patient-scan-date"></span>
+                                    </p>
+                                    <p class="card-text mb-1">
+                                        <strong>Findings Summary:</strong> <span id="patient-findings"></span>
+                                    </p>
+                                    <h6 class="mt-3">Diagnosis:</h6>
+                                    <p class="card-text mb-1">
+                                        <strong>Tumor Type:</strong> <span id="patient-tumor-type"></span>
+                                    </p>
+                                    <p class="card-text mb-1">
+                                        <strong>Confidence:</strong> <span id="patient-diagnosis-confidence"></span>
+                                    </p>
+                                    <p class="card-text mb-1"><strong>Differential Diagnosis:</strong></p>
+                                    <ul id="patient-differential-diagnosis" class="list-group list-group-flush"></ul>
+                                </div>
+                            </div>
+                            </div>
+                            </div>
+                </div>
             </div>
         </div>
     </div>
-    <!-- Bootstrap Modal -->
-    <div class="modal fade" id="uploadModal" tabindex="-1" aria-labelledby="uploadModalLabel" aria-hidden="false">
-        <div class="modal-dialog modal-fullscreen">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title" id="uploadModalLabel">Upload and Provide Additional Information</h5>
-                    <!-- <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button> -->
-                </div>
-                <div class="modal-body">
-                    <!-- Progress Spinner -->
-                    <div id="progressSpinner" class="text-center">
-                        <div class="spinner-border" role="status">
-                            <span class="visually-hidden">Loading...</span>
-                        </div>
-                        <p>Uploading file and processing...</p>
-                    </div>
-
-                    <!-- Form Content -->
-                    <div id="formContent">
-                        <div class="mb-3">
-                            <label for="medical_history" class="form-label">
-                                <span data-bs-toggle="tooltip" data-bs-placement="top"
-                                    title="Describes the patient’s past medical records and conditions.">
-                                    <i class="bi bi-question-circle"></i>
-                                </span>
-                                Medical History
-                            </label>
-                            <textarea id="medical_history" class="form-control mb-2"
-                                placeholder="Enter patient's medical history" rows="3"></textarea>
-                        </div>
-
-                        <div class="mb-3">
-                            <label for="pt_description" class="form-label">
-                                <span data-bs-toggle="tooltip" data-bs-placement="top"
-                                    title="General details about the patient, such as demographics or personal observations.">
-                                    <i class="bi bi-question-circle"></i>
-                                </span>
-                                Patient Description
-                            </label>
-                            <textarea id="pt_description" class="form-control mb-2" placeholder="Enter patient details"
-                                rows="3"></textarea>
-                        </div>
-
-                        <div class="mb-3">
-                            <label for="symptoms" class="form-label">
-                                <span data-bs-toggle="tooltip" data-bs-placement="top"
-                                    title="Details about the symptoms the patient is experiencing.">
-                                    <i class="bi bi-question-circle"></i>
-                                </span>
-                                Symptoms
-                            </label>
-                            <textarea id="symptoms" class="form-control mb-2" placeholder="Describe symptoms"
-                                rows="3"></textarea>
-                        </div>
-                    </div>
-                </div>
-                <div class="modal-footer">
-                    <!-- <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button> -->
-                    <button type="button" id="submitModalForm" class="btn btn-primary" data-bs-dismiss="modal"
-                        aria-label="Close">Submit</button>
-                </div>
+    
+    <!-- chat section -->
+    <div class="row justify-content-center mt-4">
+        <div id="chatSection" class="mt-5 col-12 col-sm-10 col-md-10 d-none">
+            <h3 class="text-center mb-3"><i class="fas fa-comments text-primary me-2"></i>Chat with RadioAI</h3>
+            <div id="chatBox" class="card-body border p-3 mb-3 bg-white rounded shadow-sm"
+                style="overflow-y: auto; height: 400px;">
+                <!-- Chat messages will go here -->
+            </div>
+            <div class="input-group">
+                <textarea id="chatInput" class="form-control" placeholder="Ask about the analysis..."
+                    aria-label="Chat message"></textarea>
+                <button id="sendChat" class="btn btn-primary" type="button">
+                    <i class="fas fa-paper-plane me-1"></i> Send
+                </button>
             </div>
         </div>
     </div>
 
-
+    <div class="row justify-content-center mt-4 ">
+        <!-- Caution Section -->
+        <div class="container-fluid bg-danger p-2">
+            <p class="text-center text-white fw-bold mb-0">
+                Disclaimer: This tool is for academic research purposes only and is <strong>not for medical diagnostic
+                    use.</strong>
+            </p>
+            <p class="text-center text-white small mb-0">
+                The analysis is based on publicly available data and has not been clinically validated.
+            </p>
+        </div>
+        <!-- Accreditation Section -->
+        <div class="container text-center mt-3">
+            <p class="text-muted small mb-1">
+                This is a final research work for the Master of Science in Computer Science (MSc in CS - SLQF Level 10)
+                degree program conducted by the <a href="https://www.pgis.lk" target="_blank"
+                    rel="noopener noreferrer">Postgraduate Institute of Science (PGIS)</a> and the Department of
+                Statistics & Computer Science, University of Peradeniya.
+            </p>
+            <p class="text-muted small mb-1">
+                All rights reserved © PGIS & Department of Statistics & Computer Science, University of Peradeniya.
+            </p>
+            <p class="text-center small">
+                <a href="https://github.com/LalithK90/Deep-Learning-Approaches-for-Brain-Tumor-Detection-using-MRI-WebApp.git">View
+                    Project on Github</a>
+            </p>
+        </div>
+    </div>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="{{ url_for('static', filename='js/app.js') }}"></script>
 </body>
 
 </html>

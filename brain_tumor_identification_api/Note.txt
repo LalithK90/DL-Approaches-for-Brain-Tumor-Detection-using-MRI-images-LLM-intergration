@@ -1,0 +1,63 @@
+How to run this application 
+
+1. need install conda 
+2. change conda enviroment " condata activate mri_data"
+
+Next proccess 
+==============
+1. keep all the model in model folder
+2. need to create in python
+    1. Grad-CAM 
+    2. Occlusion Sensitivity Map
+    3. Combin Grad CAM and LIME
+3. need to make object 
+    1. image 
+    2. result 
+    3. message    
+
+
+
+import requests
+
+def make_prediction(image_file):
+    # Load or process the image as needed
+    
+    # Example: Send the prediction request to Ollama
+    url = "http://localhost:11434/api/generate"
+    payload = {
+        "model": "gpt-4",  # Replace with your preferred model
+        "prompt": f"""
+            You are a medical expert in oncology. Based on the MRI image analysis, the patient has been diagnosed with cancer.
+            The AI has identified a brain tumor. Please provide step-by-step guidance for the next steps:
+            
+            Patient Information (if available):
+            - Age: [Insert age]
+            - Medical History: [Insert medical history]
+            - Symptoms: [Insert symptoms]
+            
+            MRI Analysis Results:
+            - Tumor Type: [Replace with your model's prediction]
+            - Tumor Location: [Replace with your model's prediction]
+            - Size of Tumor: [Replace with your model's prediction]
+            
+            Provide a clear, actionable plan for the next steps in diagnosis and treatment.
+        """,
+    }
+    
+    response = requests.post(url, json=payload)
+    return response.json()['choices'][0]['message']['content']
+
+
+
+
+# model = tf.keras.models.load_model('model/vgg19_balance.h5')
+# model = tf.keras.models.load_model('model/vgg16_inbalance.h5')
+# model = tf.keras.models.load_model('model/vgg16_balance.h5')
+# model = tf.keras.models.load_model('model/propose_inbalance.h5')
+# model = tf.keras.models.load_model('model/propose_balance.h5')
+# model = tf.keras.models.load_model('model/ResNet50_inbalance.h5')
+# model = tf.keras.models.load_model('model/ResNet50_balance.h5')
+# model = tf.keras.models.load_model('model/MobileVNet_inbalance.h5')
+# model = tf.keras.models.load_model('model/MobileVNet_balance.h5')
+# model = tf.keras.models.load_model('model/GoogleLeNet_inbalance.h5')
+# model = tf.keras.models.load_model('model/GoogleLeNet_balance.h5')
