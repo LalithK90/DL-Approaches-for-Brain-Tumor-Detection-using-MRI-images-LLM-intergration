@@ -1,0 +1,12 @@
+flask
+flask-bcrypt
+flask-login
+numpy
+opencv-python
+tensorflow
+tf-keras-vis
+lime
+scikit-image
+matplotlib
+scipy
+tf-explain

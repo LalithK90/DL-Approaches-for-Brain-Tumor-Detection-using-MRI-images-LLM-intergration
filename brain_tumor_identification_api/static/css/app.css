@@ -1,0 +1,88 @@
+.card-img-top {
+    height: 180px;
+    object-fit: contain;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+}
+
+.metrics-card {
+    background: #f8f9fa;
+    border-radius: 1rem;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+
+@media (max-width: 576px) {
+    .card-img-top {
+        height: 120px;
+    }
+}
+
+/* Metrics Table Styles */
+#metrics-table-container .table {
+    background-color: #ffffff;
+    border-collapse: separate;
+    border-spacing: 0;
+    border-radius: 0.5rem;
+    overflow: hidden;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+#metrics-table-container .table th {
+    background-color: #e9ecef;
+    color: #343a40;
+    font-weight: 600;
+    padding: 12px 15px;
+    text-align: left;
+    vertical-align: middle;
+    border-bottom: 2px solid #dee2e6;
+}
+
+#metrics-table-container .table td {
+    padding: 12px 15px;
+    vertical-align: middle;
+    transition: background-color 0.2s ease;
+}
+
+#metrics-table-container .table tr:hover td {
+    background-color: #f1f3f5;
+}
+
+#metrics-table-container .table th[data-bs-toggle="tooltip"] {
+    position: relative;
+    cursor: help;
+}
+
+#metrics-table-container .table th[data-bs-toggle="tooltip"]::after {
+    content: 'ℹ️';
+    font-size: 0.8rem;
+    margin-left: 5px;
+    color: #007bff;
+}
+
+#metrics-table-container .table td {
+    font-size: 0.95rem;
+    color: #495057;
+}
+
+#metrics-table-container .table th p {
+    margin: 0;
+    font-size: 0.9rem;
+    color: #6c757d;
+    line-height: 1.4;
+}
+
+#metrics-table-container .table th p i {
+    font-style: italic;
+    color: #868e96;
+}
+/* Responsive adjustments */
+@media (max-width: 768px) {
+
+    #metrics-table-container .table th,
+    #metrics-table-container .table td {
+        padding: 8px 10px;
+        font-size: 0.9rem;
+    }
+#metrics-table-container .table th p {
+    font-size: 0.85rem;
+}
+}
