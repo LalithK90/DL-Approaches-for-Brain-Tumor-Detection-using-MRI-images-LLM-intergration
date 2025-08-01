@@ -1,5 +1,6 @@
 from flask_bcrypt import Bcrypt
 from flask import Flask
+from flask_cors import CORS
 from datetime import timedelta
 import matplotlib
 matplotlib.use('Agg')
@@ -12,6 +13,9 @@ from src.routes.routes import main_bp
 app = Flask(__name__)
 app.config['SECRET_KEY'] = os.urandom(24).hex()  # Generate a random secret key
 app.permanent_session_lifetime = timedelta(minutes=30)
+
+# Initialize CORS with support for credentials
+CORS(app, resources={r"/*": {"origins": "http://localhost:3000", "supports_credentials": True}})
 
 bcrypt = Bcrypt(app)
 # Initialize authentication

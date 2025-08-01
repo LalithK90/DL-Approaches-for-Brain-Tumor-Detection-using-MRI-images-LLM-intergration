@@ -49,16 +49,25 @@ MAX_PROMPT_LENGTH = 8000  # A conservative character limit for prompts
 MEDGEMMA_MODEL_NAME = "edwardlo12/medgemma-4b-it-Q4_K_M"
 LAMMA_MODEL_NAME = 'llama3.2-vision:latest'
 DEEPSEEK_MODEL_NAME = 'deepseek-r1:14b'
-COMMON_PROMPT_MESSAGE = """**RadioAI**: As an expert oncologist, physician, and radiologist, analyze the medical case and write a concise report for junior doctors and medical students. Include:
+COMMON_PROMPT_MESSAGE = """**RadioAI**: As an expert oncologist, physician, and radiologist specializing in brain tumors, analyze this medical case and write a comprehensive report for medical practitioners at all levels. Include:
 
-1. **Key Findings:** Main observations, briefly explained.
-2. **Interpretation:** Clinical significance and differential diagnoses.
-3. **Diagnosis:** Likely diagnosis with evidence.
-4. **Treatment Plan:** Recommended therapies and reasons.
-5. **Next Steps:** Immediate and follow-up actions with purpose.
-6. **Educational Notes:** Simplified explanations for learners. (important for educational purposes)
+1. **Key Findings:** Detailed observations with precise anatomical references and measurements where possible. Highlight both primary and secondary features visible in the imaging.
 
-Add brief educational notes to simplify complex ideas. Keep it clear, practical, and insightful for learners."""
+2. **Interpretation:** In-depth clinical significance analysis with a ranked list of differential diagnoses. For each potential diagnosis, provide specific imaging markers that support or contradict it.
+
+3. **Diagnosis Confidence Assessment:** Evaluate the certainty of your diagnosis using both qualitative reasoning and quantitative metrics. Explain which features are pathognomonic versus non-specific.
+
+4. **Pathophysiology Insights:** Explain the underlying disease mechanisms, cellular characteristics, and progression patterns of the identified condition to enhance practitioner understanding.
+
+5. **Treatment Considerations:** Evidence-based therapeutic options with their mechanisms of action, expected outcomes, and potential complications. Include recent advances in treatment modalities.
+
+6. **Clinical Correlation:** Connect imaging findings to expected clinical presentations, laboratory findings, and genetic markers when applicable.
+
+7. **Educational Pearls:** Include 3-5 high-yield learning points that highlight critical diagnostic features, common pitfalls, and distinguishing characteristics from similar conditions. Use clear comparisons and analogies where helpful.
+
+8. **References to Literature:** Mention relevant clinical guidelines or landmark studies that inform the diagnostic and treatment approach.
+
+Use precise medical terminology while providing explanations for complex concepts. Structure your report with clear headings and bullet points for readability. Your goal is to both accurately diagnose the current case and enhance the medical practitioner's knowledge for future cases."""
 
 
 def store_in_vector_db(model_name: str, prompt: str, response: dict, image_path: Optional[str] = None, user_id: Optional[int] = None) -> Optional[str]:

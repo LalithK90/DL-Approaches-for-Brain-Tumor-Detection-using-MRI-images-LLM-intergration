@@ -1,5 +1,5 @@
 # app/auth/auth.py (corrected)
-from flask import Blueprint, render_template, redirect, url_for, flash, request
+from flask import Blueprint, render_template, redirect, url_for, flash, request, jsonify
 from flask_login import LoginManager, UserMixin, login_user, logout_user, current_user, login_required
 
 # Create the Blueprint for authentication routes
@@ -78,9 +78,67 @@ def login():
 
     return render_template('login.html')
 
+@auth_bp.route('/api', methods=['POST'])
+def api_login():
+    """JSON-based login endpoint for mobile/API clients"""
+    if current_user.is_authenticated:
+        return jsonify({'success': True, 'message': 'Already logged in', 'user': {'username': current_user.username, 'roles': current_user.roles}}), 200
+
+    data = request.get_json()
+    if not data or 'username' not in data or 'password' not in data:
+        return jsonify({'success': False, 'message': 'Username and password are required'}), 400
+
+    username = data['username']
+    password = data['password']
+
+    # Find user by username
+    user_data_tuple = next(((uid, data) for uid, data in users.items() if data["username"] == username), None)
+
+    user_to_check = None
+    if user_data_tuple:
+        uid, user_data = user_data_tuple
+        user_to_check = User(uid, user_data["username"], user_data["password"], user_data["roles"])
+
+    # Check password
+    if user_to_check and _bcrypt.check_password_hash(user_to_check.password_hash, password):
+        login_user(user_to_check)
+        return jsonify({
+            'success': True, 
+            'message': f'Logged in as {user_to_check.username}',
+            'user': {
+                'id': user_to_check.id,
+                'username': user_to_check.username,
+                'roles': user_to_check.roles
+            }
+        }), 200
+    else:
+        return jsonify({'success': False, 'message': 'Invalid username or password'}), 401
+
 @auth_bp.route('/logout')
 @login_required
 def logout():
     logout_user()
     flash('You have been logged out.', 'info')
     return redirect(url_for('auth.login'))
+
+@auth_bp.route('/api/logout', methods=['POST'])
+@login_required
+def api_logout():
+    """JSON-based logout endpoint for mobile/API clients"""
+    logout_user()
+    return jsonify({'success': True, 'message': 'Logged out successfully'}), 200
+
+@auth_bp.route('/api/status', methods=['GET'])
+def api_status():
+    """Check authentication status for mobile/API clients"""
+    if current_user.is_authenticated:
+        return jsonify({
+            'authenticated': True,
+            'user': {
+                'id': current_user.id,
+                'username': current_user.username,
+                'roles': current_user.roles
+            }
+        }), 200
+    else:
+        return jsonify({'authenticated': False}), 200
