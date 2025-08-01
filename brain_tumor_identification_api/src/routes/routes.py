@@ -166,7 +166,7 @@ def predict():
         patient_info = find_patient_by_diagnosis(predicted_class, patient_data)
         del patient_info["diagnosis"]
 
-        # 6. Assemble and return the final JSON response
+        # 6. Assemble and return the final JSON response with educational explanations
         response_data = {
             'original': url_for('static', filename=f'/uploads/{filename}', _external=True),
             'gradcam': url_for('static', filename=f'/visualizations/gradcam_{filename}', _external=True),
@@ -177,6 +177,12 @@ def predict():
             'prediction': predicted_class,
             'confidence': get_metric_interpretation('confidence', confidence_val),
             'patient_info': patient_info,
+            'xai_educational_notes': {
+                'gradcam_explanation': "Gradient-weighted Class Activation Mapping (Grad-CAM) highlights the regions in the image that most strongly influenced the model's prediction. Brighter areas indicate features that strongly support the diagnosis.",
+                'saliency_explanation': "Saliency maps show which pixels in the image had the greatest influence on the classification decision. They help identify the specific image features the model focused on.",
+                'lime_explanation': "Local Interpretable Model-agnostic Explanations (LIME) creates a simplified local model to explain which features contributed most to the prediction. It helps understand which image regions support or contradict the diagnosis.",
+                'metrics_explanation': "Quantitative metrics provide objective measures of model confidence and uncertainty. They help assess the reliability of the AI diagnosis and identify cases that may require additional clinical correlation."
+            }
         }
 
         # 6. Generate a consolidated AI report by synthesizing all data
@@ -184,8 +190,18 @@ def predict():
         patient_info_string = json.dumps(patient_info, indent=2)
         metrics_string = json.dumps(metrics, indent=2)
 
-        # Use a simple, direct prompt for the initial image analysis
-        image_analysis_prompt = "Analyze this MRI scan and provide a detailed description of your findings."
+        # Use a detailed prompt for the initial image analysis that focuses on specific radiological features
+        image_analysis_prompt = """Analyze this brain MRI scan with the precision of an expert neuroradiologist. Provide a detailed description of your findings, including:
+1. Precise anatomical localization of any abnormalities
+2. Signal characteristics on different sequences (if visible)
+3. Size measurements and shape description of any lesions
+4. Mass effect, edema, or midline shift
+5. Enhancement patterns (if contrast is visible)
+6. Involvement of critical structures
+7. Secondary findings or complications
+8. Specific radiological signs that suggest a particular diagnosis
+
+Be thorough in your analysis and use precise medical terminology while explaining key concepts."""
 
         # Get initial analyses from vision models. These will serve as inputs for the final report.
         llama3_response = get_image_description_llama3_vision(
@@ -195,7 +211,7 @@ def predict():
         #     image_analysis_prompt, filepath)
 
         final_report_prompt_medggemma = f"""
-                    Your task is to synthesize the following information from multiple sources into a single, coherent medical report.
+                    Your task is to synthesize the following information from multiple sources into a comprehensive, educational medical report for brain tumor diagnosis.
                     ---
                     ### Source 1: AI Image Analysis (Llama3.2-vision)
                     {llama3_response}
@@ -209,6 +225,28 @@ def predict():
                     ### Source 4: Primary AI Diagnosis
                     **Diagnosis:** {predicted_class}
                     ---
+                    
+                    Structure your report with these sections:
+                    
+                    1. **Clinical Presentation Summary**: Synthesize patient demographics, symptoms, and relevant history.
+                    
+                    2. **Imaging Findings**: Describe key observations with precise anatomical references and measurements. Include both primary features (tumor characteristics) and secondary features (mass effect, edema, etc.).
+                    
+                    3. **Quantitative Assessment**: Interpret the AI confidence metrics in clinical terms. Explain what the entropy, margin, and other metrics suggest about diagnostic certainty.
+                    
+                    4. **Differential Diagnosis**: Present a ranked list of possible diagnoses with specific imaging features supporting or contradicting each. For the primary diagnosis, provide a detailed explanation of pathognomonic features.
+                    
+                    5. **Pathophysiology Insights**: Explain the underlying disease mechanisms and cellular characteristics of the identified tumor type.
+                    
+                    6. **Clinical Implications**: Discuss expected symptoms, progression patterns, and potential complications.
+                    
+                    7. **Management Recommendations**: Suggest evidence-based treatment approaches with their mechanisms of action and expected outcomes.
+                    
+                    8. **Educational Pearls**: Include 3-5 high-yield learning points that highlight critical diagnostic features and common pitfalls in diagnosing this type of tumor.
+                    
+                    9. **References**: Mention relevant clinical guidelines or landmark studies.
+                    
+                    Use precise medical terminology while providing clear explanations for complex concepts. Your goal is to both accurately diagnose the current case and enhance the medical practitioner's knowledge for future cases.
                     """
 
         medgemma_text_response = get_medical_report_from_text_medgemma(
@@ -218,7 +256,7 @@ def predict():
         response_data.update(metrics)
 
         final_report_prompt_deepsek = f"""
-                    Your task is to synthesize the following information from multiple sources into a single, coherent medical report.
+                    Your task is to synthesize the following information from multiple sources into a comprehensive, educational medical report for brain tumor diagnosis. You are creating the FINAL report that will be presented to medical practitioners, so ensure it is complete, accurate, and maximally educational.
                     ---
                     ### Source 1: AI Image Analysis (MedGemma)
                     {medgemma_text_response}
@@ -235,8 +273,45 @@ def predict():
                     ### Source 5: Primary AI Diagnosis
                     **Diagnosis:** {predicted_class}
                     ---
-                    ### Remember:
-                    - Make sure given image data description include in output. otherview student and jounir medical officers would be able to understand what you see.
+                    ### Source 6: Explainable AI Visualizations
+                    The following visualization techniques were applied to understand the model's decision-making process:
+                    - Grad-CAM: Highlights regions most influential in the classification decision
+                    - Saliency Map: Shows pixels that most strongly influence the prediction
+                    - LIME: Provides local interpretable explanations of model predictions
+                    
+                    These visualizations indicate which regions of the image were most important for the AI's diagnosis. Use this information to explain which specific imaging features were most significant in determining the diagnosis.
+                    ---
+                    
+                    Structure your report with these sections:
+                    
+                    1. **Executive Summary**: A concise overview of the case, diagnosis, and key findings (2-3 sentences).
+                    
+                    2. **Clinical Presentation**: Synthesize patient demographics, symptoms, and relevant history.
+                    
+                    3. **Imaging Findings**: Describe key observations with precise anatomical references and measurements. Include both primary features (tumor characteristics) and secondary features (mass effect, edema, etc.). Explain which specific regions were highlighted by the XAI visualizations and their significance.
+                    
+                    4. **Quantitative Assessment**: Interpret the AI confidence metrics in clinical terms. Explain what the entropy, margin, and other metrics suggest about diagnostic certainty. Discuss any discrepancies between different metrics and their implications.
+                    
+                    5. **Differential Diagnosis**: Present a ranked list of possible diagnoses with specific imaging features supporting or contradicting each. For the primary diagnosis, provide a detailed explanation of pathognomonic features.
+                    
+                    6. **Pathophysiology Insights**: Explain the underlying disease mechanisms, cellular characteristics, and molecular markers of the identified tumor type.
+                    
+                    7. **Clinical Implications**: Discuss expected symptoms, progression patterns, and potential complications. Include information about typical prognosis based on the specific features observed.
+                    
+                    8. **Management Recommendations**: Suggest evidence-based treatment approaches with their mechanisms of action and expected outcomes. Include surgical considerations, radiation therapy options, and chemotherapy protocols when applicable.
+                    
+                    9. **Educational Pearls**: Include 3-5 high-yield learning points that highlight critical diagnostic features, common pitfalls, and distinguishing characteristics from similar conditions. Use clear comparisons and analogies where helpful.
+                    
+                    10. **References**: Mention relevant clinical guidelines or landmark studies that inform the diagnostic and treatment approach.
+                    
+                    Important guidelines:
+                    - Use precise medical terminology while providing clear explanations for complex concepts.
+                    - Include detailed image descriptions so students and junior medical officers can understand what they're seeing.
+                    - Structure your report with clear headings and bullet points for readability.
+                    - Highlight key findings and critical information using bold or italics where appropriate.
+                    - Connect imaging findings to clinical presentation and expected symptoms.
+                    - Explain the significance of the XAI visualizations in understanding the diagnosis.
+                    - Your goal is to both accurately diagnose the current case and enhance the medical practitioner's knowledge for future cases.
                     """
 
         resoning_final_report = get_text_reasoning(
@@ -249,50 +324,102 @@ def predict():
 
 
 def get_metric_interpretation(metric_name, value):
-    """Provides a qualitative interpretation and level for a given metric value."""
+    """Provides a detailed qualitative interpretation and level for a given metric value.
+    Includes educational explanations to help practitioners understand the significance."""
     interpretation = "N/A"
     level = "neutral"  # 'good', 'warning', 'bad'
+    explanation = ""  # Educational explanation of the metric
 
     if metric_name == 'confidence':
         if value >= 0.9:
             interpretation = "Very High"
             level = 'good'
+            explanation = "The model is extremely confident in its diagnosis, suggesting strong characteristic features of this tumor type are present in the image."
         elif value >= 0.7:
             interpretation = "High"
             level = 'good'
+            explanation = "The model shows strong confidence in its diagnosis, indicating clear presence of typical features for this tumor type."
         elif value >= 0.5:
             interpretation = "Moderate"
             level = 'warning'
+            explanation = "The model shows moderate confidence, suggesting some typical features are present but possibly with atypical characteristics that create ambiguity."
         else:
             interpretation = "Low"
             level = 'bad'
+            explanation = "The model has low confidence in its diagnosis, indicating this may be an atypical presentation or the image may contain features common to multiple tumor types."
+    
     elif metric_name == 'entropy':
         max_entropy = np.log2(4)  # For 4 classes
         if value <= max_entropy * 0.25:
             interpretation = "Low Uncertainty"
             level = 'good'
+            explanation = "The probability distribution across possible classes is concentrated, indicating the model is decisive in its classification with minimal uncertainty."
         elif value <= max_entropy * 0.6:
             interpretation = "Moderate Uncertainty"
             level = 'warning'
+            explanation = "The model shows some distribution of probability across multiple classes, suggesting features common to different tumor types may be present."
         else:
             interpretation = "High Uncertainty"
             level = 'bad'
+            explanation = "The model's probability is widely distributed across multiple classes, indicating significant diagnostic uncertainty. This may require additional imaging sequences or histopathological confirmation."
+    
     elif metric_name == 'margin':
         if value >= 0.7:
             interpretation = "Decisive"
             level = 'good'
+            explanation = "There is a large margin between the top prediction and alternatives, indicating the model strongly favors this diagnosis over others."
         elif value >= 0.3:
             interpretation = "Reasonable"
             level = 'warning'
+            explanation = "The margin between the top prediction and alternatives is moderate, suggesting some distinctive features but also some overlapping characteristics with other tumor types."
         else:
             interpretation = "Indecisive"
             level = 'bad'
-    elif metric_name in ['dice', 'iou', 'mc_variance', 'brier']:
-        # These metrics have similar good/bad ranges (high is good for dice/iou, low is good for var/brier)
-        # This logic can be expanded if more specific interpretations are needed.
-        pass  # Placeholder for more complex logic if needed
+            explanation = "The small margin between top predictions indicates the model finds it difficult to distinguish between multiple possible diagnoses. Consider additional diagnostic methods."
+    
+    elif metric_name == 'dice' or metric_name == 'iou':
+        if value >= 0.7:
+            interpretation = "High Agreement"
+            level = 'good'
+            explanation = "Strong spatial agreement between different explainability methods, indicating consistent identification of relevant image regions."
+        elif value >= 0.4:
+            interpretation = "Moderate Agreement"
+            level = 'warning'
+            explanation = "Partial agreement between explainability methods, suggesting some consistency in identified regions but also some differences in feature importance."
+        else:
+            interpretation = "Low Agreement"
+            level = 'bad'
+            explanation = "Limited agreement between explainability methods, indicating uncertainty in which image features are most relevant for diagnosis."
+    
+    elif metric_name == 'mc_variance':
+        if value <= 0.01:
+            interpretation = "Very Stable"
+            level = 'good'
+            explanation = "Monte Carlo dropout shows very low variance, indicating high model stability and consistency in predictions across stochastic forward passes."
+        elif value <= 0.05:
+            interpretation = "Moderately Stable"
+            level = 'warning'
+            explanation = "Some variance in Monte Carlo dropout predictions, suggesting moderate model stability with some sensitivity to dropout perturbations."
+        else:
+            interpretation = "Unstable"
+            level = 'bad'
+            explanation = "High variance in Monte Carlo dropout predictions, indicating model instability and high sensitivity to the dropout perturbation, suggesting uncertainty in the diagnosis."
+    
+    elif metric_name == 'brier':
+        if value <= 0.1:
+            interpretation = "Excellent Calibration"
+            level = 'good'
+            explanation = "Low Brier score indicates excellent calibration between predicted probabilities and actual outcomes, suggesting reliable confidence estimates."
+        elif value <= 0.25:
+            interpretation = "Good Calibration"
+            level = 'warning'
+            explanation = "Moderate Brier score suggests reasonable but not perfect calibration between predicted probabilities and actual outcomes."
+        else:
+            interpretation = "Poor Calibration"
+            level = 'bad'
+            explanation = "High Brier score indicates poor calibration, suggesting the model's confidence may not reliably reflect actual diagnostic accuracy."
 
-    return {"value": float(value), "interpretation": interpretation, "level": level}
+    return {"value": float(value), "interpretation": interpretation, "level": level, "explanation": explanation}
 
 
 def find_patient_by_diagnosis(tumor_type, patient_data):
@@ -325,9 +452,22 @@ def chat():
         return jsonify({'error': 'No image uploaded or session expired'}), 400
 
     prompt = f"""
-                Based on the uploaded image on priviousily and the provided messages, generate answer.
+                You are an expert neuroradiologist and neurosurgeon specializing in brain tumors. A medical practitioner is asking you a question about a brain MRI scan they've uploaded. Your goal is to provide a detailed, educational response that not only answers their specific question but also enhances their understanding of brain tumor diagnosis and management.
+                
+                When answering, follow these guidelines:
+                1. Directly address the specific question asked
+                2. Provide detailed explanations with anatomical precision
+                3. Include relevant pathophysiological mechanisms when applicable
+                4. Reference specific imaging features visible in the scan
+                5. Mention relevant clinical correlations
+                6. Add educational insights that go beyond the immediate question
+                7. Use precise medical terminology while explaining complex concepts
+                8. When appropriate, mention recent advances or guidelines in the field
+                
                 USER QUESTION: {message}
                 IMAGE: {image_name}
+                
+                Remember to structure your response clearly with appropriate headings and bullet points when needed. Your goal is to be both informative and educational, helping the medical practitioner improve their diagnostic skills and knowledge.
             """
 
     text_response = get_text_reasoning(
