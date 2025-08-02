@@ -11,6 +11,7 @@ import matplotlib.pyplot as plt
 from scipy.ndimage import center_of_mass
 from scipy.stats import entropy
 from tf_explain.core.grad_cam import GradCAM
+import keras
 
 VISUALIZATION_FOLDER = 'static/visualizations'
 
@@ -20,7 +21,6 @@ def allowed_file(filename):
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
 def read_image(image_size, image_path):
-    read_image_values = []
     img = cv2.imread(image_path, cv2.IMREAD_GRAYSCALE)
     clahe = cv2.createCLAHE(clipLimit=2.0, tileGridSize=(8, 8))
     img = clahe.apply(img)
@@ -28,8 +28,8 @@ def read_image(image_size, image_path):
     img = cv2.applyColorMap(img, cv2.COLORMAP_BONE)
     img = cv2.resize(img, (image_size, image_size),
                      interpolation=cv2.INTER_AREA)
-    read_image_values.append(img)
-    return read_image_values[0]
+    array = keras.utils.img_to_array(img)
+    return array
 
 def z_score_per_image(img_array):
     mean = np.mean(img_array, axis=(1, 2, 3), keepdims=True)
@@ -188,8 +188,14 @@ def brier_score(pred, true_idx):
 
 
 def generate_gradcam_tf_explain(model, img_array, class_index, layer_name, save_path):
+    # Workaround for tf-explain compatibility: ensure model output is a single tensor.
+    if isinstance(model.output, list):
+        model_for_explain = tf.keras.Model(inputs=model.inputs, outputs=model.output[0])
+    else:
+        model_for_explain = model
+
     explainer = GradCAM()
-    data = ([img_array], None)
-    grid = explainer.explain(data, model, class_index, layer_name)
+    data = (img_array, None)
+    grid = explainer.explain(data, model_for_explain, class_index, layer_name)
     plt.imsave(save_path, grid)
     return grid

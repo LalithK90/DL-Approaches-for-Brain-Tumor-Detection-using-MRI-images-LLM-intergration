@@ -8,6 +8,14 @@ import uuid
 import json
 import datetime
 from flask_login import current_user
+import requests
+import logging
+from typing import Optional
+from dotenv import load_dotenv
+
+# Load environment variables from the .env file
+load_dotenv('api_key.env')
+# Replace these w
 # Setup basic logging for better feedback
 logging.basicConfig(level=logging.INFO,
                     format='%(asctime)s - %(levelname)s - %(message)s')
@@ -45,29 +53,18 @@ def _chunk_text(text: str, chunk_size: int = 4000, chunk_overlap: int = 200) -> 
     return chunks
 
 
-MAX_PROMPT_LENGTH = 8000  # A conservative character limit for prompts
+MAX_PROMPT_LENGTH = 16000  # A conservative character limit for prompts
 MEDGEMMA_MODEL_NAME = "edwardlo12/medgemma-4b-it-Q4_K_M"
 LAMMA_MODEL_NAME = 'llama3.2-vision:latest'
 DEEPSEEK_MODEL_NAME = 'deepseek-r1:14b'
-COMMON_PROMPT_MESSAGE = """**RadioAI**: As an expert oncologist, physician, and radiologist specializing in brain tumors, analyze this medical case and write a comprehensive report for medical practitioners at all levels. Include:
-
-1. **Key Findings:** Detailed observations with precise anatomical references and measurements where possible. Highlight both primary and secondary features visible in the imaging.
-
-2. **Interpretation:** In-depth clinical significance analysis with a ranked list of differential diagnoses. For each potential diagnosis, provide specific imaging markers that support or contradict it.
-
-3. **Diagnosis Confidence Assessment:** Evaluate the certainty of your diagnosis using both qualitative reasoning and quantitative metrics. Explain which features are pathognomonic versus non-specific.
-
-4. **Pathophysiology Insights:** Explain the underlying disease mechanisms, cellular characteristics, and progression patterns of the identified condition to enhance practitioner understanding.
-
-5. **Treatment Considerations:** Evidence-based therapeutic options with their mechanisms of action, expected outcomes, and potential complications. Include recent advances in treatment modalities.
-
-6. **Clinical Correlation:** Connect imaging findings to expected clinical presentations, laboratory findings, and genetic markers when applicable.
-
-7. **Educational Pearls:** Include 3-5 high-yield learning points that highlight critical diagnostic features, common pitfalls, and distinguishing characteristics from similar conditions. Use clear comparisons and analogies where helpful.
-
-8. **References to Literature:** Mention relevant clinical guidelines or landmark studies that inform the diagnostic and treatment approach.
-
-Use precise medical terminology while providing explanations for complex concepts. Structure your report with clear headings and bullet points for readability. Your goal is to both accurately diagnose the current case and enhance the medical practitioner's knowledge for future cases."""
+COMMON_PROMPT_MESSAGE = """As expert oncologist, physician, radiologist: Analyze case; write concise report for juniors/students. Include:
+1. Key Findings: Brief explanations.
+2. Interpretation: Significance, differentials.
+3. Diagnosis: Likely with evidence.
+4. Treatment: Recommendations, reasons.
+5. Next Steps: Actions, purposes.
+6. Educational Notes: Simplifications.
+Keep clear, practical, insightful."""
 
 
 def store_in_vector_db(model_name: str, prompt: str, response: dict, image_path: Optional[str] = None, user_id: Optional[int] = None) -> Optional[str]:
@@ -218,9 +215,13 @@ def _call_ollama_model(model_name: str, message: str, image_path: Optional[str] 
         return None
 
 
+
+OPENROUTER_API_KEY = os.getenv('OPENROUTER_API_KEY') # Set this to None if you don't have an OpenRouter API key
+
+
 def get_text_reasoning(message: str, image_path: str) -> Optional[str]:
 
-    logging.info("Performing RAG query for 'get_text_reasoning'...")
+    logging.info(f"Performing RAG query for 'get_text_reasoning'... {OPENROUTER_API_KEY}")
     user_id = current_user.id if current_user.is_authenticated else None
 
     retrieved_context = _query_vector_db(
@@ -229,8 +230,7 @@ def get_text_reasoning(message: str, image_path: str) -> Optional[str]:
     augmented_prompt = message
     if retrieved_context:
         # Each item in retrieved_context is a dict. We need to format it into a string.
-        context_str = "\n\n".join([json.dumps(item)
-                                  for item in retrieved_context])
+        context_str = "\n\n".join([json.dumps(item) for item in retrieved_context])
         augmented_prompt = (
             f"{COMMON_PROMPT_MESSAGE}" +
             "--- CONTEXT ---\n"
@@ -246,26 +246,26 @@ def get_text_reasoning(message: str, image_path: str) -> Optional[str]:
     # Check if the prompt is too long
     if len(augmented_prompt) <= MAX_PROMPT_LENGTH:
         logging.info("Prompt is within length limits. Calling model directly.")
-        final_response = _call_ollama_model(
-            model_name='deepseek-r1:14b', message=augmented_prompt)
+        if OPENROUTER_API_KEY:
+            final_response = _call_openrouter_model(augmented_prompt)
+        else:
+            final_response = _call_ollama_model(model_name='deepseek-r1:14b', message=augmented_prompt)
     else:
         # Handle long prompt with chunking and refining
-        logging.info(
-            f"Prompt is too long ({len(augmented_prompt)} chars). Chunking and using refine strategy.")
+        logging.info(f"Prompt is too long ({len(augmented_prompt)} chars). Chunking and using refine strategy.")
         chunks = _chunk_text(augmented_prompt)
 
         refined_answer = ""
 
         # Process the first chunk
         first_chunk_prompt = (
-            "This is the first part of a long document. Please summarize the key points from this section.\n\n"
-            "--- DOCUMENT PART 1 ---\n"
-            f"{chunks[0]}"
+            "Summarize key points from first document part:\n--- PART 1 ---\n{chunks[0]}"
         )
         logging.info(f"Processing chunk 1 of {len(chunks)}...")
-        # We don't store intermediate results of the refine process
-        refined_answer = _call_ollama_model(
-            model_name=DEEPSEEK_MODEL_NAME, message=first_chunk_prompt)
+        if OPENROUTER_API_KEY:
+            refined_answer = _call_openrouter_model(first_chunk_prompt)
+        else:
+            refined_answer = _call_ollama_model(model_name='deepseek-r1:14b', message=first_chunk_prompt)
 
         if not refined_answer:
             logging.error("Failed to process the first chunk. Aborting.")
@@ -274,31 +274,24 @@ def get_text_reasoning(message: str, image_path: str) -> Optional[str]:
         # Process subsequent chunks
         for i, chunk in enumerate(chunks[1:], start=2):
             refine_prompt = (
-                "You have provided a summary of the previous parts of a document. "
-                "Your existing summary is:\n\n"
-                "--- EXISTING SUMMARY ---\n"
-                f"{refined_answer}\n\n"
-                "--- END EXISTING SUMMARY ---\n\n"
-                "Now, using the new information from the next part of the document below, refine and extend your summary. "
-                "Provide a complete, updated summary that incorporates all information so far.\n\n"
-                f"--- NEW DOCUMENT PART {i} ---\n"
-                f"{chunk}"
+                "Refine existing summary with new part:\n--- EXISTING ---\n{refined_answer}\n--- NEW PART {i} ---\n{chunk}\nProvide updated full summary."
             )
             logging.info(f"Processing chunk {i} of {len(chunks)}...")
-            # We don't store intermediate results of the refine process
-            refined_answer = _call_ollama_model(
-                model_name=DEEPSEEK_MODEL_NAME, message=refine_prompt)
+            if OPENROUTER_API_KEY:
+                refined_answer = _call_openrouter_model(refine_prompt)
+            else:
+                refined_answer = _call_ollama_model(model_name='deepseek-r1:14b', message=refine_prompt)
             if not refined_answer:
-                logging.warning(
-                    f"Failed to process chunk {i}. Continuing with previous summary.")
+                logging.warning(f"Failed to process chunk {i}. Continuing with previous summary.")
                 # Continue with the last good answer
 
         final_response = refined_answer
 
     # Store the final result in the vector DB
     if final_response:
+        model_name = 'deepseek/deepseek-chat-v3-0324:free' if OPENROUTER_API_KEY else 'deepseek-r1:14b'
         store_in_vector_db(
-            model_name='deepseek-r1:14b',
+            model_name=model_name,
             prompt=message,  # Always store the original, clean user message
             response=final_response,
             image_path=image_path,
@@ -306,6 +299,31 @@ def get_text_reasoning(message: str, image_path: str) -> Optional[str]:
         )
 
     return final_response
+
+def _call_openrouter_model(prompt: str) -> Optional[str]:
+    try:
+        response = requests.post(
+            url="https://openrouter.ai/api/v1/chat/completions",
+            headers={
+                "Authorization": f"Bearer {OPENROUTER_API_KEY}",
+                "Content-Type": "application/json",
+            },
+            data=json.dumps({
+                "model": "deepseek/deepseek-chat-v3-0324:free",
+                "messages": [
+                    {
+                        "role": "user",
+                        "content": prompt
+                    }
+                ],
+            })
+        )
+        response.raise_for_status()
+        response_data = response.json()
+        return response_data.get("choices", [{}])[0].get("message", {}).get("content", None)
+    except requests.exceptions.RequestException as e:
+        logging.error(f"Error calling OpenRouter API: {e}")
+        return None
 
 
 def get_medical_report_from_image_medgemma(message: str, image_path: str) -> Optional[str]:

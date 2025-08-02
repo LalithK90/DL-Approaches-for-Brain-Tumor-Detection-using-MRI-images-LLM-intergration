@@ -30,7 +30,7 @@ def index():
 
 def _process_and_predict(model, img_array):
     """Helper to run model prediction and get initial results."""
-    prediction = model.predict([img_array])
+    prediction = model.predict(img_array)
     pred = prediction[0]
     class_idx = np.argmax(pred)
     predicted_class = LABELS[class_idx]
@@ -50,7 +50,7 @@ def _generate_visualizations(model, img_array, class_idx, filename):
         gradcam_analysis_path = os.path.join(
             current_app.config['VISUALIZATION_FOLDER'], tfexplain_filename)
         generate_gradcam_tf_explain(
-            model, img_array[0], class_idx, layer_name, gradcam_analysis_path)
+            model, img_array, class_idx, layer_name, gradcam_analysis_path)
 
         return {
             "gradcam_img": gradcam_img,
@@ -77,6 +77,7 @@ def _calculate_metrics(pred, cam, lime_img, model, img_array, labels, filename):
     analysis_filepath = os.path.join(
         current_app.config['VISUALIZATION_FOLDER'], analysis_filename)
     # Grad-CAM analysis metrics
+                
     center_distance, activation_ratio = analyze_gradcam_heatmap(
         cam, analysis_filepath)
 
@@ -118,209 +119,161 @@ def _save_visualizations(visuals, original_img, filename):
         vis_folder, f"lime_{filename}"), visuals['lime_img'])
 
 
-@main_bp.route('/predict', methods=['POST'])
-@login_required
-def predict():
+def _validate_file_upload(request):
     if 'file' not in request.files:
-        return jsonify({'error': 'No file part'}), 400
+        return None, jsonify({'error': 'No file part'}), 400
+
     file = request.files['file']
     if file.filename == '':
-        return jsonify({'error': 'No selected file'}), 400
-    if file and allowed_file(file.filename):
-        filename = secure_filename(file.filename)
-        filepath = os.path.join(current_app.config['UPLOAD_FOLDER'], filename)
-        file.save(filepath)
-        #  data base save
-        # need to manage session to store the current image then able to take all details related to the image
-        session['current_image'] = filename.replace(" ", "")
+        return None, jsonify({'error': 'No selected file'}), 400
 
-        model_name = request.form.get('model_name', 'propose_balance')
-        model = load_model(model_name)
-        if model is None:
-            return jsonify({'error': 'Model not found'}), 404
+    if not allowed_file(file.filename):
+        return None, jsonify({'error': 'File type not allowed'}), 400
 
-        img = read_image(IMAGE_SIZE, filepath)
-        img_array = z_score_per_image(np.array([img]))
+    return file, None, None
 
-        # 1. Get model prediction
-        pred, class_idx, predicted_class, confidence_val = _process_and_predict(
-            model, img_array)
+def _save_uploaded_file(file, filename):
+    filepath = os.path.join(current_app.config['UPLOAD_FOLDER'], filename)
+    file.save(filepath)
+    return filepath
 
-        # 2. Generate XAI visualizations
-        try:
-            visuals = _generate_visualizations(
-                model, img_array, class_idx, filename)
-        except ValueError as e:
-            return jsonify({'error': str(e)})
+def _process_image(filepath, model_name):
+    img = read_image(IMAGE_SIZE, filepath)
+    img_array = z_score_per_image(np.array([img]))
+    model = load_model(model_name)
+    if model is None:
+        return None, jsonify({'error': 'Model not found'}), 404
+    return img, img_array, model
 
-        # 3. Save visualizations to disk
-        _save_visualizations(visuals, img, filename)
-
-        # 4. Calculate all quantitative metrics
-        metrics = _calculate_metrics(
-            pred, visuals['cam'], visuals['lime_img'], model, img_array, LABELS, filename)
-
-        # 5. Find matching patient data
-        with open(current_app.config['PATIENT_DATA_PATH'], 'r') as f:
-            patient_data = json.load(f)
-        patient_info = find_patient_by_diagnosis(predicted_class, patient_data)
-        del patient_info["diagnosis"]
-
-        # 6. Assemble and return the final JSON response with educational explanations
-        response_data = {
-            'original': url_for('static', filename=f'/uploads/{filename}', _external=True),
-            'gradcam': url_for('static', filename=f'/visualizations/gradcam_{filename}', _external=True),
-            'saliency': url_for('static', filename=f'/visualizations/saliency_{filename}', _external=True),
-            'lime': url_for('static', filename=f'/visualizations/lime_{filename}', _external=True),
-            'gradcam_analysis': url_for('static', filename=f'/visualizations/com_analysis_{filename}', _external=True),
-            "gradcam_heatmap": url_for('static', filename=f"/visualizations/{visuals['tfexplain_filename']}", _external=True),
-            'prediction': predicted_class,
-            'confidence': get_metric_interpretation('confidence', confidence_val),
-            'patient_info': patient_info,
-            'xai_educational_notes': {
-                'gradcam_explanation': "Gradient-weighted Class Activation Mapping (Grad-CAM) highlights the regions in the image that most strongly influenced the model's prediction. Brighter areas indicate features that strongly support the diagnosis.",
-                'saliency_explanation': "Saliency maps show which pixels in the image had the greatest influence on the classification decision. They help identify the specific image features the model focused on.",
-                'lime_explanation': "Local Interpretable Model-agnostic Explanations (LIME) creates a simplified local model to explain which features contributed most to the prediction. It helps understand which image regions support or contradict the diagnosis.",
-                'metrics_explanation': "Quantitative metrics provide objective measures of model confidence and uncertainty. They help assess the reliability of the AI diagnosis and identify cases that may require additional clinical correlation."
-            }
+def _generate_response_data(filename, predicted_class, confidence_val, patient_info, visuals):
+    response_data = {
+        'original': url_for('static', filename=f'uploads/{filename}', _external=True),
+        'gradcam': url_for('static', filename=f'visualizations/gradcam_{filename}', _external=True),
+        'saliency': url_for('static', filename=f'visualizations/saliency_{filename}', _external=True),
+        'lime': url_for('static', filename=f'visualizations/lime_{filename}', _external=True),
+        'gradcam_analysis': url_for('static', filename=f'visualizations/com_analysis_{filename}', _external=True),
+        'gradcam_heatmap': url_for('static', filename=f"visualizations/{visuals['tfexplain_filename']}", _external=True),
+        'prediction': predicted_class,
+        'confidence': get_metric_interpretation('confidence', confidence_val),
+        'patient_info': patient_info,
+        'xai_educational_notes': {
+            'gradcam_explanation': "Gradient-weighted Class Activation Mapping (Grad-CAM) highlights the regions in the image that most strongly influenced the model's prediction. Brighter areas indicate features that strongly support the diagnosis.",
+            'saliency_explanation': "Saliency maps show which pixels in the image had the greatest influence on the classification decision. They help identify the specific image features the model focused on.",
+            'lime_explanation': "Local Interpretable Model-agnostic Explanations (LIME) creates a simplified local model to explain which features contributed most to the prediction. It helps understand which image regions support or contradict the diagnosis.",
+            'metrics_explanation': "Quantitative metrics provide objective measures of model confidence and uncertainty. They help assess the reliability of the AI diagnosis and identify cases that may require additional clinical correlation."
         }
+    }
+    return response_data
 
-        # 6. Generate a consolidated AI report by synthesizing all data
-        # Convert complex data structures to clean, readable strings for the prompt
-        patient_info_string = json.dumps(patient_info, indent=2)
-        metrics_string = json.dumps(metrics, indent=2)
+def _generate_final_report(filepath, predicted_class, patient_info, metrics, llama3_response):
+    patient_info_string = json.dumps(patient_info, indent=2)
+    metrics_string = json.dumps(metrics, indent=2)
 
-        # Use a detailed prompt for the initial image analysis that focuses on specific radiological features
-        image_analysis_prompt = """Analyze this brain MRI scan with the precision of an expert neuroradiologist. Provide a detailed description of your findings, including:
-1. Precise anatomical localization of any abnormalities
-2. Signal characteristics on different sequences (if visible)
-3. Size measurements and shape description of any lesions
-4. Mass effect, edema, or midline shift
-5. Enhancement patterns (if contrast is visible)
-6. Involvement of critical structures
-7. Secondary findings or complications
-8. Specific radiological signs that suggest a particular diagnosis
+    final_report_prompt_medgemma = f"""
+        Synthesize into a comprehensive brain tumor diagnosis report:
+        - Source 1: AI Image Analysis (Llama3.2-vision): {llama3_response}
+        - Source 2: Patient Information: {patient_info_string}
+        - Source 3: Quantitative Metrics: {metrics_string}
+        - Source 4: Primary Diagnosis: {predicted_class}
+        Sections:
+        1. Clinical Presentation: Summarize demographics, symptoms, history.
+        2. Imaging Findings: Describe lesions, anatomy, measurements, effects.
+        3. Quantitative Assessment: Interpret metrics for certainty.
+        4. Differential Diagnosis: Ranked list with supporting features.
+        5. Pathophysiology: Disease mechanisms and characteristics.
+        6. Clinical Implications: Symptoms, progression, complications.
+        7. Management: Evidence-based treatments and outcomes.
+        8. Educational Pearls: 3-5 key points on diagnostics and pitfalls.
+        9. References: Relevant guidelines/studies.
+        Use precise terminology with explanations. Aim for accurate diagnosis and education.
+    """
 
-Be thorough in your analysis and use precise medical terminology while explaining key concepts."""
+    medgemma_text_response = get_medical_report_from_text_medgemma(final_report_prompt_medgemma, filepath)
 
-        # Get initial analyses from vision models. These will serve as inputs for the final report.
-        llama3_response = get_image_description_llama3_vision(
-            image_analysis_prompt, filepath)
+    final_report_prompt_deepsek = f"""
+        Create a final educational brain tumor diagnosis report:
+        - Source 1: MedGemma Analysis: {medgemma_text_response}
+        - Source 2: Llama3.2-vision Analysis: {llama3_response}
+        - Source 3: Patient Info: {patient_info_string}
+        - Source 4: Metrics: {metrics_string}
+        - Source 5: Primary Diagnosis: {predicted_class}
+        - Source 6: XAI Visualizations: Grad-CAM, Saliency Map, LIME - explain key regions.
+        Sections:
+        1. Executive Summary: 2-3 sentence overview.
+        2. Clinical Presentation: Demographics, symptoms, history.
+        3. Imaging Findings: Descriptions, anatomy, XAI highlights.
+        4. Quantitative Assessment: Interpret metrics, discrepancies.
+        5. Differential Diagnosis: Ranked list with features.
+        6. Pathophysiology: Mechanisms, markers.
+        7. Clinical Implications: Symptoms, prognosis.
+        8. Management: Treatments, protocols.
+        9. Educational Pearls: 3-5 points on diagnostics, pitfalls.
+        10. References: Guidelines/studies.
+        Guidelines: Precise terms with explanations; detailed images; headings/bullets; highlight keys; connect findings; explain XAI; aim for diagnosis and education.
+    """
 
-        # medgemma_image_response = get_medical_report_from_image_medgemma(
-        #     image_analysis_prompt, filepath)
+    resoning_final_report = get_text_reasoning(final_report_prompt_deepsek, filepath)
+    return resoning_final_report
 
-        final_report_prompt_medggemma = f"""
-                    Your task is to synthesize the following information from multiple sources into a comprehensive, educational medical report for brain tumor diagnosis.
-                    ---
-                    ### Source 1: AI Image Analysis (Llama3.2-vision)
-                    {llama3_response}
-                    ---
-                    ### Source 2: Patient Information
-                    {patient_info_string}
-                    ---
-                    ### Source 3: Quantitative Metrics
-                    {metrics_string}
-                    ---
-                    ### Source 4: Primary AI Diagnosis
-                    **Diagnosis:** {predicted_class}
-                    ---
-                    
-                    Structure your report with these sections:
-                    
-                    1. **Clinical Presentation Summary**: Synthesize patient demographics, symptoms, and relevant history.
-                    
-                    2. **Imaging Findings**: Describe key observations with precise anatomical references and measurements. Include both primary features (tumor characteristics) and secondary features (mass effect, edema, etc.).
-                    
-                    3. **Quantitative Assessment**: Interpret the AI confidence metrics in clinical terms. Explain what the entropy, margin, and other metrics suggest about diagnostic certainty.
-                    
-                    4. **Differential Diagnosis**: Present a ranked list of possible diagnoses with specific imaging features supporting or contradicting each. For the primary diagnosis, provide a detailed explanation of pathognomonic features.
-                    
-                    5. **Pathophysiology Insights**: Explain the underlying disease mechanisms and cellular characteristics of the identified tumor type.
-                    
-                    6. **Clinical Implications**: Discuss expected symptoms, progression patterns, and potential complications.
-                    
-                    7. **Management Recommendations**: Suggest evidence-based treatment approaches with their mechanisms of action and expected outcomes.
-                    
-                    8. **Educational Pearls**: Include 3-5 high-yield learning points that highlight critical diagnostic features and common pitfalls in diagnosing this type of tumor.
-                    
-                    9. **References**: Mention relevant clinical guidelines or landmark studies.
-                    
-                    Use precise medical terminology while providing clear explanations for complex concepts. Your goal is to both accurately diagnose the current case and enhance the medical practitioner's knowledge for future cases.
-                    """
+@main_bp.route('/predict', methods=['POST'])
+def predict():
+    # Validate file upload
+    file, error_response, status_code = _validate_file_upload(request)
+    if error_response:
+        return error_response, status_code
 
-        medgemma_text_response = get_medical_report_from_text_medgemma(
-            final_report_prompt_medggemma, filepath)
+    # Secure the filename and save the file
+    filename = secure_filename(file.filename)
+    filepath = _save_uploaded_file(file, filename)
+    session['current_image'] = filename.replace(" ", "")
 
-        # 7. Add all data to the response, including the final synthesized report
-        response_data.update(metrics)
+    # Process the image and load the model
+    model_name = request.form.get('model_name', 'propose_balance')
+    img, img_array, model = _process_image(filepath, model_name)
+    if model is None:
+        return jsonify({'error': 'Model not found'}), 404
 
-        final_report_prompt_deepsek = f"""
-                    Your task is to synthesize the following information from multiple sources into a comprehensive, educational medical report for brain tumor diagnosis. You are creating the FINAL report that will be presented to medical practitioners, so ensure it is complete, accurate, and maximally educational.
-                    ---
-                    ### Source 1: AI Image Analysis (MedGemma)
-                    {medgemma_text_response}
-                    ---
-                    ### Source 2: AI Image Analysis (Llama3.2-vision)
-                    {llama3_response}
-                    ---
-                    ### Source 3: Patient Information
-                    {patient_info_string}
-                    ---
-                    ### Source 4: Quantitative Metrics
-                    {metrics_string}
-                    ---
-                    ### Source 5: Primary AI Diagnosis
-                    **Diagnosis:** {predicted_class}
-                    ---
-                    ### Source 6: Explainable AI Visualizations
-                    The following visualization techniques were applied to understand the model's decision-making process:
-                    - Grad-CAM: Highlights regions most influential in the classification decision
-                    - Saliency Map: Shows pixels that most strongly influence the prediction
-                    - LIME: Provides local interpretable explanations of model predictions
-                    
-                    These visualizations indicate which regions of the image were most important for the AI's diagnosis. Use this information to explain which specific imaging features were most significant in determining the diagnosis.
-                    ---
-                    
-                    Structure your report with these sections:
-                    
-                    1. **Executive Summary**: A concise overview of the case, diagnosis, and key findings (2-3 sentences).
-                    
-                    2. **Clinical Presentation**: Synthesize patient demographics, symptoms, and relevant history.
-                    
-                    3. **Imaging Findings**: Describe key observations with precise anatomical references and measurements. Include both primary features (tumor characteristics) and secondary features (mass effect, edema, etc.). Explain which specific regions were highlighted by the XAI visualizations and their significance.
-                    
-                    4. **Quantitative Assessment**: Interpret the AI confidence metrics in clinical terms. Explain what the entropy, margin, and other metrics suggest about diagnostic certainty. Discuss any discrepancies between different metrics and their implications.
-                    
-                    5. **Differential Diagnosis**: Present a ranked list of possible diagnoses with specific imaging features supporting or contradicting each. For the primary diagnosis, provide a detailed explanation of pathognomonic features.
-                    
-                    6. **Pathophysiology Insights**: Explain the underlying disease mechanisms, cellular characteristics, and molecular markers of the identified tumor type.
-                    
-                    7. **Clinical Implications**: Discuss expected symptoms, progression patterns, and potential complications. Include information about typical prognosis based on the specific features observed.
-                    
-                    8. **Management Recommendations**: Suggest evidence-based treatment approaches with their mechanisms of action and expected outcomes. Include surgical considerations, radiation therapy options, and chemotherapy protocols when applicable.
-                    
-                    9. **Educational Pearls**: Include 3-5 high-yield learning points that highlight critical diagnostic features, common pitfalls, and distinguishing characteristics from similar conditions. Use clear comparisons and analogies where helpful.
-                    
-                    10. **References**: Mention relevant clinical guidelines or landmark studies that inform the diagnostic and treatment approach.
-                    
-                    Important guidelines:
-                    - Use precise medical terminology while providing clear explanations for complex concepts.
-                    - Include detailed image descriptions so students and junior medical officers can understand what they're seeing.
-                    - Structure your report with clear headings and bullet points for readability.
-                    - Highlight key findings and critical information using bold or italics where appropriate.
-                    - Connect imaging findings to clinical presentation and expected symptoms.
-                    - Explain the significance of the XAI visualizations in understanding the diagnosis.
-                    - Your goal is to both accurately diagnose the current case and enhance the medical practitioner's knowledge for future cases.
-                    """
+    # Get model prediction
+    pred, class_idx, predicted_class, confidence_val = _process_and_predict(model, img_array)
 
-        resoning_final_report = get_text_reasoning(
-            final_report_prompt_deepsek, filepath)
-        response_data['final_report'] = resoning_final_report
+    # Generate and save XAI visualizations
+    try:
+        visuals = _generate_visualizations(model, img_array, class_idx, filename)
+        _save_visualizations(visuals, img, filename)
+    except ValueError as e:
+        return jsonify({'error': str(e)})
 
-        return jsonify(response_data)
+    # Calculate metrics
+    metrics = _calculate_metrics(pred, visuals['cam'], visuals['lime_img'], model, img_array, LABELS, filename)
 
-    return jsonify({'error': 'File type not allowed'}), 400
+    # Find matching patient data
+    with open(current_app.config['PATIENT_DATA_PATH'], 'r') as f:
+        patient_data = json.load(f)
+    patient_info = find_patient_by_diagnosis(predicted_class, patient_data)
+    del patient_info["diagnosis"]
+
+    # Assemble the response data
+    response_data = _generate_response_data(filename, predicted_class, confidence_val, patient_info, visuals)
+
+    # Generate the final report
+    image_analysis_prompt = """Analyze brain MRI as expert neuroradiologist:
+1. Anatomical localization of abnormalities
+2. Signal characteristics
+3. Lesion size/shape
+4. Mass effect/edema/shift
+5. Enhancement patterns
+6. Critical structure involvement
+7. Secondary findings
+8. Specific signs for diagnosis
+Use precise terminology with explanations."""
+
+    # llama3_response = get_image_description_llama3_vision(image_analysis_prompt, filepath)
+    final_report = _generate_final_report(filepath, predicted_class, patient_info, metrics, "llama3_response")
+
+    response_data.update(metrics)
+    response_data['final_report'] = final_report
+
+    return jsonify(response_data)
 
 
 def get_metric_interpretation(metric_name, value):
@@ -440,7 +393,6 @@ def find_patient_by_diagnosis(tumor_type, patient_data):
 
 
 @main_bp.route('/chat', methods=['POST'])
-@login_required
 def chat():
     data = request.get_json()
     if not data or 'message' not in data:
@@ -452,22 +404,22 @@ def chat():
         return jsonify({'error': 'No image uploaded or session expired'}), 400
 
     prompt = f"""
-                You are an expert neuroradiologist and neurosurgeon specializing in brain tumors. A medical practitioner is asking you a question about a brain MRI scan they've uploaded. Your goal is to provide a detailed, educational response that not only answers their specific question but also enhances their understanding of brain tumor diagnosis and management.
+                As expert neuroradiologist and neurosurgeon in brain tumors, answer the practitioner's question about the uploaded MRI scan. Provide detailed, educational response addressing the query directly, with insights on diagnosis and management.
                 
-                When answering, follow these guidelines:
-                1. Directly address the specific question asked
-                2. Provide detailed explanations with anatomical precision
-                3. Include relevant pathophysiological mechanisms when applicable
-                4. Reference specific imaging features visible in the scan
-                5. Mention relevant clinical correlations
-                6. Add educational insights that go beyond the immediate question
-                7. Use precise medical terminology while explaining complex concepts
-                8. When appropriate, mention recent advances or guidelines in the field
+                Guidelines:
+                1. Address question directly
+                2. Detailed anatomical explanations
+                3. Pathophysiological mechanisms
+                4. Reference imaging features
+                5. Clinical correlations
+                6. Educational insights
+                7. Precise terminology with explanations
+                8. Recent advances/guidelines
                 
                 USER QUESTION: {message}
                 IMAGE: {image_name}
                 
-                Remember to structure your response clearly with appropriate headings and bullet points when needed. Your goal is to be both informative and educational, helping the medical practitioner improve their diagnostic skills and knowledge.
+                Output flexibly based on query; use headings/bullets as needed for clarity and education.
             """
 
     text_response = get_text_reasoning(

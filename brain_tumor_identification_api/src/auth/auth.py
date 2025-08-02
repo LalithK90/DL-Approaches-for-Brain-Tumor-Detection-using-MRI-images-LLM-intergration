@@ -1,7 +1,7 @@
 # app/auth/auth.py (corrected)
 from flask import Blueprint, render_template, redirect, url_for, flash, request, jsonify
 from flask_login import LoginManager, UserMixin, login_user, logout_user, current_user, login_required
-
+import logging
 # Create the Blueprint for authentication routes
 auth_bp = Blueprint('auth', __name__, url_prefix='/login')
 
@@ -90,7 +90,7 @@ def api_login():
 
     username = data['username']
     password = data['password']
-
+    logging.info(f"Login attempt for username: {username}")
     # Find user by username
     user_data_tuple = next(((uid, data) for uid, data in users.items() if data["username"] == username), None)
 
