@@ -52,25 +52,25 @@ const Login: React.FC<LoginProps> = ({ onLoginSuccess }) => {
 
     try {
       // First, check if we're using demo credentials for local testing
-      if ((username === 'admin' && password === 'admin') ||
-          (username === 'doctor' && password === 'doctor') ||
-          (username === 'radiologist' && password === 'radiologist')) {
+      // if ((username === 'admin' && password === 'admin') ||
+      //     (username === 'doctor' && password === 'doctor') ||
+      //     (username === 'radiologist' && password === 'radiologist')) {
         
-        // Simulate successful login with demo credentials
-        setTimeout(() => {
-          const demoUser = {
-            id: '123',
-            username: username,
-            roles: [username] // Use username as role for demo
-          };
-          onLoginSuccess(demoUser);
-        }, 1000); // Simulate network delay
+      //   // Simulate successful login with demo credentials
+      //   setTimeout(() => {
+      //     const demoUser = {
+      //       id: '123',
+      //       username: username,
+      //       roles: [username] // Use username as role for demo
+      //     };
+      //     onLoginSuccess(demoUser);
+      //   }, 1000); // Simulate network delay
         
-        return;
-      }
+      //   return;
+      // }
       
       // Otherwise, proceed with actual API call
-      const response = await fetch('http://localhost:5000/login/api', {
+      const response = await fetch('http://127.0.0.1:5000/login/api', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
@@ -82,6 +82,9 @@ const Login: React.FC<LoginProps> = ({ onLoginSuccess }) => {
       const result: LoginResponse = await response.json();
 
       if (result.success && result.user) {
+        console.log('====================================');
+        console.log(result);
+        console.log('====================================');
         onLoginSuccess(result.user);
       } else {
         setAlertMessage(result.message || 'Login failed. Please try again.');
@@ -115,7 +118,6 @@ const Login: React.FC<LoginProps> = ({ onLoginSuccess }) => {
           <div className="login-header">
             <IonIcon icon={medicalOutline} className="login-icon" />
             <IonText>
-              <h1>Secure Login</h1>
               <p>Brain Tumor Identification System</p>
             </IonText>
           </div>

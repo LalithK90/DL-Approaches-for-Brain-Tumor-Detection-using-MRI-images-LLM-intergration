@@ -221,7 +221,7 @@ OPENROUTER_API_KEY = os.getenv('OPENROUTER_API_KEY') # Set this to None if you d
 
 def get_text_reasoning(message: str, image_path: str) -> Optional[str]:
 
-    logging.info(f"Performing RAG query for 'get_text_reasoning'... {OPENROUTER_API_KEY}")
+    logging.info(f"Performing RAG query for 'get_text_reasoning'...")
     user_id = current_user.id if current_user.is_authenticated else None
 
     retrieved_context = _query_vector_db(

@@ -14,14 +14,17 @@ from src.routes.routes import main_bp
 app = Flask(__name__)
 app.config['SECRET_KEY'] = os.urandom(24).hex()  # Generate a random secret key
 app.permanent_session_lifetime = timedelta(minutes=30)
+
 app.config['SESSION_COOKIE_SECURE'] = True
 app.config['SESSION_COOKIE_HTTPONLY'] = True
 app.config['SESSION_COOKIE_SAMESITE'] = 'Lax'
 
+app.config.update(SESSION_COOKIE_SAMESITE='None', SESSION_COOKIE_SECURE=False)
+
 logging.basicConfig(level=logging.DEBUG)
 # Initialize CORS with support for credentials
-CORS(app, resources={
-     r"/*": {"origins": "http://localhost:8100", "supports_credentials": True}})
+# CORS(app,supports_credentials=True,origins=["http://localhost:8100"],allow_headers=["Content-Type", "Authorization"])
+CORS(app, supports_credentials=True, origins=["http://localhost:8100"])
 
 bcrypt = Bcrypt(app)
 # Initialize authentication
