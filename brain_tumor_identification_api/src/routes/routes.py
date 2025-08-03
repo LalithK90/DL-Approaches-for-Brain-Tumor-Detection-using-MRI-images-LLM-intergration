@@ -226,7 +226,8 @@ def predict():
     filename = secure_filename(file.filename)
     filepath = _save_uploaded_file(file, filename)
     session['current_image'] = filename.replace(" ", "")
-
+    current_image=filename.replace(" ", "")
+    print(f"File saved at: {current_image}")
     # Process the image and load the model
     model_name = request.form.get('model_name', 'propose_balance')
     img, img_array, model = _process_image(filepath, model_name)
@@ -398,10 +399,16 @@ def chat():
     if not data or 'message' not in data:
         return jsonify({'error': 'No message provided or invalid request format'}), 400
 
-    message = data.get('message')
+    message = data['message']
     image_name = session.get('current_image')
+   # If no image name in session, try to get it from the request data
     if not image_name:
-        return jsonify({'error': 'No image uploaded or session expired'}), 400
+        print("No image found in session, checking request data")
+        if 'image' in data:
+            image_name = data['image']
+        else:
+            print("No image found in request data")
+            return jsonify({'error': 'No image uploaded or session expired'}), 400
 
     prompt = f"""
                 As expert neuroradiologist and neurosurgeon in brain tumors, answer the practitioner's question about the uploaded MRI scan. Provide detailed, educational response addressing the query directly, with insights on diagnosis and management.
@@ -421,7 +428,6 @@ def chat():
                 
                 Output flexibly based on query; use headings/bullets as needed for clarity and education.
             """
-
     text_response = get_text_reasoning(
         prompt, image_name)
     if text_response:

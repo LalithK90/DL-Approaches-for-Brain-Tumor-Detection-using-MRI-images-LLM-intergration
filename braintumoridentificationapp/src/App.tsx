@@ -30,7 +30,8 @@ import {
   IonModal,
   IonButtons,
   IonChip,
-  IonBadge
+  IonBadge,
+  IonRange
 } from '@ionic/react';
 import { IonReactRouter } from '@ionic/react-router';
 import { Route } from 'react-router-dom';
@@ -38,6 +39,7 @@ import { useState, useRef, useEffect } from 'react';
 import { cloudUpload, chatbubbles, close, send, medkit, analytics, logOut } from 'ionicons/icons';
 import Login from './pages/Login';
 import Footer from './components/Footer';
+import ReactMarkdown from 'react-markdown';
 
 /* Core CSS required for Ionic components to work properly */
 import '@ionic/react/css/core.css';
@@ -56,6 +58,7 @@ import './theme/variables.css';
 setupIonicReact();
 
 const API_BASE_URL = "http://127.0.0.1:5000";
+// status, logout and other fetch calls now use `${API_BASE_URL}`
 
 interface PredictionResult {
   original: string;
@@ -70,12 +73,24 @@ interface PredictionResult {
     interpretation: string;
     level: string;
   };
-  patient_info: unknown;
+  patient_info: {
+    patient_id: string;
+    patient_description: object;
+    symptoms: Array<object>;
+  };
   top3: Array<{ label: string; probability: number }>;
-  entropy: unknown;
-  margin: unknown;
-  brier: unknown;
-  final_report: string;
+  entropy: { value: number; interpretation: string; level: string; explanation: string };
+  margin: { value: number; interpretation: string; level: string; explanation: string };
+  brier: { value: number; interpretation: string; level: string; explanation: string };
+  dice: { value: number; interpretation: string; level: string; explanation: string };
+  iou: { value: number; interpretation: string; level: string; explanation: string };
+  mc_variance: { value: number; interpretation: string; level: string; explanation: string };
+  gradcam_explanation: string;
+  lime_explanation: string;
+  metrics_explanation: string;
+  saliency_explanation: string;
+
+  final_report: string | null;
 }
 
 interface ChatMessage {
@@ -101,6 +116,7 @@ const BrainTumorApp: React.FC<{ user: User; onLogout: () => void }> = ({ user, o
   const [chatMessages, setChatMessages] = useState<ChatMessage[]>([]);
   const [chatInput, setChatInput] = useState('');
   const [isChatLoading, setIsChatLoading] = useState(false);
+  const [imageSize, setImageSize] = useState<number>(100);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const models = [
@@ -134,7 +150,11 @@ const BrainTumorApp: React.FC<{ user: User; onLogout: () => void }> = ({ user, o
 
     setIsLoading(true);
     const formData = new FormData();
-    formData.append('file', selectedFile);
+    // remove spaces from original filename and persist for later use (e.g. chat endpoint)
+    const sanitizedFilename = selectedFile.name.replace(/\s+/g, '');
+    localStorage.setItem('uploaded_filename', sanitizedFilename);
+    // include the sanitized filename when appending the file so backend and session use the same name
+    formData.append('file', selectedFile, sanitizedFilename);
     formData.append('model_name', selectedModel);
 
     try {
@@ -148,8 +168,15 @@ const BrainTumorApp: React.FC<{ user: User; onLogout: () => void }> = ({ user, o
         throw new Error(`HTTP error! status: ${response.status}`);
       }
 
-      const result: PredictionResult = await response.json();
-      setPrediction(result);
+      const result = await response.json();
+      // Transform top3 from array of arrays to array of objects
+      result.top3 = result.top3.map(([label, probability]: [string, number]) => ({ label, probability }));
+      setPrediction(result as PredictionResult);
+  
+      if (!response.ok) {
+  const err = await response.json();
+  throw new Error(err.error ?? `HTTP error! status: ${response.status}`);
+}
     } catch (error) {
       console.error('Error uploading file:', error);
       setAlertMessage('Error uploading file. Please make sure the Flask server is running and you are logged in.');
@@ -178,7 +205,10 @@ const BrainTumorApp: React.FC<{ user: User; onLogout: () => void }> = ({ user, o
         headers: {
           'Content-Type': 'application/json'
         },
-        body: JSON.stringify({ message: chatInput }),
+        body: JSON.stringify({
+          message: chatInput,
+          image:localStorage.getItem('uploaded_filename')
+         }),
         credentials: 'include'
       });
 
@@ -310,17 +340,22 @@ const BrainTumorApp: React.FC<{ user: User; onLogout: () => void }> = ({ user, o
                       </IonCol>
                     </IonRow>
                     
+                    <IonItem>
+                      <IonLabel>Image Size</IonLabel>
+                      <IonRange min={50} max={200} value={imageSize} onIonChange={e => setImageSize(e.detail.value as number)} />
+                    </IonItem>
                     <IonRow>
                       <IonCol size="6">
                         <div style={{ textAlign: 'center' }}>
                           <h4>Original Image</h4>
-                          <IonImg src={prediction.original} alt="Original" />
+                          <IonImg src={prediction.original} alt="Original" style={{ width: `${imageSize}%` }} />
                         </div>
                       </IonCol>
                       <IonCol size="6">
                         <div style={{ textAlign: 'center' }}>
                           <h4>Grad-CAM Heatmap</h4>
-                          <IonImg src={prediction.gradcam} alt="Grad-CAM" />
+                          <IonImg src={prediction.gradcam} alt="Grad-CAM" style={{ width: `${imageSize}%` }} />
+                          <p>{prediction.gradcam_explanation || prediction.gradcam_analysis}</p>
                         </div>
                       </IonCol>
                     </IonRow>
@@ -329,13 +364,15 @@ const BrainTumorApp: React.FC<{ user: User; onLogout: () => void }> = ({ user, o
                       <IonCol size="6">
                         <div style={{ textAlign: 'center' }}>
                           <h4>Saliency Map</h4>
-                          <IonImg src={prediction.saliency} alt="Saliency" />
+                          <IonImg src={prediction.saliency} alt="Saliency" style={{ width: `${imageSize}%` }} />
+                          <p>{prediction.saliency_explanation}</p>
                         </div>
                       </IonCol>
                       <IonCol size="6">
                         <div style={{ textAlign: 'center' }}>
                           <h4>LIME Explanation</h4>
-                          <IonImg src={prediction.lime} alt="LIME" />
+                          <IonImg src={prediction.lime} alt="LIME" style={{ width: `${imageSize}%` }} />
+                          <p>{prediction.lime_explanation}</p>
                         </div>
                       </IonCol>
                     </IonRow>
@@ -356,6 +393,37 @@ const BrainTumorApp: React.FC<{ user: User; onLogout: () => void }> = ({ user, o
                       ))}
                     </IonList>
                   </div>
+
+                  {/* Additional Metrics */}
+                  <div style={{ marginTop: '16px' }}>
+                    <h4>Confidence Metrics</h4>
+                    <IonList>
+                      <IonItem>
+                        <IonLabel>Brier Score</IonLabel>
+                        <IonBadge color={prediction.brier.level}> Value: {prediction.brier.value.toFixed(2)} <br/>  Status: {prediction.brier.interpretation}</IonBadge>
+                      </IonItem>
+                      <IonItem>
+                        <IonLabel>Entropy</IonLabel>
+                        <IonBadge color={prediction.entropy.level}> Value: {prediction.entropy.value.toFixed(2)} <br/> Status: {prediction.entropy.interpretation}</IonBadge>
+                      </IonItem>
+                      <IonItem>
+                        <IonLabel>Margin</IonLabel>
+                        <IonBadge color={prediction.margin.level}> Value: {prediction.margin.value.toFixed(2)} <br/> Status: {prediction.margin.interpretation}</IonBadge>
+                      </IonItem>
+                      <IonItem>
+                        <IonLabel>MC Variance</IonLabel>
+                        <IonBadge color={prediction.mc_variance.level}> Value: {prediction.mc_variance.value.toFixed(2)} <br/> Status: {prediction.mc_variance.interpretation}</IonBadge>
+                      </IonItem>
+                      <IonItem>
+                        <IonLabel>Dice Agreement</IonLabel>
+                        <IonBadge color={prediction.dice.level}> Value: {prediction.dice.value.toFixed(2)} <br/> Status: {prediction.dice.interpretation}</IonBadge>
+                      </IonItem>
+                      <IonItem>
+                        <IonLabel>IoU Agreement</IonLabel>
+                        <IonBadge color={prediction.iou.level}> Value: {prediction.iou.value.toFixed(2)} <br/> Status: {prediction.iou.interpretation}</IonBadge>
+                      </IonItem>
+                    </IonList>
+                  </div>
                 </IonCardContent>
               </IonCard>
 
@@ -366,15 +434,38 @@ const BrainTumorApp: React.FC<{ user: User; onLogout: () => void }> = ({ user, o
                     <IonCardTitle>AI Medical Report</IonCardTitle>
                   </IonCardHeader>
                   <IonCardContent>
-                    <div style={{ whiteSpace: 'pre-wrap', lineHeight: '1.6' }}>
-                      {prediction.final_report}
-                    </div>
+                    {(() => {
+                      if (!prediction.final_report) return <></>;
+                      const startIndex = prediction.final_report.indexOf('<think>');
+                      const endIndex = prediction.final_report.indexOf('</think>');
+                      let thinkContent = '';
+                      let reportContent = prediction.final_report;
+                      if (startIndex !== -1 && endIndex !== -1 && endIndex > startIndex) {
+                        thinkContent = prediction.final_report.substring(startIndex + 7, endIndex).trim();
+                        reportContent = (prediction.final_report.substring(0, startIndex) + prediction.final_report.substring(endIndex + 8)).trim();
+                      }
+                      return (
+                        <>
+                          {thinkContent && (
+                            <div style={{ marginBottom: '16px', padding: '8px', backgroundColor: 'var(--ion-color-light)', borderRadius: '4px' }}>
+                              <h5>AI Thinking Process:</h5>
+                              <p>{thinkContent}</p>
+                            </div>
+                          )}
+                          <ReactMarkdown>{reportContent}</ReactMarkdown>
+                        </>
+                      );
+                    })()}
+
                   </IonCardContent>
+                {/* Footer */}
+              <Footer></Footer>
                 </IonCard>
               )}
-
+              
+              
               {/* Chat FAB */}
-              <IonFab vertical="bottom" horizontal="end" slot="fixed">
+              <IonFab style={{ position: 'fixed', bottom: '20px', right: '20px', zIndex: 1000 }}>
                 <IonFabButton onClick={() => setIsChatOpen(true)}>
                   <IonIcon icon={chatbubbles} />
                 </IonFabButton>
@@ -418,7 +509,7 @@ const BrainTumorApp: React.FC<{ user: User; onLogout: () => void }> = ({ user, o
                         whiteSpace: 'pre-wrap'
                       }}
                     >
-                      {msg.text}
+                      {msg.isUser ? msg.text : <ReactMarkdown>{msg.text}</ReactMarkdown>}
                     </div>
                   </div>
                 ))}
@@ -474,7 +565,6 @@ const BrainTumorApp: React.FC<{ user: User; onLogout: () => void }> = ({ user, o
           buttons={['OK']}
         />
         
-        <Footer />
       </IonContent>
     </IonPage>
   );
@@ -482,20 +572,50 @@ const BrainTumorApp: React.FC<{ user: User; onLogout: () => void }> = ({ user, o
 
 const App = () => {
   const [user, setUser] = useState<User | null>(null);
-  const [isCheckingAuth, setIsCheckingAuth] = useState<boolean>(false);
+  const [isCheckingAuth, setIsCheckingAuth] = useState<boolean>(true);
 
   useEffect(() => {
-    
-    // Check if we have a user in localStorage from previous session
-    const storedUser = localStorage.getItem('user');
-    if (storedUser) {
+    const checkAuthStatus = async () => {
       try {
-        setUser(JSON.parse(storedUser));
+        // Check authentication status with Flask backend
+        const response = await fetch(API_BASE_URL+'/login/api/status', {
+          method: 'GET',
+          credentials: 'include'
+        });
+        
+        if (response.ok) {
+          const result = await response.json();
+          if (result.authenticated && result.user) {
+            setUser(result.user);
+            localStorage.setItem('user', JSON.stringify(result.user));
+          } else {
+            // User not authenticated, clear any stored data
+            setUser(null);
+            localStorage.removeItem('user');
+          }
+        } else {
+          // If status check fails, fall back to localStorage but user will need to re-authenticate
+          const storedUser = localStorage.getItem('user');
+          if (storedUser) {
+            try {
+              setUser(JSON.parse(storedUser));
+            } catch (error) {
+              console.error('Error parsing stored user:', error);
+              localStorage.removeItem('user');
+            }
+          }
+        }
       } catch (error) {
-        console.error('Error parsing stored user:', error);
+        console.error('Error checking auth status:', error);
+        // If Flask server is not available, clear authentication
+        setUser(null);
         localStorage.removeItem('user');
+      } finally {
+        setIsCheckingAuth(false);
       }
-    }
+    };
+    
+    checkAuthStatus();
   }, []);
 
   const handleLoginSuccess = (userData: User) => {
@@ -507,7 +627,7 @@ const App = () => {
   const handleLogout = async () => {
     try {
       // Try to call the logout API if available
-      await fetch('http://localhost:5000/login/api/logout', {
+      await fetch(API_BASE_URL+'/login/api/logout', {
         method: 'POST',
         credentials: 'include'
       }).catch(err => console.log('Logout API not available:', err));
