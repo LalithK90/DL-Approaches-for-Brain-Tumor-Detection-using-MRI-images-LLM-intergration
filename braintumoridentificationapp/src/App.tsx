@@ -458,8 +458,10 @@ const BrainTumorApp: React.FC<{ user: User; onLogout: () => void }> = ({ user, o
                     })()}
 
                   </IonCardContent>
+                  <IonCardContent>
                 {/* Footer */}
               <Footer></Footer>
+                  </IonCardContent>
                 </IonCard>
               )}
               
