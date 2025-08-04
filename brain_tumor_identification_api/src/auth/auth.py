@@ -72,6 +72,8 @@ def login():
             login_user(user_to_check)
             flash(f'Logged in as {user_to_check.username}.', 'success')
             next_page = request.args.get('next')
+            print(
+                f"next_page: {next_page}. Current user: {user_to_check.username}, roles: {user_to_check.roles}, main method url: {url_for('main.index')}  ")
             return redirect(next_page or url_for('main.index'))
         else:
             flash('Invalid username or password.', 'danger')
