@@ -356,7 +356,8 @@ def _call_groq_model(prompt: str) -> Optional[str]:
             json={
                 "model": "deepseek-r1-distill-llama-70b",
                 "messages": [
-                    {"role": "user", "content": prompt}
+                    {"role": "user",
+                     "content": prompt}
                 ],
                 "temperature": 0.7
             }

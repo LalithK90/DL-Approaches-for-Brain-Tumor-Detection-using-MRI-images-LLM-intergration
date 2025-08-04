@@ -187,7 +187,8 @@ def _generate_final_report(filepath, predicted_class, patient_info, metrics, lla
         Use precise terminology with explanations. Aim for accurate diagnosis and education.
     """
 
-    medgemma_text_response = get_medical_report_from_text_medgemma(final_report_prompt_medgemma, filepath)
+    medgemma_text_response = get_medical_report_from_image_medgemma(
+        final_report_prompt_medgemma, filepath)
 
     final_report_prompt_deepsek = f"""
         Create a final educational brain tumor diagnosis report:
