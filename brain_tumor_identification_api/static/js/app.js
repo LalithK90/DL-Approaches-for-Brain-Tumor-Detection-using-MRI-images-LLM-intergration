@@ -54,6 +54,10 @@ async function uploadImage () {
     const modelName = document.getElementById('modelSelect').value;
     formData.append('model_name', modelName);
 
+    if (file && file.name) {
+        localStorage.setItem('uploadedFileName', file.name);
+    }
+
     try {
         const predictUrl = uploadButton.dataset.predictUrl;
         const response = await fetch(predictUrl, {
@@ -243,6 +247,7 @@ $('#sendChat').on('click', function () {
 
     const formData = {
         message: message,
+        image: localStorage.getItem('uploadedFileName') || null
     };
     $.ajax({
         url: '/chat',
