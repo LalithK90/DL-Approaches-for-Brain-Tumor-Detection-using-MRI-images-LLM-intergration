@@ -22,8 +22,7 @@ from src.LLM.ollama_client import (get_text_reasoning,
 main_bp = Blueprint('main', __name__)
 
 
-@main_bp.route('/')
-@login_required
+@main_bp.route('/main')
 def index():
     return render_template('index.html')
 
@@ -412,20 +411,9 @@ def chat():
 
     prompt = f"""
                 As expert neuroradiologist and neurosurgeon in brain tumors, answer the practitioner's question about the uploaded MRI scan. Provide detailed, educational response addressing the query directly, with insights on diagnosis and management.
-                
-                Guidelines:
-                1. Address question directly
-                2. Detailed anatomical explanations
-                3. Pathophysiological mechanisms
-                4. Reference imaging features
-                5. Clinical correlations
-                6. Educational insights
-                7. Precise terminology with explanations
-                8. Recent advances/guidelines
-                
+
                 USER QUESTION: {message}
                 IMAGE: {image_name}
-                
                 Output flexibly based on query; use headings/bullets as needed for clarity and education.
             """
     text_response = get_text_reasoning(

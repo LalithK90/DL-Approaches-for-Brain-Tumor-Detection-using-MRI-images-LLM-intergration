@@ -317,3 +317,6 @@ VGG16_balance.h5
 VGG16_inbalance.h5
 VGG19_balance.h5
 VGG19_inbalance.h5
+
+*/chroma_data/*
+*/images for test/*

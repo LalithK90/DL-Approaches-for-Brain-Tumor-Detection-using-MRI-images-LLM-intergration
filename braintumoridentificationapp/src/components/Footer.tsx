@@ -3,7 +3,7 @@ import './Footer.css';
 
 const Footer: React.FC = () => {
   return (
-    <div className="footer-container">
+    <div className="footer-container mt-4">
       <div className="row justify-content-center mt-4">
         {/* Caution Section */}
         <div className="container-fluid bg-danger p-2">

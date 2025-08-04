@@ -217,6 +217,8 @@ def _call_ollama_model(model_name: str, message: str, image_path: Optional[str] 
 
 
 OPENROUTER_API_KEY = os.getenv('OPENROUTER_API_KEY') # Set this to None if you don't have an OpenRouter API key
+# Set this to None if you don't have an GROQ_API_KEY API key
+GROQ_API_KEY = os.getenv('GROQ_API_KEY')
 
 
 def get_text_reasoning(message: str, image_path: str) -> Optional[str]:
@@ -300,8 +302,14 @@ def get_text_reasoning(message: str, image_path: str) -> Optional[str]:
 
     return final_response
 
+
+OPENROUTER_API_KEY = os.getenv('OPENROUTER_API_KEY')
+GROQ_API_KEY = os.getenv('GROQ_API_KEY')
+
+
 def _call_openrouter_model(prompt: str) -> Optional[str]:
     try:
+        # Try OpenRouter first
         response = requests.post(
             url="https://openrouter.ai/api/v1/chat/completions",
             headers={
@@ -311,20 +319,47 @@ def _call_openrouter_model(prompt: str) -> Optional[str]:
             data=json.dumps({
                 "model": "deepseek/deepseek-chat-v3-0324:free",
                 "messages": [
-                    {
-                        "role": "user",
-                        "content": prompt
-                    }
+                    {"role": "user", "content": prompt}
                 ],
             })
         )
         response.raise_for_status()
         response_data = response.json()
-        return response_data.get("choices", [{}])[0].get("message", {}).get("content", None)
-    except requests.exceptions.RequestException as e:
-        logging.error(f"Error calling OpenRouter API: {e}")
-        return None
+        content = response_data.get("choices", [{}])[
+            0].get("message", {}).get("content")
+        if content:
+            return content
+        else:
+            raise ValueError("OpenRouter response missing content.")
 
+    except Exception as e:
+        logging.warning(f"OpenRouter failed, falling back to Groq: {e}")
+        return _call_groq_model(prompt)
+
+
+def _call_groq_model(prompt: str) -> Optional[str]:
+    try:
+        response = requests.post(
+            url="https://api.groq.com/openai/v1/chat/completions",
+            headers={
+                "Authorization": f"Bearer {GROQ_API_KEY}",
+                "Content-Type": "application/json"
+            },
+            json={
+                "model": "deepseek-r1-distill-llama-70b",
+                "messages": [
+                    {"role": "user", "content": prompt}
+                ],
+                "temperature": 0.7
+            }
+        )
+        response.raise_for_status()
+        response_data = response.json()
+        return response_data.get("choices", [{}])[0].get("message", {}).get("content")
+
+    except requests.exceptions.RequestException as e:
+        logging.error(f"Error calling Groq API: {e}")
+        return _call_ollama_model(model_name='deepseek-r1:14b', message=prompt)
 
 def get_medical_report_from_image_medgemma(message: str, image_path: str) -> Optional[str]:
     prompt = (

@@ -15,9 +15,6 @@ app = Flask(__name__)
 app.config['SECRET_KEY'] = os.urandom(24).hex()  # Generate a random secret key
 app.permanent_session_lifetime = timedelta(minutes=30)
 
-app.config['SESSION_COOKIE_SECURE'] = True
-app.config['SESSION_COOKIE_HTTPONLY'] = True
-app.config['SESSION_COOKIE_SAMESITE'] = 'Lax'
 
 app.config.update(SESSION_COOKIE_SAMESITE='None', SESSION_COOKIE_SECURE=False)
 
