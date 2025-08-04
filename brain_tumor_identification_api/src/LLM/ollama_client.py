@@ -299,7 +299,7 @@ def get_text_reasoning(message: str, image_path: str) -> Optional[str]:
             image_path=image_path,
             user_id=current_user.id if current_user.is_authenticated else None
         )
-
+    logging.info(f"Final response from model with deepseek: {final_response}")
     return final_response
 
 
@@ -383,6 +383,7 @@ def get_medical_report_from_image_medgemma(message: str, image_path: str) -> Opt
                            response=response,
                            image_path=image_path,
                            user_id=current_user.id if current_user.is_authenticated else None)
+    logging.info(f"MedGemma model response to image: {response}")
     return response
 
 
@@ -400,6 +401,7 @@ def get_medical_report_from_text_medgemma(message: str, image_path: str) -> Opti
                            response=response,
                            image_path=image_path,
                            user_id=current_user.id if current_user.is_authenticated else None)
+    logging.info(f"MedGemma model response to text: {response}")
     return response
 
 
