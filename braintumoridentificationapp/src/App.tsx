@@ -453,6 +453,16 @@ const BrainTumorApp: React.FC<{ user: User; onLogout: () => void }> = ({ user, o
                             </div>
                           )}
                           <ReactMarkdown>{reportContent}</ReactMarkdown>
+                        <br/>
+                        <br/>
+                        <br/>
+                        <br/>
+                        <br/>
+                        <br/>
+                        <br/>
+                        <br/>
+                        <br/>
+                        <br/>
                         </>
                       );
                     })()}
