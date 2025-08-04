@@ -355,7 +355,7 @@ const BrainTumorApp: React.FC<{ user: User; onLogout: () => void }> = ({ user, o
                         <div style={{ textAlign: 'center' }}>
                           <h4>Grad-CAM Heatmap</h4>
                           <IonImg src={prediction.gradcam} alt="Grad-CAM" style={{ width: `${imageSize}%` }} />
-                          <p>{prediction.gradcam_explanation || prediction.gradcam_analysis}</p>
+                        
                         </div>
                       </IonCol>
                     </IonRow>
@@ -365,14 +365,14 @@ const BrainTumorApp: React.FC<{ user: User; onLogout: () => void }> = ({ user, o
                         <div style={{ textAlign: 'center' }}>
                           <h4>Saliency Map</h4>
                           <IonImg src={prediction.saliency} alt="Saliency" style={{ width: `${imageSize}%` }} />
-                          <p>{prediction.saliency_explanation}</p>
+                        
                         </div>
                       </IonCol>
                       <IonCol size="6">
                         <div style={{ textAlign: 'center' }}>
                           <h4>LIME Explanation</h4>
                           <IonImg src={prediction.lime} alt="LIME" style={{ width: `${imageSize}%` }} />
-                          <p>{prediction.lime_explanation}</p>
+                          
                         </div>
                       </IonCol>
                     </IonRow>

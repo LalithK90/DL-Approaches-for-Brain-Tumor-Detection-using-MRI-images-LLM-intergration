@@ -55,7 +55,7 @@ const Login: React.FC<LoginProps> = ({ onLoginSuccess }) => {
       // if ((username === 'admin' && password === 'admin') ||
       //     (username === 'doctor' && password === 'doctor') ||
       //     (username === 'radiologist' && password === 'radiologist')) {
-        
+
       //   // Simulate successful login with demo credentials
       //   setTimeout(() => {
       //     const demoUser = {
@@ -65,10 +65,10 @@ const Login: React.FC<LoginProps> = ({ onLoginSuccess }) => {
       //     };
       //     onLoginSuccess(demoUser);
       //   }, 1000); // Simulate network delay
-        
+
       //   return;
       // }
-      
+
       // Otherwise, proceed with actual API call
       const response = await fetch('http://127.0.0.1:5000/login/api', {
         method: 'POST',
@@ -82,9 +82,6 @@ const Login: React.FC<LoginProps> = ({ onLoginSuccess }) => {
       const result: LoginResponse = await response.json();
 
       if (result.success && result.user) {
-        console.log('====================================');
-        console.log(result);
-        console.log('====================================');
         onLoginSuccess(result.user);
       } else {
         setAlertMessage(result.message || 'Login failed. Please try again.');
@@ -116,7 +113,6 @@ const Login: React.FC<LoginProps> = ({ onLoginSuccess }) => {
       <IonContent className="login-content">
         <div className="login-container">
           <div className="login-header">
-            <IonIcon icon={medicalOutline} className="login-icon" />
             <IonText>
               <p>Brain Tumor Identification System</p>
             </IonText>
@@ -174,8 +170,10 @@ const Login: React.FC<LoginProps> = ({ onLoginSuccess }) => {
                   <p><strong>Radiologist:</strong> radiologist / radiologist</p>
                 </IonText>
               </div>
+              <div className="p-5"></div>
             </IonCardContent>
           </IonCard>
+         
         </div>
 
         <IonAlert
@@ -185,9 +183,10 @@ const Login: React.FC<LoginProps> = ({ onLoginSuccess }) => {
           message={alertMessage}
           buttons={['OK']}
         />
-        
-        <Footer />
+
+
       </IonContent>
+
     </IonPage>
   );
 };
