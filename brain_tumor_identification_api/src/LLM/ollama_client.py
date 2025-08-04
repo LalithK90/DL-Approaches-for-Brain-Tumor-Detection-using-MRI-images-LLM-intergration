@@ -308,6 +308,10 @@ GROQ_API_KEY = os.getenv('GROQ_API_KEY')
 
 
 def _call_openrouter_model(prompt: str) -> Optional[str]:
+    logging.info("Calling OpenRouter model...")
+    if not OPENROUTER_API_KEY:
+        logging.error("OpenRouter API key is not set. Cannot call model.")
+        return _call_groq_model(prompt)
     try:
         # Try OpenRouter first
         response = requests.post(
@@ -338,6 +342,10 @@ def _call_openrouter_model(prompt: str) -> Optional[str]:
 
 
 def _call_groq_model(prompt: str) -> Optional[str]:
+    logging.info("Calling Groq model...")
+    if not GROQ_API_KEY:
+        logging.error("GROQ API key is not set. Cannot call model.")
+        return _call_ollama_model(model_name='deepseek-r1:14b', message=prompt)
     try:
         response = requests.post(
             url="https://api.groq.com/openai/v1/chat/completions",
