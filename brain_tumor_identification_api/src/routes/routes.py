@@ -255,23 +255,9 @@ def predict():
 
     # Assemble the response data
     response_data = _generate_response_data(filename, predicted_class, confidence_val, patient_info, visuals)
-
-    # Generate the final report
-    image_analysis_prompt = """Analyze brain MRI as expert neuroradiologist:
-1. Anatomical localization of abnormalities
-2. Signal characteristics
-3. Lesion size/shape
-4. Mass effect/edema/shift
-5. Enhancement patterns
-6. Critical structure involvement
-7. Secondary findings
-8. Specific signs for diagnosis
-Use precise terminology with explanations."""
-
-    # llama3_response = get_image_description_llama3_vision(image_analysis_prompt, filepath)
-    final_report = _generate_final_report(filepath, predicted_class, patient_info, metrics, "llama3_response")
-
     response_data.update(metrics)
+
+    final_report = _generate_final_report(filepath, predicted_class, patient_info, metrics, "not_implemented_yet")
     response_data['final_report'] = final_report
 
     return jsonify(response_data)

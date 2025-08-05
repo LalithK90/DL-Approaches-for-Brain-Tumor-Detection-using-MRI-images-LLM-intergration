@@ -78,7 +78,7 @@ async function uploadImage () {
             document.getElementById('result_images').classList.remove('d-none');
             // Use direct URLs from JSON
             document.getElementById('originalImg').src = data.original;
-            document.getElementById('gradcamImg').src = data.gradcam;
+            // document.getElementById('gradcamImg').src = data.gradcam;
             document.getElementById('saliencyImg').src = data.saliency;
             document.getElementById('limeImg').src = data.lime;
             document.getElementById('gradcamAnalysisImg').src = data.gradcam_analysis;
