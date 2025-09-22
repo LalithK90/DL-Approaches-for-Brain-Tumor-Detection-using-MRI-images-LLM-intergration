@@ -1,3 +1,4 @@
+from src.routes.routes import main_bp, api_blueprint
 from flask_bcrypt import Bcrypt
 from flask import Flask
 from flask_cors import CORS
@@ -9,19 +10,21 @@ import os
 import logging
 
 from src.auth.auth import auth_bp, init_auth
-from src.routes.routes import main_bp
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = os.urandom(24).hex()  # Generate a random secret key
 app.permanent_session_lifetime = timedelta(minutes=30)
 
 
-app.config.update(SESSION_COOKIE_SAMESITE='None', SESSION_COOKIE_SECURE=False)
-
+app.config.update(
+    # use 'None' only if you run HTTPS and set SESSION_COOKIE_SECURE=True
+    SESSION_COOKIE_SAMESITE="Lax",
+    SESSION_COOKIE_SECURE=False,     # True only when serving over HTTPS
+)
 logging.basicConfig(level=logging.DEBUG)
 # Initialize CORS with support for credentials
 # CORS(app,supports_credentials=True,origins=["http://localhost:8100"],allow_headers=["Content-Type", "Authorization"])
-CORS(app, supports_credentials=True, origins=["http://localhost:8100"])
+CORS(app)
 
 bcrypt = Bcrypt(app)
 # Initialize authentication
@@ -35,6 +38,7 @@ app.config['PATIENT_DATA_PATH'] = 'patient data json.json'
 # Register blueprints
 app.register_blueprint(main_bp)
 app.register_blueprint(auth_bp)
+app.register_blueprint(api_blueprint, url_prefix='/api')
 
 # Ensure directories exist
 os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)

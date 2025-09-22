@@ -7,6 +7,16 @@ const Page: React.FC = () => {
 
   const { name } = useParams<{ name: string; }>();
 
+  // Example fetch in src/pages/Page.tsx or similar
+  fetch('http://localhost:5000/api/predict', {
+    method: 'POST',
+    body: formData,
+  })
+    .then(res => res.json())
+    .then(data => {
+      // handle response
+    });
+
   return (
     <IonPage>
       <IonHeader>

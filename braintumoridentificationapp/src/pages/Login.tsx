@@ -16,8 +16,7 @@ import {
   IonText,
   IonSpinner
 } from '@ionic/react';
-import { medicalOutline, lockClosedOutline, personOutline } from 'ionicons/icons';
-import Footer from '../components/Footer';
+import { lockClosedOutline, personOutline } from 'ionicons/icons';
 import './Login.css';
 
 interface LoginProps {
@@ -33,6 +32,8 @@ interface LoginResponse {
     roles: string[];
   };
 }
+
+const API_BASE_URL = import.meta.env.DEV ? '' : (import.meta.env.VITE_API_BASE_URL || '');
 
 const Login: React.FC<LoginProps> = ({ onLoginSuccess }) => {
   const [username, setUsername] = useState<string>('');
@@ -51,26 +52,7 @@ const Login: React.FC<LoginProps> = ({ onLoginSuccess }) => {
     setIsLoading(true);
 
     try {
-      // First, check if we're using demo credentials for local testing
-      // if ((username === 'admin' && password === 'admin') ||
-      //     (username === 'doctor' && password === 'doctor') ||
-      //     (username === 'radiologist' && password === 'radiologist')) {
-
-      //   // Simulate successful login with demo credentials
-      //   setTimeout(() => {
-      //     const demoUser = {
-      //       id: '123',
-      //       username: username,
-      //       roles: [username] // Use username as role for demo
-      //     };
-      //     onLoginSuccess(demoUser);
-      //   }, 1000); // Simulate network delay
-
-      //   return;
-      // }
-
-      // Otherwise, proceed with actual API call
-      const response = await fetch('http://127.0.0.1:5000/login/api', {
+      const response = await fetch(`${API_BASE_URL}/login/api`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
@@ -78,6 +60,21 @@ const Login: React.FC<LoginProps> = ({ onLoginSuccess }) => {
         body: JSON.stringify({ username, password }),
         credentials: 'include'
       });
+
+      // Check if response is OK before parsing JSON
+      if (!response.ok) {
+        const responseText = await response.text();
+        console.error('Login API error:', response.status, response.statusText, responseText);
+        throw new Error(`Server error: ${response.status} ${response.statusText}`);
+      }
+
+      // Check content type to ensure it's JSON
+      const contentType = response.headers.get('content-type');
+      if (!contentType || !contentType.includes('application/json')) {
+        const responseText = await response.text();
+        console.error('Non-JSON response:', responseText);
+        throw new Error('Server returned non-JSON response');
+      }
 
       const result: LoginResponse = await response.json();
 
