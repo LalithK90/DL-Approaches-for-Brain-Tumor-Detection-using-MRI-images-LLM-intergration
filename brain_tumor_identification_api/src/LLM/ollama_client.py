@@ -57,14 +57,77 @@ MAX_PROMPT_LENGTH = 16000  # A conservative character limit for prompts
 MEDGEMMA_MODEL_NAME = "edwardlo12/medgemma-4b-it-Q4_K_M"
 LAMMA_MODEL_NAME = 'llama3.2-vision:latest'
 DEEPSEEK_MODEL_NAME = 'deepseek-r1:14b'
-COMMON_PROMPT_MESSAGE = """As expert oncologist, physician, radiologist: Analyze case; write concise report for juniors/students. Include:
-1. Key Findings: Brief explanations.
-2. Interpretation: Significance, differentials.
-3. Diagnosis: Likely with evidence.
-4. Treatment: Recommendations, reasons.
-5. Next Steps: Actions, purposes.
-6. Educational Notes: Simplifications.
-Keep clear, practical, insightful."""
+COMMON_PROMPT_MESSAGE = """
+As an expert oncologist, physician, and radiologist, analyze the medical case and generate a concise, structured clinical report tailored for medical students and junior doctors. Focus on clarity, educational value, and diagnostic reasoning. Use precise terminology with simplified explanations where necessary to support understanding.
+
+Structure:
+1. Executive Summary 
+- 2–3 sentence high-level overview of the case, highlighting the main concern and suspected diagnosis.
+2. Clinical Presentation 
+- Patient demographics, symptoms, medical history, and relevant clinical context.
+3. Imaging Findings
+- Detailed description of lesions, anatomical involvement, sizes, locations.
+- Integrate explainable AI (XAI) highlights (e.g., Grad-CAM, LIME): what regions are important and why.
+4. Quantitative Assessment
+- Interpretation of model/scan metrics (probabilities, confidence, performance).
+- Discuss discrepancies, limitations, or uncertainties if any.
+5. Differential Diagnosis
+- Ranked list of possible conditions with brief justification for each (key features, exclusions).
+6. Pathophysiology
+- Brief description of underlying disease mechanisms, biomarkers, and histopathological insights.
+7. Clinical Implications
+- Discussion on symptom correlation, likely progression, potential complications, and prognosis.
+8. Management and Recommendations
+- Evidence-based treatment plan: surgical, pharmacological, radiotherapy, etc.
+- Include clinical protocols or guidelines where applicable.
+9. Next Steps
+- Suggested follow-up, further tests, biopsies, referrals—explaining their purposes.
+10. Educational Pearls
+- 3–10 concise learning points emphasizing diagnostic reasoning, common pitfalls, and decision logic.
+11. References
+- Cite relevant clinical guidelines, research studies, or radiological literature that support the case analysis.
+
+Guidelines:
+- Prioritize teaching and understanding for learners.
+- Use bullet points, headings, and short paragraphs for readability.
+- Connect clinical, imaging, and pathological data to support reasoning.
+- Explain AI visualizations (XAI) clearly and relate them to the diagnosis.
+- Highlight key takeaways and diagnostic logic at every step.
+"""
+
+MEDGEMMA_IMAGE_PROMPT = """
+As an expert oncologist, physician, and radiologist, analyze the medical case and generate a concise, structured clinical report tailored for medical students and junior doctors. Focus on clarity, educational value, and diagnostic reasoning. Use precise terminology with simplified explanations where necessary to support understanding.
+
+Structure:
+1. Executive Summary
+- 2–3 sentence high-level overview of the case, highlighting the main concern and suspected diagnosis.
+2. Clinical Presentation
+- Patient demographics, symptoms, medical history, and relevant clinical context.
+3. Imaging Findings
+- Detailed description of lesions, anatomical involvement, sizes, locations.
+4. Differential Diagnosis
+- Ranked list of possible conditions with brief justification for each (key features, exclusions).
+5. Pathophysiology
+- Brief description of underlying disease mechanisms, biomarkers, and histopathological insights.
+6. Clinical Implications
+- Discussion on symptom correlation, likely progression, potential complications, and prognosis.
+7. Management and Recommendations
+- Evidence-based treatment plan: surgical, pharmacological, radiotherapy, etc.
+- Include clinical protocols or guidelines where applicable.
+8. Next Steps
+- Suggested follow-up, further tests, biopsies, referrals—explaining their purposes.
+9. Educational Pearls
+- 3–10 concise learning points emphasizing diagnostic reasoning, common pitfalls, and decision logic.
+10. References
+- Cite relevant clinical guidelines, research studies, or radiological literature that support the case analysis.
+
+Guidelines:
+- Prioritize teaching and understanding for learners.
+- Use bullet points, headings, and short paragraphs for readability.
+- Connect clinical, imaging, and pathological data to support reasoning.
+- Explain AI visualizations (XAI) clearly and relate them to the diagnosis.
+- Highlight key takeaways and diagnostic logic at every step.
+"""
 
 
 def store_in_vector_db(model_name: str, prompt: str, response: dict, image_path: Optional[str] = None, user_id: Optional[int] = None) -> Optional[str]:
@@ -372,10 +435,10 @@ def _call_groq_model(prompt: str) -> Optional[str]:
 
 def get_medical_report_from_image_medgemma(message: str, image_path: str) -> Optional[str]:
     prompt = (
-        f"{COMMON_PROMPT_MESSAGE}" +
+        f"{MEDGEMMA_IMAGE_PROMPT}" +
         f"USER QUESTION: {message}"
     )
-    logging.info(f"Calling MedGemma model with image")
+    logging.info(f"Calling MedGemma model with image {image_path}")
     response = _call_ollama_model(
         model_name=MEDGEMMA_MODEL_NAME, message=prompt, image_path=image_path)
     if response:

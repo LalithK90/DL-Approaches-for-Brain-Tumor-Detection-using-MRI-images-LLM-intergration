@@ -3,6 +3,8 @@ from flask_login import login_required, current_user
 from werkzeug.utils import secure_filename
 import os
 import numpy as np
+from sklearn.metrics import r2_score
+from copy import deepcopy
 import cv2
 import json
 from src.models.models import load_model, LABELS, IMAGE_SIZE
@@ -36,7 +38,6 @@ def _process_and_predict(model, img_array):
     confidence_val = float(np.max(pred))
     return pred, class_idx, predicted_class, confidence_val
 
-
 def _generate_visualizations(model, img_array, class_idx, filename):
     """Helper to generate all XAI visualizations."""
     try:
@@ -61,7 +62,6 @@ def _generate_visualizations(model, img_array, class_idx, filename):
     except ValueError as e:
         # Propagate the error to be handled by the main route
         raise e
-
 
 def _calculate_metrics(pred, cam, lime_img, model, img_array, labels, filename):
     """Helper to compute all quantitative metrics."""
@@ -106,6 +106,121 @@ def _calculate_metrics(pred, cam, lime_img, model, img_array, labels, filename):
     }
 
 
+def get_metric_interpretation(metric_name, value):
+    """Provides a detailed qualitative interpretation and level for a given metric value.
+    Includes educational explanations to help practitioners understand the significance."""
+    interpretation = "N/A"
+    level = "neutral"  # 'good', 'warning', 'bad'
+    explanation = ""  # Educational explanation of the metric
+
+    if metric_name == 'confidence':
+        if value >= 0.9:
+            interpretation = "Very High"
+            level = 'good'
+            explanation = "The model is extremely confident in its diagnosis, suggesting strong characteristic features of this tumor type are present in the image."
+        elif value >= 0.7:
+            interpretation = "High"
+            level = 'good'
+            explanation = "The model shows strong confidence in its diagnosis, indicating clear presence of typical features for this tumor type."
+        elif value >= 0.5:
+            interpretation = "Moderate"
+            level = 'warning'
+            explanation = "The model shows moderate confidence, suggesting some typical features are present but possibly with atypical characteristics that create ambiguity."
+        else:
+            interpretation = "Low"
+            level = 'bad'
+            explanation = "The model has low confidence in its diagnosis, indicating this may be an atypical presentation or the image may contain features common to multiple tumor types."
+
+    elif metric_name == 'entropy':
+        max_entropy = np.log2(4)  # For 4 classes
+        if value <= max_entropy * 0.25:
+            interpretation = "Low Uncertainty"
+            level = 'good'
+            explanation = "The probability distribution across possible classes is concentrated, indicating the model is decisive in its classification with minimal uncertainty."
+        elif value <= max_entropy * 0.6:
+            interpretation = "Moderate Uncertainty"
+            level = 'warning'
+            explanation = "The model shows some distribution of probability across multiple classes, suggesting features common to different tumor types may be present."
+        else:
+            interpretation = "High Uncertainty"
+            level = 'bad'
+            explanation = "The model's probability is widely distributed across multiple classes, indicating significant diagnostic uncertainty. This may require additional imaging sequences or histopathological confirmation."
+
+    elif metric_name == 'margin':
+        if value >= 0.7:
+            interpretation = "Decisive"
+            level = 'good'
+            explanation = "There is a large margin between the top prediction and alternatives, indicating the model strongly favors this diagnosis over others."
+        elif value >= 0.3:
+            interpretation = "Reasonable"
+            level = 'warning'
+            explanation = "The margin between the top prediction and alternatives is moderate, suggesting some distinctive features but also some overlapping characteristics with other tumor types."
+        else:
+            interpretation = "Indecisive"
+            level = 'bad'
+            explanation = "The small margin between top predictions indicates the model finds it difficult to distinguish between multiple possible diagnoses. Consider additional diagnostic methods."
+
+    elif metric_name == 'dice' or metric_name == 'iou':
+        if value >= 0.7:
+            interpretation = "High Agreement"
+            level = 'good'
+            explanation = "Strong spatial agreement between different explainability methods, indicating consistent identification of relevant image regions."
+        elif value >= 0.4:
+            interpretation = "Moderate Agreement"
+            level = 'warning'
+            explanation = "Partial agreement between explainability methods, suggesting some consistency in identified regions but also some differences in feature importance."
+        else:
+            interpretation = "Low Agreement"
+            level = 'bad'
+            explanation = "Limited agreement between explainability methods, indicating uncertainty in which image features are most relevant for diagnosis."
+
+    elif metric_name == 'mc_variance':
+        if value <= 0.01:
+            interpretation = "Very Stable"
+            level = 'good'
+            explanation = "Monte Carlo dropout shows very low variance, indicating high model stability and consistency in predictions across stochastic forward passes."
+        elif value <= 0.05:
+            interpretation = "Moderately Stable"
+            level = 'warning'
+            explanation = "Some variance in Monte Carlo dropout predictions, suggesting moderate model stability with some sensitivity to dropout perturbations."
+        else:
+            interpretation = "Unstable"
+            level = 'bad'
+            explanation = "High variance in Monte Carlo dropout predictions, indicating model instability and high sensitivity to the dropout perturbation, suggesting uncertainty in the diagnosis."
+
+    elif metric_name == 'brier':
+        if value <= 0.1:
+            interpretation = "Excellent Calibration"
+            level = 'good'
+            explanation = "Low Brier score indicates excellent calibration between predicted probabilities and actual outcomes, suggesting reliable confidence estimates."
+        elif value <= 0.25:
+            interpretation = "Good Calibration"
+            level = 'warning'
+            explanation = "Moderate Brier score suggests reasonable but not perfect calibration between predicted probabilities and actual outcomes."
+        else:
+            interpretation = "Poor Calibration"
+            level = 'bad'
+            explanation = "High Brier score indicates poor calibration, suggesting the model's confidence may not reliably reflect actual diagnostic accuracy."
+
+    return {"value": float(value), "interpretation": interpretation, "level": level, "explanation": explanation}
+
+
+def find_patient_by_diagnosis(tumor_type, patient_data):
+    diagnosis_map = {
+        'Glioma': 'glioma',
+        'Meningioma': 'meningioma',
+        'Notumor': 'no_tumor',
+        'Pituitary': 'pituitary'
+    }
+    target_diagnosis = diagnosis_map.get(tumor_type)
+    if not target_diagnosis:
+        return None
+
+    for patient in patient_data.get('patients', []):
+        if patient.get('diagnosis', {}).get('tumor_type') == target_diagnosis:
+            return patient
+    return None
+
 def _save_visualizations(visuals, original_img, filename):
     """Helper to save generated images to disk."""
     vis_folder = current_app.config['VISUALIZATION_FOLDER']
@@ -116,7 +231,6 @@ def _save_visualizations(visuals, original_img, filename):
         vis_folder, f"saliency_{filename}"), visuals['saliency_img'])
     cv2.imwrite(os.path.join(
         vis_folder, f"lime_{filename}"), visuals['lime_img'])
-
 
 def _validate_file_upload(request):
     if 'file' not in request.files:
@@ -169,22 +283,8 @@ def _generate_final_report(filepath, predicted_class, patient_info, metrics, lla
     metrics_string = json.dumps(metrics, indent=2)
 
     final_report_prompt_medgemma = f"""
-        Synthesize into a comprehensive brain tumor diagnosis report:
-        - Source 1: AI Image Analysis (Llama3.2-vision): {llama3_response}
-        - Source 2: Patient Information: {patient_info_string}
-        - Source 3: Quantitative Metrics: {metrics_string}
-        - Source 4: Primary Diagnosis: {predicted_class}
-        Sections:
-        1. Clinical Presentation: Summarize demographics, symptoms, history.
-        2. Imaging Findings: Describe lesions, anatomy, measurements, effects.
-        3. Quantitative Assessment: Interpret metrics for certainty.
-        4. Differential Diagnosis: Ranked list with supporting features.
-        5. Pathophysiology: Disease mechanisms and characteristics.
-        6. Clinical Implications: Symptoms, progression, complications.
-        7. Management: Evidence-based treatments and outcomes.
-        8. Educational Pearls: 3-5 key points on diagnostics and pitfalls.
-        9. References: Relevant guidelines/studies.
-        Use precise terminology with explanations. Aim for accurate diagnosis and education.
+       Give me a detailed, educational final report for a brain tumor diagnosis case:
+        - Patient Info: {patient_info_string}
     """
 
     medgemma_text_response = get_medical_report_from_image_medgemma(
@@ -193,23 +293,10 @@ def _generate_final_report(filepath, predicted_class, patient_info, metrics, lla
     final_report_prompt_deepsek = f"""
         Create a final educational brain tumor diagnosis report:
         - Source 1: MedGemma Analysis: {medgemma_text_response}
-        - Source 2: Llama3.2-vision Analysis: {llama3_response}
-        - Source 3: Patient Info: {patient_info_string}
-        - Source 4: Metrics: {metrics_string}
-        - Source 5: Primary Diagnosis: {predicted_class}
-        - Source 6: XAI Visualizations: Grad-CAM, Saliency Map, LIME - explain key regions.
-        Sections:
-        1. Executive Summary: 2-3 sentence overview.
-        2. Clinical Presentation: Demographics, symptoms, history.
-        3. Imaging Findings: Descriptions, anatomy, XAI highlights.
-        4. Quantitative Assessment: Interpret metrics, discrepancies.
-        5. Differential Diagnosis: Ranked list with features.
-        6. Pathophysiology: Mechanisms, markers.
-        7. Clinical Implications: Symptoms, prognosis.
-        8. Management: Treatments, protocols.
-        9. Educational Pearls: 3-5 points on diagnostics, pitfalls.
-        10. References: Guidelines/studies.
-        Guidelines: Precise terms with explanations; detailed images; headings/bullets; highlight keys; connect findings; explain XAI; aim for diagnosis and education.
+        - Source 2: Patient Info: {patient_info_string}
+        - Source 3: Metrics: {metrics_string}
+        - Source 4: Primary Diagnosis: {predicted_class}
+        - Source 5: XAI Visualizations: Grad-CAM, Saliency Map, LIME - explain key regions.
     """
 
     resoning_final_report = get_text_reasoning(final_report_prompt_deepsek, filepath)
@@ -263,121 +350,6 @@ def predict():
     return jsonify(response_data)
 
 
-def get_metric_interpretation(metric_name, value):
-    """Provides a detailed qualitative interpretation and level for a given metric value.
-    Includes educational explanations to help practitioners understand the significance."""
-    interpretation = "N/A"
-    level = "neutral"  # 'good', 'warning', 'bad'
-    explanation = ""  # Educational explanation of the metric
-
-    if metric_name == 'confidence':
-        if value >= 0.9:
-            interpretation = "Very High"
-            level = 'good'
-            explanation = "The model is extremely confident in its diagnosis, suggesting strong characteristic features of this tumor type are present in the image."
-        elif value >= 0.7:
-            interpretation = "High"
-            level = 'good'
-            explanation = "The model shows strong confidence in its diagnosis, indicating clear presence of typical features for this tumor type."
-        elif value >= 0.5:
-            interpretation = "Moderate"
-            level = 'warning'
-            explanation = "The model shows moderate confidence, suggesting some typical features are present but possibly with atypical characteristics that create ambiguity."
-        else:
-            interpretation = "Low"
-            level = 'bad'
-            explanation = "The model has low confidence in its diagnosis, indicating this may be an atypical presentation or the image may contain features common to multiple tumor types."
-    
-    elif metric_name == 'entropy':
-        max_entropy = np.log2(4)  # For 4 classes
-        if value <= max_entropy * 0.25:
-            interpretation = "Low Uncertainty"
-            level = 'good'
-            explanation = "The probability distribution across possible classes is concentrated, indicating the model is decisive in its classification with minimal uncertainty."
-        elif value <= max_entropy * 0.6:
-            interpretation = "Moderate Uncertainty"
-            level = 'warning'
-            explanation = "The model shows some distribution of probability across multiple classes, suggesting features common to different tumor types may be present."
-        else:
-            interpretation = "High Uncertainty"
-            level = 'bad'
-            explanation = "The model's probability is widely distributed across multiple classes, indicating significant diagnostic uncertainty. This may require additional imaging sequences or histopathological confirmation."
-    
-    elif metric_name == 'margin':
-        if value >= 0.7:
-            interpretation = "Decisive"
-            level = 'good'
-            explanation = "There is a large margin between the top prediction and alternatives, indicating the model strongly favors this diagnosis over others."
-        elif value >= 0.3:
-            interpretation = "Reasonable"
-            level = 'warning'
-            explanation = "The margin between the top prediction and alternatives is moderate, suggesting some distinctive features but also some overlapping characteristics with other tumor types."
-        else:
-            interpretation = "Indecisive"
-            level = 'bad'
-            explanation = "The small margin between top predictions indicates the model finds it difficult to distinguish between multiple possible diagnoses. Consider additional diagnostic methods."
-    
-    elif metric_name == 'dice' or metric_name == 'iou':
-        if value >= 0.7:
-            interpretation = "High Agreement"
-            level = 'good'
-            explanation = "Strong spatial agreement between different explainability methods, indicating consistent identification of relevant image regions."
-        elif value >= 0.4:
-            interpretation = "Moderate Agreement"
-            level = 'warning'
-            explanation = "Partial agreement between explainability methods, suggesting some consistency in identified regions but also some differences in feature importance."
-        else:
-            interpretation = "Low Agreement"
-            level = 'bad'
-            explanation = "Limited agreement between explainability methods, indicating uncertainty in which image features are most relevant for diagnosis."
-    
-    elif metric_name == 'mc_variance':
-        if value <= 0.01:
-            interpretation = "Very Stable"
-            level = 'good'
-            explanation = "Monte Carlo dropout shows very low variance, indicating high model stability and consistency in predictions across stochastic forward passes."
-        elif value <= 0.05:
-            interpretation = "Moderately Stable"
-            level = 'warning'
-            explanation = "Some variance in Monte Carlo dropout predictions, suggesting moderate model stability with some sensitivity to dropout perturbations."
-        else:
-            interpretation = "Unstable"
-            level = 'bad'
-            explanation = "High variance in Monte Carlo dropout predictions, indicating model instability and high sensitivity to the dropout perturbation, suggesting uncertainty in the diagnosis."
-    
-    elif metric_name == 'brier':
-        if value <= 0.1:
-            interpretation = "Excellent Calibration"
-            level = 'good'
-            explanation = "Low Brier score indicates excellent calibration between predicted probabilities and actual outcomes, suggesting reliable confidence estimates."
-        elif value <= 0.25:
-            interpretation = "Good Calibration"
-            level = 'warning'
-            explanation = "Moderate Brier score suggests reasonable but not perfect calibration between predicted probabilities and actual outcomes."
-        else:
-            interpretation = "Poor Calibration"
-            level = 'bad'
-            explanation = "High Brier score indicates poor calibration, suggesting the model's confidence may not reliably reflect actual diagnostic accuracy."
-
-    return {"value": float(value), "interpretation": interpretation, "level": level, "explanation": explanation}
-
-
-def find_patient_by_diagnosis(tumor_type, patient_data):
-    diagnosis_map = {
-        'Glioma': 'glioma',
-        'Meningioma': 'meningioma',
-        'Notumor': 'no_tumor',
-        'Pituitary': 'pituitary'
-    }
-    target_diagnosis = diagnosis_map.get(tumor_type)
-    if not target_diagnosis:
-        return None
-
-    for patient in patient_data.get('patients', []):
-        if patient.get('diagnosis', {}).get('tumor_type') == target_diagnosis:
-            return patient
-    return None
-
 
 @main_bp.route('/chat', methods=['POST'])
 def chat():
@@ -398,7 +370,6 @@ def chat():
 
     prompt = f"""
                 As expert neuroradiologist and neurosurgeon in brain tumors, answer the practitioner's question about the uploaded MRI scan. Provide detailed, educational response addressing the query directly, with insights on diagnosis and management.
-
                 USER QUESTION: {message}
                 IMAGE: {image_name}
                 Output flexibly based on query; use headings/bullets as needed for clarity and education.
@@ -409,3 +380,59 @@ def chat():
         return jsonify({'response': text_response})
     else:
         return jsonify({'error': 'Failed to get a response from the AI model.'}), 500
+
+
+api_blueprint = Blueprint('api', __name__)
+
+
+@api_blueprint.route('/predict', methods=['POST'])
+def predict():
+    # Validate file upload
+    file, error_response, status_code = _validate_file_upload(request)
+    if error_response:
+        return error_response, status_code
+
+    # Secure the filename and save the file
+    filename = secure_filename(file.filename)
+    filepath = _save_uploaded_file(file, filename)
+    session['current_image'] = filename.replace(" ", "")
+    current_image = filename.replace(" ", "")
+    print(f"File saved at: {current_image}")
+    # Process the image and load the model
+    model_name = request.form.get('model_name', 'propose_balance')
+    img, img_array, model = _process_image(filepath, model_name)
+    if model is None:
+        return jsonify({'error': 'Model not found'}), 404
+
+    # Get model prediction
+    pred, class_idx, predicted_class, confidence_val = _process_and_predict(
+        model, img_array)
+
+    # Generate and save XAI visualizations
+    try:
+        visuals = _generate_visualizations(
+            model, img_array, class_idx, filename)
+        _save_visualizations(visuals, img, filename)
+    except ValueError as e:
+        return jsonify({'error': str(e)})
+
+    # Calculate metrics
+    metrics = _calculate_metrics(
+        pred, visuals['cam'], visuals['lime_img'], model, img_array, LABELS, filename)
+
+    # Find matching patient data
+    with open(current_app.config['PATIENT_DATA_PATH'], 'r') as f:
+        patient_data = json.load(f)
+    patient_info = find_patient_by_diagnosis(predicted_class, patient_data)
+    del patient_info["diagnosis"]
+
+    # Assemble the response data
+    response_data = _generate_response_data(
+        filename, predicted_class, confidence_val, patient_info, visuals)
+    response_data.update(metrics)
+
+    final_report = _generate_final_report(
+        filepath, predicted_class, patient_info, metrics, "not_implemented_yet")
+    response_data['final_report'] = final_report
+
+    return jsonify(response_data)

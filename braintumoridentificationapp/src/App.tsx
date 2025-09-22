@@ -57,7 +57,8 @@ import './theme/variables.css';
 
 setupIonicReact();
 
-const API_BASE_URL = "http://127.0.0.1:5000";
+// Prefer Vite proxy in development to avoid CORS and allow cookies
+const API_BASE_URL = import.meta.env.DEV ? '' : (import.meta.env.VITE_API_BASE_URL || '');
 // status, logout and other fetch calls now use `${API_BASE_URL}`
 
 interface PredictionResult {
@@ -91,6 +92,10 @@ interface PredictionResult {
   saliency_explanation: string;
 
   final_report: string | null;
+  // Optional fields provided by backend (align with web app)
+  activation_ratio?: number;
+  mc_confidence_interval?: [number, number];
+  center_distance?: number;
 }
 
 interface ChatMessage {
@@ -152,7 +157,7 @@ const BrainTumorApp: React.FC<{ user: User; onLogout: () => void }> = ({ user, o
     const formData = new FormData();
     // remove spaces from original filename and persist for later use (e.g. chat endpoint)
     const sanitizedFilename = selectedFile.name.replace(/\s+/g, '');
-    localStorage.setItem('uploaded_filename', sanitizedFilename);
+    localStorage.setItem('uploadedFileName', sanitizedFilename);
     // include the sanitized filename when appending the file so backend and session use the same name
     formData.append('file', selectedFile, sanitizedFilename);
     formData.append('model_name', selectedModel);
@@ -207,7 +212,7 @@ const BrainTumorApp: React.FC<{ user: User; onLogout: () => void }> = ({ user, o
         },
         body: JSON.stringify({
           message: chatInput,
-          image:localStorage.getItem('uploaded_filename')
+          image: localStorage.getItem('uploadedFileName')
          }),
         credentials: 'include'
       });
@@ -353,12 +358,33 @@ const BrainTumorApp: React.FC<{ user: User; onLogout: () => void }> = ({ user, o
                       </IonCol>
                       <IonCol size="6">
                         <div style={{ textAlign: 'center' }}>
-                          <h4>Grad-CAM Heatmap</h4>
+                          <h4>Grad-CAM (Overlay)</h4>
                           <IonImg src={prediction.gradcam} alt="Grad-CAM" style={{ width: `${imageSize}%` }} />
                         
                         </div>
                       </IonCol>
                     </IonRow>
+                    {/* Additional XAI Images if available */}
+                    {(prediction.gradcam_analysis || prediction.gradcam_heatmap) && (
+                      <IonRow>
+                        {prediction.gradcam_analysis && (
+                          <IonCol size="6">
+                            <div style={{ textAlign: 'center' }}>
+                              <h4>Grad-CAM Analysis</h4>
+                              <IonImg src={prediction.gradcam_analysis} alt="Grad-CAM Analysis" style={{ width: `${imageSize}%` }} />
+                            </div>
+                          </IonCol>
+                        )}
+                        {prediction.gradcam_heatmap && (
+                          <IonCol size="6">
+                            <div style={{ textAlign: 'center' }}>
+                              <h4>Grad-CAM Heatmap</h4>
+                              <IonImg src={prediction.gradcam_heatmap} alt="Grad-CAM Heatmap" style={{ width: `${imageSize}%` }} />
+                            </div>
+                          </IonCol>
+                        )}
+                      </IonRow>
+                    )}
                     
                     <IonRow>
                       <IonCol size="6">
@@ -422,6 +448,24 @@ const BrainTumorApp: React.FC<{ user: User; onLogout: () => void }> = ({ user, o
                         <IonLabel>IoU Agreement</IonLabel>
                         <IonBadge color={prediction.iou.level}> Value: {prediction.iou.value.toFixed(2)} <br/> Status: {prediction.iou.interpretation}</IonBadge>
                       </IonItem>
+                      {typeof prediction.activation_ratio === 'number' && (
+                        <IonItem>
+                          <IonLabel>Activation Ratio</IonLabel>
+                          <IonBadge> {(prediction.activation_ratio * 100).toFixed(2)}% </IonBadge>
+                        </IonItem>
+                      )}
+                      {Array.isArray(prediction.mc_confidence_interval) && prediction.mc_confidence_interval.length === 2 && (
+                        <IonItem>
+                          <IonLabel>MC Confidence Interval</IonLabel>
+                          <IonBadge> [{prediction.mc_confidence_interval[0].toFixed(2)}, {prediction.mc_confidence_interval[1].toFixed(2)}] </IonBadge>
+                        </IonItem>
+                      )}
+                      {typeof prediction.center_distance === 'number' && (
+                        <IonItem>
+                          <IonLabel>Center Distance</IonLabel>
+                          <IonBadge> {prediction.center_distance.toFixed(2)} </IonBadge>
+                        </IonItem>
+                      )}
                     </IonList>
                   </div>
                 </IonCardContent>
