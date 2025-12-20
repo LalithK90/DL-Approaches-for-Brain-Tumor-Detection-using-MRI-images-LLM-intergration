@@ -374,7 +374,7 @@ If you use this work in your research, please cite:
 
 ```bibtex
 @mastersthesis{brain_tumor_xai_2025,
-  author       = {Lalith kahatapitiya},
+  author       = {Lalith Kahatapitiya},
   title        = {Explainable Deep Learning Framework for Automated Brain Tumor Classification from MRI Scans},
   school       = {Postgraduate Institute of Science, University of Peradeniya},
   year         = {2025},
