@@ -425,18 +425,18 @@ If you use this work in your research, please cite:
 
 ## License
 
-This research implementation is released under [License Type - To be determined based on institutional and funding policies].
+This repository is licensed under the **MIT License**. Only **attribution** is required — please retain the copyright
+notice crediting **LalithK90** in copies or substantial portions of the software.
 
-For academic and non-commercial research use. Commercial applications require explicit permission.
+See the full license text in [LICENSE](LICENSE).
 
 ---
 
 ## Contact Information
 
-**Research Inquiries**: [Contact Email]  
-**Technical Support**: [Support Email]  
+**Research Inquiries**: asakahatapitiya@gmail.com  
 **Institution**: Postgraduate Institute of Science, University of Peradeniya, Sri Lanka  
-**Website**: [Project/Lab Website]
+ 
 
 ---
 
