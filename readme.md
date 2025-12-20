@@ -362,6 +362,7 @@ npm run dev
 ### Code and Data Availability
 
 - **Code Repository**: [GitHub Repository Link - To be made public post-defense]
+ - **Code Repository**: https://github.com/LalithK90/DL-Approaches-for-Brain-Tumor-Detection-using-MRI-images-LLM-intergration
 - **Trained Models**: Available upon request for academic research
 - **Dataset**: Publicly accessible via [Kaggle](https://www.kaggle.com/datasets/masoudnickparvar/brain-tumor-mri-dataset)
 
@@ -373,7 +374,7 @@ If you use this work in your research, please cite:
 
 ```bibtex
 @mastersthesis{brain_tumor_xai_2025,
-  author       = {[Author Name]},
+  author       = {Lalith kahatapitiya},
   title        = {Explainable Deep Learning Framework for Automated Brain Tumor Classification from MRI Scans},
   school       = {Postgraduate Institute of Science, University of Peradeniya},
   year         = {2025},
