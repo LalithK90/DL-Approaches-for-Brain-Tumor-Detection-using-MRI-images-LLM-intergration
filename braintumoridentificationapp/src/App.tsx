@@ -126,17 +126,17 @@ const BrainTumorApp: React.FC<{ user: User; onLogout: () => void }> = ({ user, o
 
   const models = [
     { value: 'propose_balance', label: 'Proposed Model (Balanced)' },
-    { value: 'propose_inbalance', label: 'Proposed Model (Imbalanced)' },
+    { value: 'propose_imbalanced', label: 'Proposed Model (Imbalanced)' },
     { value: 'ResNet50_balance', label: 'ResNet50 (Balanced)' },
-    { value: 'ResNet50_inbalance', label: 'ResNet50 (Imbalanced)' },
+    { value: 'ResNet50_imbalanced', label: 'ResNet50 (Imbalanced)' },
     { value: 'vgg16_balance', label: 'VGG16 (Balanced)' },
-    { value: 'vgg16_inbalance', label: 'VGG16 (Imbalanced)' },
+    { value: 'vgg16_imbalanced', label: 'VGG16 (Imbalanced)' },
     { value: 'vgg19_balance', label: 'VGG19 (Balanced)' },
-    { value: 'vgg19_inbalance', label: 'VGG19 (Imbalanced)' },
+    { value: 'vgg19_imbalanced', label: 'VGG19 (Imbalanced)' },
     { value: 'GoogleLeNet_balance', label: 'GoogleLeNet (Balanced)' },
-    { value: 'GoogleLeNet_inbalance', label: 'GoogleLeNet (Imbalanced)' },
+    { value: 'GoogleLeNet_imbalanced', label: 'GoogleLeNet (Imbalanced)' },
     { value: 'MobileVNet_balance', label: 'MobileVNet (Balanced)' },
-    { value: 'MobileVNet_inbalance', label: 'MobileVNet (Imbalanced)' }
+    { value: 'MobileVNet_imbalanced', label: 'MobileVNet (Imbalanced)' }
   ];
 
   const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {

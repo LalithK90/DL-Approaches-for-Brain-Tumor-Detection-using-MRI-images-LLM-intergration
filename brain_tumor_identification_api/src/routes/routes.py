@@ -105,7 +105,6 @@ def _calculate_metrics(pred, cam, lime_img, model, img_array, labels, filename):
         'iou': get_metric_interpretation('iou', iou_score),
     }
 
-
 def get_metric_interpretation(metric_name, value):
     """Provides a detailed qualitative interpretation and level for a given metric value.
     Includes educational explanations to help practitioners understand the significance."""
@@ -204,7 +203,6 @@ def get_metric_interpretation(metric_name, value):
 
     return {"value": float(value), "interpretation": interpretation, "level": level, "explanation": explanation}
 
-
 def find_patient_by_diagnosis(tumor_type, patient_data):
     diagnosis_map = {
         'Glioma': 'glioma',
@@ -301,6 +299,8 @@ def _generate_final_report(filepath, predicted_class, patient_info, metrics, lla
 
     resoning_final_report = get_text_reasoning(final_report_prompt_deepsek, filepath)
     return resoning_final_report
+
+
 
 @main_bp.route('/predict', methods=['POST'])
 def predict():

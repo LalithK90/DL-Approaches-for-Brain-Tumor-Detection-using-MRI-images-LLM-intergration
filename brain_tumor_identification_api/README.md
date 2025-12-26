@@ -261,7 +261,7 @@ brain_tumor_identification_api/
 ├── patient data json.json          # Sample patient demographic data
 ├── models/                         # Trained deep learning models (.h5 files)
 │   ├── vgg16_balance.h5
-│   ├── vgg19_inbalance.h5
+│   ├── vgg19_imbalanced.h5
 │   └── ... (10 total models)
 ├── src/                            # Source code modules
 │   ├── __init__.py
@@ -289,10 +289,10 @@ brain_tumor_identification_api/
 │   ├── img/                        # Images and icons
 │   ├── uploads/                    # User-uploaded MRI images
 │   └── visualizations/             # Generated XAI heatmaps
-│       ├── gilioma/
+│       ├── glioma/
 │       ├── meningioma/
 │       ├── no tumor/
-│       └── pitiutary/
+│       └── pituitary/
 └── chroma_data/                    # ChromaDB vector store persistence
     ├── chroma.sqlite3
     └── [vector embeddings]

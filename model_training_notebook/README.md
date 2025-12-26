@@ -163,17 +163,17 @@ The notebook implements a rigorous, reproducible experimental workflow:
   ```
   models/
   ├── vgg16_balance.h5
-  ├── vgg16_inbalance.h5
+  ├── vgg16_imbalanced.h5
   ├── vgg19_balance.h5
-  ├── vgg19_inbalance.h5
+  ├── vgg19_imbalanced.h5
   ├── ResNet50_balance.h5
-  ├── ResNet50_inbalance.h5
+  ├── ResNet50_imbalanced.h5
   ├── MobileVNet_balance.h5
-  ├── MobileVNet_inbalance.h5
+  ├── MobileVNet_imbalanced.h5
   ├── GoogleLeNet_balance.h5
-  ├── GoogleLeNet_inbalance.h5
+  ├── GoogleLeNet_imbalanced.h5
   ├── propose_balance.h5
-  └── propose_inbalance.h5
+  └── propose_imbalanced.h5
   ```
 
 **Metadata Documentation**:

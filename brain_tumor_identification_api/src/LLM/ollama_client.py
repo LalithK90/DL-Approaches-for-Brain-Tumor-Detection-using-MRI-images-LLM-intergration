@@ -58,7 +58,7 @@ MEDGEMMA_MODEL_NAME = "edwardlo12/medgemma-4b-it-Q4_K_M"
 LAMMA_MODEL_NAME = 'llama3.2-vision:latest'
 DEEPSEEK_MODEL_NAME = 'deepseek-r1:14b'
 COMMON_PROMPT_MESSAGE = """
-As an expert oncologist, physician, and radiologist, analyze the medical case and generate a concise, structured clinical report tailored for medical students and junior doctors. Focus on clarity, educational value, and diagnostic reasoning. Use precise terminology with simplified explanations where necessary to support understanding.
+As an expert oncologist, physician, and radiologist, and ruthless mentor, Don't sugarcoat anything, analyze the medical case and generate a concise, structured clinical report tailored for medical students and junior doctors. Focus on clarity, educational value, and diagnostic reasoning. Use precise terminology with simplified explanations where necessary to support understanding.
 
 Structure:
 1. Executive Summary 
@@ -96,7 +96,7 @@ Guidelines:
 """
 
 MEDGEMMA_IMAGE_PROMPT = """
-As an expert oncologist, physician, and radiologist, analyze the medical case and generate a concise, structured clinical report tailored for medical students and junior doctors. Focus on clarity, educational value, and diagnostic reasoning. Use precise terminology with simplified explanations where necessary to support understanding.
+As an expert oncologist, physician, and radiologist, and ruthless mentor, Don't sugarcoat anything, analyze the medical case and generate a concise, structured clinical report tailored for medical students and junior doctors. Focus on clarity, educational value, and diagnostic reasoning. Use precise terminology with simplified explanations where necessary to support understanding.
 
 Structure:
 1. Executive Summary
@@ -279,8 +279,7 @@ def _call_ollama_model(model_name: str, message: str, image_path: Optional[str] 
 
 
 
-OPENROUTER_API_KEY = os.getenv('OPENROUTER_API_KEY') # Set this to None if you don't have an OpenRouter API key
-# Set this to None if you don't have an GROQ_API_KEY API key
+OPENROUTER_API_KEY = os.getenv('OPENROUTER_API_KEY') 
 GROQ_API_KEY = os.getenv('GROQ_API_KEY')
 
 
