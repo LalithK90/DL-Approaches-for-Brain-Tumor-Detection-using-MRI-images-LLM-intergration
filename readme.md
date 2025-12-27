@@ -1,5 +1,10 @@
 # Explainable Deep Learning Framework for Automated Brain Tumor Classification
 
+## Documentation
+
+- **Changelog**: See [docs/CHANGELOG.md](docs/CHANGELOG.md) for notable changes.
+- **Editing Track**: See [docs/EDITING_TRACK.md](docs/EDITING_TRACK.md) for edit logs and doc hygiene.
+
 ## Abstract
 
 This repository constitutes a comprehensive research implementation investigating **Explainable Artificial Intelligence (XAI) methodologies for automated brain tumor classification from magnetic resonance imaging (MRI) scans**. The work represents a Master of Science in Computer Science (MSc CS - SLQF Level 10) dissertation research conducted at the Postgraduate Institute of Science (PGIS), University of Peradeniya, Sri Lanka.

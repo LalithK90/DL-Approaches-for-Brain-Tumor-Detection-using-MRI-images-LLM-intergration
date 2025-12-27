@@ -1,44 +1,14 @@
-import {
-  IonApp,
-  IonContent,
-  IonPage,
-  IonRouterOutlet,
-  setupIonicReact,
-  IonHeader,
-  IonToolbar,
-  IonTitle,
-  IonButton,
-  IonItem,
-  IonLabel,
-  IonCard,
-  IonCardContent,
-  IonCardHeader,
-  IonCardTitle,
-  IonGrid,
-  IonRow,
-  IonCol,
-  IonImg,
-  IonTextarea,
-  IonList,
-  IonSelect,
-  IonSelectOption,
-  IonLoading,
-  IonAlert,
-  IonIcon,
-  IonFab,
-  IonFabButton,
-  IonModal,
-  IonButtons,
-  IonChip,
-  IonBadge,
-  IonRange
-} from '@ionic/react';
+import { IonApp, IonContent, IonPage, IonRouterOutlet, setupIonicReact, IonHeader, IonToolbar, IonTitle, IonButton, IonItem, IonLabel, IonCard, IonCardContent, IonCardHeader, IonCardTitle, IonGrid, IonRow, IonCol, IonImg, IonTextarea, IonList, IonSelect, IonSelectOption, IonLoading, IonAlert, IonIcon, IonFab, IonFabButton, IonModal, IonButtons, IonChip, IonBadge, IonRange, IonSegment, IonSegmentButton } from '@ionic/react';
 import { IonReactRouter } from '@ionic/react-router';
 import { Route } from 'react-router-dom';
 import { useState, useRef, useEffect } from 'react';
 import { cloudUpload, chatbubbles, close, send, medkit, analytics, logOut } from 'ionicons/icons';
 import Login from './pages/Login';
 import Footer from './components/Footer';
+import FaithfulnessMetrics from './components/FaithfulnessMetrics';
+import ValidationResults from './components/ValidationResults';
+import MetricsComparison from './components/MetricsComparison';
+import ExpandableMetric from './components/ExpandableMetric';
 import ReactMarkdown from 'react-markdown';
 
 /* Core CSS required for Ionic components to work properly */
@@ -73,6 +43,7 @@ interface PredictionResult {
     value: number;
     interpretation: string;
     level: string;
+    explanation: string;
   };
   patient_info: {
     patient_id: string;
@@ -86,10 +57,25 @@ interface PredictionResult {
   dice: { value: number; interpretation: string; level: string; explanation: string };
   iou: { value: number; interpretation: string; level: string; explanation: string };
   mc_variance: { value: number; interpretation: string; level: string; explanation: string };
-  gradcam_explanation: string;
-  lime_explanation: string;
-  metrics_explanation: string;
-  saliency_explanation: string;
+  // NEW: Faithfulness metrics
+  comprehensiveness: { value: number; interpretation: string; level: string; explanation: string };
+  sufficiency: { value: number; interpretation: string; level: string; explanation: string };
+  // NEW: AUC metrics
+  deletion_auc: { value: number; interpretation: string; level: string; explanation: string };
+  insertion_auc: { value: number; interpretation: string; level: string; explanation: string };
+  // NEW: Validation test
+  randomized_weights_corr: { value: number; interpretation: string; level: string; explanation: string };
+  // Educational notes
+  xai_educational_notes?: {
+    gradcam_explanation: string;
+    saliency_explanation: string;
+    lime_explanation: string;
+    metrics_explanation: string;
+  };
+  gradcam_explanation?: string;
+  lime_explanation?: string;
+  metrics_explanation?: string;
+  saliency_explanation?: string;
 
   final_report: string | null;
   // Optional fields provided by backend (align with web app)
@@ -122,6 +108,7 @@ const BrainTumorApp: React.FC<{ user: User; onLogout: () => void }> = ({ user, o
   const [chatInput, setChatInput] = useState('');
   const [isChatLoading, setIsChatLoading] = useState(false);
   const [imageSize, setImageSize] = useState<number>(100);
+  const [metricsSegment, setMetricsSegment] = useState<string>('confidence');
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const models = [
@@ -420,54 +407,108 @@ const BrainTumorApp: React.FC<{ user: User; onLogout: () => void }> = ({ user, o
                     </IonList>
                   </div>
 
-                  {/* Additional Metrics */}
-                  <div style={{ marginTop: '16px' }}>
-                    <h4>Confidence Metrics</h4>
-                    <IonList>
-                      <IonItem>
-                        <IonLabel>Brier Score</IonLabel>
-                        <IonBadge color={prediction.brier.level}> Value: {prediction.brier.value.toFixed(2)} <br/>  Status: {prediction.brier.interpretation}</IonBadge>
-                      </IonItem>
-                      <IonItem>
-                        <IonLabel>Entropy</IonLabel>
-                        <IonBadge color={prediction.entropy.level}> Value: {prediction.entropy.value.toFixed(2)} <br/> Status: {prediction.entropy.interpretation}</IonBadge>
-                      </IonItem>
-                      <IonItem>
-                        <IonLabel>Margin</IonLabel>
-                        <IonBadge color={prediction.margin.level}> Value: {prediction.margin.value.toFixed(2)} <br/> Status: {prediction.margin.interpretation}</IonBadge>
-                      </IonItem>
-                      <IonItem>
-                        <IonLabel>MC Variance</IonLabel>
-                        <IonBadge color={prediction.mc_variance.level}> Value: {prediction.mc_variance.value.toFixed(2)} <br/> Status: {prediction.mc_variance.interpretation}</IonBadge>
-                      </IonItem>
-                      <IonItem>
-                        <IonLabel>Dice Agreement</IonLabel>
-                        <IonBadge color={prediction.dice.level}> Value: {prediction.dice.value.toFixed(2)} <br/> Status: {prediction.dice.interpretation}</IonBadge>
-                      </IonItem>
-                      <IonItem>
-                        <IonLabel>IoU Agreement</IonLabel>
-                        <IonBadge color={prediction.iou.level}> Value: {prediction.iou.value.toFixed(2)} <br/> Status: {prediction.iou.interpretation}</IonBadge>
-                      </IonItem>
-                      {typeof prediction.activation_ratio === 'number' && (
-                        <IonItem>
-                          <IonLabel>Activation Ratio</IonLabel>
-                          <IonBadge> {(prediction.activation_ratio * 100).toFixed(2)}% </IonBadge>
-                        </IonItem>
+                  {/* Metrics Tabs */}
+                  <IonCard style={{ marginTop: '16px' }}>
+                    <IonCardHeader>
+                      <IonCardTitle>Explainability Metrics</IonCardTitle>
+                    </IonCardHeader>
+                    <IonCardContent>
+                      <IonSegment value={metricsSegment} onIonChange={(e) => setMetricsSegment(e.detail.value as string)}>
+                        <IonSegmentButton value="confidence">Confidence & Uncertainty</IonSegmentButton>
+                        <IonSegmentButton value="faithfulness">Faithfulness</IonSegmentButton>
+                        <IonSegmentButton value="validation">Validation & AUC</IonSegmentButton>
+                        <IonSegmentButton value="agreement">Agreement</IonSegmentButton>
+                        <IonSegmentButton value="overview">Overview</IonSegmentButton>
+                      </IonSegment>
+
+                      {metricsSegment === 'confidence' && (
+                        <div style={{ marginTop: '16px' }}>
+                          <ExpandableMetric title="Brier Score" metric={prediction.brier} />
+                          <ExpandableMetric title="Entropy" metric={prediction.entropy} />
+                          <ExpandableMetric title="Prediction Margin" metric={prediction.margin} />
+                          <ExpandableMetric title="MC Dropout Variance" metric={prediction.mc_variance} />
+                        </div>
                       )}
-                      {Array.isArray(prediction.mc_confidence_interval) && prediction.mc_confidence_interval.length === 2 && (
-                        <IonItem>
-                          <IonLabel>MC Confidence Interval</IonLabel>
-                          <IonBadge> [{prediction.mc_confidence_interval[0].toFixed(2)}, {prediction.mc_confidence_interval[1].toFixed(2)}] </IonBadge>
-                        </IonItem>
+
+                      {metricsSegment === 'faithfulness' && (
+                        <div style={{ marginTop: '16px' }}>
+                          <FaithfulnessMetrics 
+                            comprehensiveness={prediction.comprehensiveness}
+                            sufficiency={prediction.sufficiency}
+                          />
+                        </div>
                       )}
-                      {typeof prediction.center_distance === 'number' && (
-                        <IonItem>
-                          <IonLabel>Center Distance</IonLabel>
-                          <IonBadge> {prediction.center_distance.toFixed(2)} </IonBadge>
-                        </IonItem>
+
+                      {metricsSegment === 'validation' && (
+                        <div style={{ marginTop: '16px' }}>
+                          <ValidationResults
+                            deletion_auc={prediction.deletion_auc}
+                            insertion_auc={prediction.insertion_auc}
+                            randomized_weights_corr={prediction.randomized_weights_corr}
+                          />
+                        </div>
                       )}
-                    </IonList>
-                  </div>
+
+                      {metricsSegment === 'agreement' && (
+                        <div style={{ marginTop: '16px' }}>
+                          <div style={{ marginBottom: '16px', padding: '16px', backgroundColor: '#f5f5f5', borderRadius: '8px' }}>
+                            <h4 style={{ marginTop: 0 }}>Explanation Agreement Metrics</h4>
+                            <p style={{ marginBottom: 0, fontSize: '14px', color: '#666' }}>
+                              These metrics measure how consistent different explanation methods (Grad-CAM, LIME, Saliency) are in identifying important image regions.
+                            </p>
+                          </div>
+                          <ExpandableMetric title="Dice Coefficient" metric={prediction.dice} />
+                          <ExpandableMetric title="Intersection over Union (IoU)" metric={prediction.iou} />
+                          {typeof prediction.activation_ratio === 'number' && (
+                            <IonCard style={{ marginTop: '12px' }}>
+                              <IonCardContent>
+                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                  <span><strong>Activation Ratio:</strong></span>
+                                  <IonBadge color="primary">{(prediction.activation_ratio * 100).toFixed(2)}%</IonBadge>
+                                </div>
+                                <p style={{ fontSize: '12px', color: '#666', marginTop: '8px' }}>Percentage of image activated by Grad-CAM explanation</p>
+                              </IonCardContent>
+                            </IonCard>
+                          )}
+                          {typeof prediction.center_distance === 'number' && (
+                            <IonCard style={{ marginTop: '12px' }}>
+                              <IonCardContent>
+                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                  <span><strong>Center Distance:</strong></span>
+                                  <IonBadge color="primary">{prediction.center_distance.toFixed(2)}</IonBadge>
+                                </div>
+                                <p style={{ fontSize: '12px', color: '#666', marginTop: '8px' }}>Distance of heatmap center of mass from image center</p>
+                              </IonCardContent>
+                            </IonCard>
+                          )}
+                          {Array.isArray(prediction.mc_confidence_interval) && prediction.mc_confidence_interval.length === 2 && (
+                            <IonCard style={{ marginTop: '12px' }}>
+                              <IonCardContent>
+                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                  <span><strong>MC Confidence Interval (95%):</strong></span>
+                                  <IonBadge color="primary">[{prediction.mc_confidence_interval[0].toFixed(3)}, {prediction.mc_confidence_interval[1].toFixed(3)}]</IonBadge>
+                                </div>
+                                <p style={{ fontSize: '12px', color: '#666', marginTop: '8px' }}>95% confidence interval from Monte Carlo Dropout</p>
+                              </IonCardContent>
+                            </IonCard>
+                          )}
+                        </div>
+                      )}
+
+                      {metricsSegment === 'overview' && prediction.comprehensiveness && prediction.sufficiency && (
+                        <div style={{ marginTop: '16px' }}>
+                          <MetricsComparison
+                            dice={prediction.dice}
+                            iou={prediction.iou}
+                            comprehensiveness={prediction.comprehensiveness}
+                            sufficiency={prediction.sufficiency}
+                            deletion_auc={prediction.deletion_auc}
+                            insertion_auc={prediction.insertion_auc}
+                          />
+                        </div>
+                      )}
+                    </IonCardContent>
+                  </IonCard>
                 </IonCardContent>
               </IonCard>
 

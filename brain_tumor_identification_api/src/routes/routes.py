@@ -15,6 +15,10 @@ from src.utils.utils import (
     get_top3_probs, softmax_entropy, margin_score, mc_dropout_predict,
     brier_score, dice_iou
 )
+from src.xai_validation.xai_metrics import (
+    comprehensiveness, sufficiency, deletion_auc, insertion_auc,
+    randomized_weights_test, binarize_heatmap
+)
 from src.LLM.ollama_client import (get_text_reasoning,
                                    get_image_description_llama3_vision,
                                    get_medical_report_from_text_medgemma,
@@ -64,7 +68,7 @@ def _generate_visualizations(model, img_array, class_idx, filename):
         raise e
 
 def _calculate_metrics(pred, cam, lime_img, model, img_array, labels, filename):
-    """Helper to compute all quantitative metrics."""
+    """Helper to compute all quantitative metrics including new faithfulness metrics."""
     # Base metrics
     top3 = get_top3_probs(pred, labels)
     entropy_val = softmax_entropy(pred)
@@ -90,7 +94,20 @@ def _calculate_metrics(pred, cam, lime_img, model, img_array, labels, filename):
     # Agreement metrics
     gradcam_mask = (cam > 127).astype(np.uint8)
     lime_mask = (lime_img[..., 0] > 127).astype(np.uint8)
-    dice_score, iou_score = dice_iou(gradcam_mask, lime_mask)
+    dice_score_val, iou_score_val = dice_iou(gradcam_mask, lime_mask)
+
+    # NEW: Faithfulness metrics
+    class_idx = np.argmax(pred)
+    mask = binarize_heatmap(cam)  # Binarize Grad-CAM for faithfulness
+
+    comp = comprehensiveness(model, img_array[0], mask, class_idx, verbose=0)
+    suff = sufficiency(model, img_array[0], mask, class_idx, verbose=0)
+    del_auc = deletion_auc(
+        model, img_array[0], cam, class_idx, steps=20, verbose=0)
+    ins_auc = insertion_auc(
+        model, img_array[0], cam, class_idx, steps=20, verbose=0)
+    rand_weights = randomized_weights_test(
+        model, img_array[0], class_idx, get_last_convolutional_layer(model), verbose=0)
 
     return {
         'top3': top3,
@@ -101,8 +118,14 @@ def _calculate_metrics(pred, cam, lime_img, model, img_array, labels, filename):
         'activation_ratio': activation_ratio,
         'mc_confidence_interval': mc_confidence_interval,
         'mc_variance': get_metric_interpretation('mc_variance', mc_variance),
-        'dice': get_metric_interpretation('dice', dice_score),
-        'iou': get_metric_interpretation('iou', iou_score),
+        'dice': get_metric_interpretation('dice', dice_score_val),
+        'iou': get_metric_interpretation('iou', iou_score_val),
+        # NEW: Faithfulness metrics
+        'comprehensiveness': get_metric_interpretation('comprehensiveness', comp),
+        'sufficiency': get_metric_interpretation('sufficiency', suff),
+        'deletion_auc': get_metric_interpretation('deletion_auc', del_auc),
+        'insertion_auc': get_metric_interpretation('insertion_auc', ins_auc),
+        'randomized_weights_corr': get_metric_interpretation('randomized_weights_corr', rand_weights),
     }
 
 def get_metric_interpretation(metric_name, value):
@@ -201,6 +224,76 @@ def get_metric_interpretation(metric_name, value):
             level = 'bad'
             explanation = "High Brier score indicates poor calibration, suggesting the model's confidence may not reliably reflect actual diagnostic accuracy."
 
+    elif metric_name == 'comprehensiveness':
+        if value >= 0.3:
+            interpretation = "Highly Faithful"
+            level = 'good'
+            explanation = "High comprehensiveness indicates that removing important regions significantly reduces model confidence, confirming the explanation highlights truly relevant features."
+        elif value >= 0.1:
+            interpretation = "Moderately Faithful"
+            level = 'warning'
+            explanation = "Moderate comprehensiveness suggests the explanation identifies relevant regions, but removing them only partially reduces confidence."
+        else:
+            interpretation = "Weakly Faithful"
+            level = 'bad'
+            explanation = "Low comprehensiveness indicates the explanation may not identify all critical regions, or the model relies on distributed features."
+
+    elif metric_name == 'sufficiency':
+        if value >= 0.3:
+            interpretation = "Highly Sufficient"
+            level = 'good'
+            explanation = "High sufficiency indicates that the highlighted regions alone are enough to maintain model confidence, confirming their importance for diagnosis."
+        elif value >= 0.1:
+            interpretation = "Moderately Sufficient"
+            level = 'warning'
+            explanation = "Moderate sufficiency suggests the highlighted regions are important but the model may also use other features for accurate prediction."
+        else:
+            interpretation = "Weakly Sufficient"
+            level = 'bad'
+            explanation = "Low sufficiency indicates the highlighted regions alone cannot sustain the diagnosis, suggesting other regions also play important roles."
+
+    elif metric_name == 'deletion_auc':
+        if value >= 0.7:
+            interpretation = "Excellent Deletion Sensitivity"
+            level = 'good'
+            explanation = "High deletion AUC indicates confidence drops rapidly as important regions are removed, confirming the explanation correctly identifies critical features."
+        elif value >= 0.5:
+            interpretation = "Good Deletion Sensitivity"
+            level = 'warning'
+            explanation = "Moderate deletion AUC suggests reasonable correspondence between highlighted regions and model decision-making."
+        else:
+            interpretation = "Poor Deletion Sensitivity"
+            level = 'bad'
+            explanation = "Low deletion AUC suggests the highlighted regions may not capture the most important features for the model's prediction."
+
+    elif metric_name == 'insertion_auc':
+        if value >= 0.7:
+            interpretation = "Excellent Insertion Sensitivity"
+            level = 'good'
+            explanation = "High insertion AUC indicates confidence increases rapidly as important regions are inserted, confirming the explanation prioritizes truly influential features."
+        elif value >= 0.5:
+            interpretation = "Good Insertion Sensitivity"
+            level = 'warning'
+            explanation = "Moderate insertion AUC suggests the highlighted regions contribute to prediction but may require other features for full confidence."
+        else:
+            interpretation = "Poor Insertion Sensitivity"
+            level = 'bad'
+            explanation = "Low insertion AUC suggests the highlighted regions may not be the primary drivers of the model's confidence in the diagnosis."
+
+    elif metric_name == 'randomized_weights_corr':
+        if value <= 0.3:
+            interpretation = "Passes Sanity Check"
+            level = 'good'
+            explanation = "Low correlation with randomized weights indicates the explanation genuinely depends on learned model features, passing the sanity check."
+        elif value <= 0.6:
+            interpretation = "Questionable Sanity"
+            level = 'warning'
+            explanation = "Moderate correlation suggests some dependence on model weights but also potential sensitivity to random initialization."
+        else:
+            interpretation = "Fails Sanity Check"
+            level = 'bad'
+            explanation = "High correlation with randomized weights suggests the explanation may be generating similar patterns regardless of learned model features."
+
     return {"value": float(value), "interpretation": interpretation, "level": level, "explanation": explanation}
 
 def find_patient_by_diagnosis(tumor_type, patient_data):
@@ -289,12 +382,18 @@ def _generate_final_report(filepath, predicted_class, patient_info, metrics, lla
         final_report_prompt_medgemma, filepath)
 
     final_report_prompt_deepsek = f"""
-        Create a final educational brain tumor diagnosis report:
+        Create a final educational brain tumor diagnosis report incorporating XAI validation metrics:
         - Source 1: MedGemma Analysis: {medgemma_text_response}
         - Source 2: Patient Info: {patient_info_string}
         - Source 3: Metrics: {metrics_string}
         - Source 4: Primary Diagnosis: {predicted_class}
-        - Source 5: XAI Visualizations: Grad-CAM, Saliency Map, LIME - explain key regions.
+        - Source 5: XAI Metrics Analysis:
+            * Faithfulness Metrics (Comprehensiveness, Sufficiency): Measure how much the explanation reflects actual model decision-making
+            * AUC Metrics (Deletion, Insertion): Quantify the importance ranking of image regions
+            * Agreement Metrics (Dice, IoU): Show consistency between different explanation methods
+            * Validation Tests (Randomized Weights): Sanity check that explanations depend on learned features
+        - Include interpretations of these metrics and what they mean for diagnostic confidence
+        - Explain which regions are most important for the diagnosis based on XAI visualizations
     """
 
     resoning_final_report = get_text_reasoning(final_report_prompt_deepsek, filepath)
