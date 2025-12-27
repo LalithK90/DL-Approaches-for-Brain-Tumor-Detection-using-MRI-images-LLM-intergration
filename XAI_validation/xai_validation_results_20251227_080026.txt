@@ -1,0 +1,57 @@
+================================================================================
+XAI MODEL VALIDATION
+Generated: 2025-12-27 08:00:26
+================================================================================
+Number of images per class: 20
+Total samples: 80
+Image size: 224x224
+================================================================================
+
+
+================================================================================
+XAI Validation Results - PROPOSE_BALANCE
+================================================================================
+Dice (GC vs LIME)             : 0.281378
+IoU (GC vs LIME)              : 0.169257
+Dice (GC vs Saliency)         : 0.298549
+IoU (GC vs Saliency)          : 0.182014
+Comprehensiveness             : 0.317973
+Sufficiency                   : 0.132761
+Deletion AUC                  : 7.725303
+Insertion AUC                 : 13.980549
+Brier Score                   : 0.911415
+Softmax Entropy               : 0.330275
+Prediction Margin             : 0.780558
+MC Dropout Variance           : 0.013465
+Top-3 Prob (3rd)              : 0.027756
+Top-3 Prob (2nd)              : 0.089839
+Top-3 Prob (1st)              : 0.870398
+Randomized Weights Corr.      : 0.213896
+================================================================================
+
+
+================================================================================
+XAI Validation Results - PROPOSE_IMBALANCED
+================================================================================
+Dice (GC vs LIME)             : 0.254010
+IoU (GC vs LIME)              : 0.149623
+Dice (GC vs Saliency)         : 0.300827
+IoU (GC vs Saliency)          : 0.184998
+Comprehensiveness             : 0.194342
+Sufficiency                   : 0.218233
+Deletion AUC                  : 9.023827
+Insertion AUC                 : 13.983756
+Brier Score                   : 0.984192
+Softmax Entropy               : 0.359252
+Prediction Margin             : 0.775880
+MC Dropout Variance           : 0.011315
+Top-3 Prob (3rd)              : 0.034402
+Top-3 Prob (2nd)              : 0.087854
+Top-3 Prob (1st)              : 0.863734
+Randomized Weights Corr.      : 0.165240
+================================================================================
+
+
+================================================================================
+VALIDATION COMPLETE FOR ALL MODELS
+================================================================================
