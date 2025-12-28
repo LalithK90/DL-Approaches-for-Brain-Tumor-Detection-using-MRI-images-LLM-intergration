@@ -1,5 +1,23 @@
 {
   "name": "ionic-app-base",
   "integrations": {},
-  "type": "react-vite"
+  "type": "react-vite",
+  "proxies": [
+    {
+      "path": "/login",
+      "proxyUrl": "http://localhost:5000"
+    },
+    {
+      "path": "/predict",
+      "proxyUrl": "http://localhost:5000"
+    },
+    {
+      "path": "/chat",
+      "proxyUrl": "http://localhost:5000"
+    },
+    {
+      "path": "/static",
+      "proxyUrl": "http://localhost:5000"
+    }
+  ]
 }

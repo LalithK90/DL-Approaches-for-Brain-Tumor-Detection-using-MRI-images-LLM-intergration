@@ -35,7 +35,7 @@ def index():
 
 def _process_and_predict(model, img_array):
     """Helper to run model prediction and get initial results."""
-    prediction = model.predict(img_array)
+    prediction = model.predict(img_array, verbose=0)
     pred = prediction[0]
     class_idx = np.argmax(pred)
     predicted_class = LABELS[class_idx]

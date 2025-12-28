@@ -82,17 +82,28 @@ Each component is documented comprehensively in its respective directory:
 **Capabilities**:
 - Multi-model inference (10 trained models: balanced/imbalanced variants)
 - Explainability generation (Grad-CAM, LIME, Saliency Maps)
-- Uncertainty quantification (MC Dropout, entropy, Brier score)
+- Uncertainty quantification (MC Dropout, entropy, Brier score, margin)
+- XAI validation metrics (Comprehensiveness, Sufficiency, Deletion/Insertion AUC, Randomized Weights Test)
+- Explanation agreement metrics (Dice coefficient, IoU)
 - Multi-LLM report synthesis (Llama 3.2 Vision, MedGemma, DeepSeek-R1)
 - RAG chatbot with ChromaDB vector store  
-**Research Role**: Core XAI implementation and knowledge synthesis
+**Research Role**: Core XAI implementation, validation, and knowledge synthesis
 
 #### 4. [Brain Tumor Identification Mobile/Web Application](braintumoridentificationapp/README.md)
 **Purpose**: Cross-platform presentation layer  
 **Content**: Ionic React application for user interaction  
-**Features**: Image upload, model selection, results visualization, report viewing, AI chat  
+**Features**: 
+- Image upload with drag-and-drop support
+- Model selection (10 architecture variants)
+- Interactive results visualization with zoom controls
+- Professional metrics table display
+- Top 3 predictions with visual ranking (medal system)
+- Tabbed metrics interface (Confidence, Faithfulness, Validation, Agreement, Overview)
+- Comprehensive metrics summary
+- AI report viewing with markdown support
+- Real-time RAG chatbot interface  
 **Platforms**: Web (PWA), Android (Capacitor), iOS-ready  
-**Research Role**: Human-computer interaction and clinical usability demonstration
+**Research Role**: Human-computer interaction, clinical usability demonstration, and results presentation
 
 #### 5. [Data Collection and Research Methodology](data%20collection%20sheet/README.md)
 **Purpose**: Experimental protocols and research documentation  
@@ -147,7 +158,10 @@ Each component is documented comprehensively in its respective directory:
 - **Grad-CAM**: Class-discriminative localization via gradients
 - **LIME**: Superpixel-based model-agnostic explanations
 - **Saliency Maps**: Gradient-based pixel attribution
+- **Faithfulness Metrics**: Comprehensiveness and sufficiency validation
+- **AUC Metrics**: Deletion AUC and insertion AUC for explanation quality
 - **Agreement Metrics**: Dice coefficient, IoU for cross-method validation
+- **Randomized Weights Test**: Sanity check for explanation validity
 
 ### Large Language Models
 
@@ -178,6 +192,9 @@ Each component is documented comprehensively in its respective directory:
 brain_tumor_app/
 │
 ├── readme.md                           # This research overview (main documentation)
+├── start_apps.sh                       # Automated startup script (Flask + Ionic)
+├── stop_apps.sh                        # Server shutdown script
+├── logs/                               # Server logs directory (auto-created)
 │
 ├── brain tumor dataset/                # MRI neuroimaging data repository
 │   ├── README.md                       # Dataset documentation
@@ -198,7 +215,8 @@ brain_tumor_app/
 │   │   ├── LLM/                        # Ollama client integration
 │   │   ├── models/                     # Model inference
 │   │   ├── routes/                     # API endpoints
-│   │   └── utils/                      # XAI and metrics utilities
+│   │   ├── utils/                      # XAI and metrics utilities
+│   │   └── xai_validation/             # XAI validation metrics
 │   ├── templates/                      # HTML templates (Jinja2)
 │   ├── static/                         # CSS, JS, uploaded images, visualizations
 │   └── chroma_data/                    # ChromaDB vector store
@@ -208,14 +226,22 @@ brain_tumor_app/
 │   ├── package.json                    # Node.js dependencies
 │   ├── src/                            # React/TypeScript source code
 │   │   ├── components/                 # Reusable UI components
+│   │   │   ├── MetricsTable.tsx        # Metrics display table
+│   │   │   ├── Top3PredictionsTable.tsx # Predictions ranking
+│   │   │   ├── FaithfulnessMetrics.tsx # XAI faithfulness metrics
+│   │   │   └── ValidationResults.tsx   # XAI validation results
 │   │   ├── pages/                      # Application screens
 │   │   └── theme/                      # Ionic styling
 │   ├── android/                        # Native Android build artifacts
 │   └── public/                         # Static web assets
 │
-└── data collection sheet/              # Research methodology documentation
-    ├── README.md                       # Methodology documentation
-    └── Level 10 Research.xlsx          # Experimental protocols and data collection
+├── data collection sheet/              # Research methodology documentation
+│   ├── README.md                       # Methodology documentation
+│   └── Level 10 Research.xlsx          # Experimental protocols and data collection
+│
+└── XAI_validation/                     # XAI validation testing
+    ├── xai_validator.py                # XAI validation script
+    └── testing/                        # Test images by class
 ```
 
 ---
@@ -230,43 +256,98 @@ brain_tumor_app/
 4. **Git** for repository cloning
 5. **CUDA-capable GPU** (recommended for model training)
 
-### Quick Start: Backend API
+### One-Time Setup
+
+#### 1. Create Conda Environment
 
 ```bash
+# Create and activate conda environment named 'mri_data'
+conda create --name mri_data python=3.10 -y
+conda activate mri_data
+
 # Navigate to API directory
 cd brain_tumor_identification_api
 
-# Create and activate conda environment
-conda create --name mri_xai python=3.10 -y
-conda activate mri_xai
-
 # Install Python dependencies
 pip install -r requirements.txt
-
-# Pull required LLM models
-ollama pull llama3.2-vision:latest
-ollama pull edwardlo12/medgemma-4b-it-Q4_K_M
-ollama pull deepseek-r1:14b
-
-# Ensure Ollama is running, then start Flask server
-python app.py
-
-# Access at http://localhost:5000
 ```
 
-### Quick Start: Frontend Application
+#### 2. Install Frontend Dependencies
 
 ```bash
 # Navigate to frontend directory
 cd braintumoridentificationapp
 
-# Install dependencies
+# Install Node.js dependencies
 npm install
+```
+
+#### 3. Pull Required LLM Models
+
+```bash
+# Pull required LLM models for Ollama
+ollama pull llama3.2-vision:latest
+ollama pull edwardlo12/medgemma-4b-it-Q4_K_M
+ollama pull deepseek-r1:14b
+```
+
+### Quick Start with Automated Scripts ⚡
+
+**Automated startup scripts are provided in the base directory** for convenient development:
+
+#### Start Both Servers (Recommended)
+
+```bash
+# From the brain_tumor_app directory
+./start_apps.sh
+```
+
+**Features:**
+- ✅ Automatically activates conda `mri_data` environment
+- ✅ Starts Flask backend server (http://localhost:5000)
+- ✅ Starts Ionic frontend server (http://localhost:8100)
+- ✅ Comprehensive error checking and logging
+- ✅ Colored terminal output for easy monitoring
+- ✅ Logs saved to `logs/` directory
+- ✅ Press `Ctrl+C` to stop both servers gracefully
+
+#### Stop All Servers
+
+```bash
+./stop_apps.sh
+```
+
+Safely terminates all running Flask and Ionic processes.
+
+### Manual Startup (Alternative)
+
+If you prefer to start servers manually:
+
+#### Backend API
+
+```bash
+# Activate conda environment
+conda activate mri_data
+
+# Navigate to API directory
+cd brain_tumor_identification_api
+
+# Start Flask server
+flask run
+
+# Access at http://localhost:5000
+```
+
+#### Frontend Application
+
+```bash
+# Navigate to frontend directory
+cd braintumoridentificationapp
 
 # Run development server
-npm run dev
+ionic serve
 
-# Access at http://localhost:5173
+# Access at http://localhost:8100
 ```
 
 **Detailed setup instructions** are available in each component's README.
@@ -279,22 +360,28 @@ npm run dev
 
 1. **Data Exploration**: Review [Dataset README](brain%20tumor%20dataset/README.md) for data characteristics
 2. **Model Training**: Execute [Training Notebook](model_training_notebook/README.md) to reproduce experiments
-3. **Backend Deployment**: Launch [API Backend](brain_tumor_identification_api/README.md) for inference
-4. **Frontend Testing**: Run [Mobile/Web App](braintumoridentificationapp/README.md) for end-to-end testing
+3. **Quick Start**: Run `./start_apps.sh` from base directory to launch both servers
+4. **Backend Testing**: Access API at http://localhost:5000
+5. **Frontend Testing**: Access web app at http://localhost:8100 for end-to-end testing
+6. **Shutdown**: Run `./stop_apps.sh` or press `Ctrl+C` to stop servers
 
 ### For End Users (Educational/Research Context)
 
-1. **Access Application**: Navigate to deployed frontend URL
-2. **Authentication**: Log in with research credentials
-3. **Image Upload**: Select brain MRI scan (JPEG/PNG)
-4. **Model Selection**: Choose CNN architecture and data balance configuration
-5. **Analysis Execution**: Trigger classification and XAI generation
-6. **Results Review**:
-   - Classification prediction with confidence scores
+1. **Start Application**: Run `./start_apps.sh` from terminal
+2. **Access Interface**: Navigate to http://localhost:8100 in web browser
+3. **Authentication**: Log in with research credentials
+4. **Image Upload**: Select brain MRI scan (JPEG/PNG)
+5. **Model Selection**: Choose CNN architecture and data balance configuration
+6. **Analysis Execution**: Trigger classification and XAI generation
+7. **Results Review**:
+   - Classification prediction with Top 3 confidence scores
    - Grad-CAM, LIME, and Saliency Map visualizations
-   - Uncertainty metrics and explanation agreement scores
+   - Comprehensive metrics table (confidence, uncertainty, faithfulness, validation)
+   - Uncertainty metrics (entropy, margin, Brier score, MC Dropout)
+   - Explanation agreement scores (Dice coefficient, IoU)
+   - XAI validation results (deletion/insertion AUC, randomized weights test)
    - AI-synthesized comprehensive medical report
-7. **Interactive Exploration**: Ask follow-up questions via RAG chatbot
+8. **Interactive Exploration**: Ask follow-up questions via RAG chatbot
 
 ---
 
@@ -310,11 +397,15 @@ npm run dev
 
 ### Novel Contributions
 
-- **Integrated XAI Framework**: Holistic platform combining multiple explainability techniques
+- **Integrated XAI Framework**: Holistic platform combining multiple explainability techniques with validation metrics
 - **Cross-Method Validation**: Quantitative assessment of explanation consistency via Dice/IoU
+- **Faithfulness Metrics**: Implementation of comprehensiveness and sufficiency tests
+- **XAI Validation Suite**: Deletion/insertion AUC and randomized weights sanity checks
 - **Multi-LLM Orchestration**: Sequential chaining of specialized models for enhanced report quality
 - **RAG-Enhanced Chatbot**: Context-aware conversational interface for medical AI education
-- **Full-Stack Implementation**: End-to-end deployable system demonstrating research translation
+- **Interactive Metrics Visualization**: Professional table-based display with color-coded status indicators
+- **Full-Stack Implementation**: End-to-end deployable system with automated startup scripts
+- **Production-Ready Deployment**: Comprehensive logging, error handling, and graceful shutdown capabilities
 
 ---
 

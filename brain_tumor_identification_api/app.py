@@ -23,8 +23,12 @@ app.config.update(
 )
 logging.basicConfig(level=logging.DEBUG)
 # Initialize CORS with support for credentials
-# CORS(app,supports_credentials=True,origins=["http://localhost:8100"],allow_headers=["Content-Type", "Authorization"])
-CORS(app)
+# Allow both direct access (5173 for Vite dev server, 8100 for Ionic) and localhost:5001
+CORS(app, supports_credentials=True,
+     origins=["http://localhost:8100",
+              "http://localhost:5173", "http://localhost:5001"],
+     allow_headers=["Content-Type", "Authorization"],
+     expose_headers=["Set-Cookie"])
 
 bcrypt = Bcrypt(app)
 # Initialize authentication
@@ -45,4 +49,4 @@ os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
 os.makedirs(app.config['VISUALIZATION_FOLDER'], exist_ok=True)
 
 if __name__ == '__main__':
-    app.run(port=5000, debug=True)
+    app.run(port=5001, debug=True)

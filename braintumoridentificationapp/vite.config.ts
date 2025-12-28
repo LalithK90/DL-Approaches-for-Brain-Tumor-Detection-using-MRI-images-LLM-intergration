@@ -18,36 +18,43 @@ export default defineConfig({
     strictPort: false,
     proxy: {
       '/login': {
-        target: 'http://localhost:5000',
+        target: 'http://localhost:5001',
         changeOrigin: true,
         secure: false,
-        // Normalize Origin/Referer so back-end that strictly expects http://localhost:8100 accepts proxied requests
+        ws: true,
         configure: (proxy) => {
           proxy.on('proxyReq', (proxyReq: ClientRequest) => {
             proxyReq.setHeader('origin', 'http://localhost:8100')
-            proxyReq.setHeader('referer', 'http://localhost:8100/')
           })
         }
       },
       '/predict': {
-        target: 'http://localhost:5000',
+        target: 'http://localhost:5001',
         changeOrigin: true,
         secure: false,
         configure: (proxy) => {
           proxy.on('proxyReq', (proxyReq: ClientRequest) => {
             proxyReq.setHeader('origin', 'http://localhost:8100')
-            proxyReq.setHeader('referer', 'http://localhost:8100/')
           })
         }
       },
       '/chat': {
-        target: 'http://localhost:5000',
+        target: 'http://localhost:5001',
         changeOrigin: true,
         secure: false,
         configure: (proxy) => {
           proxy.on('proxyReq', (proxyReq: ClientRequest) => {
             proxyReq.setHeader('origin', 'http://localhost:8100')
-            proxyReq.setHeader('referer', 'http://localhost:8100/')
+          })
+        }
+      },
+      '/api': {
+        target: 'http://localhost:5001',
+        changeOrigin: true,
+        secure: false,
+        configure: (proxy) => {
+          proxy.on('proxyReq', (proxyReq: ClientRequest) => {
+            proxyReq.setHeader('origin', 'http://localhost:8100')
           })
         }
       }

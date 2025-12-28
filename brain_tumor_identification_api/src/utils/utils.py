@@ -50,7 +50,7 @@ def generate_gradcam(img_array, model):
         raise ValueError("No convolutional layer found in the model")
 
     gradcam = Gradcam(model, model_modifier=ReplaceToLinear(), clone=True)
-    predictions = model.predict(img_array)
+    predictions = model.predict(img_array, verbose=0)
     class_idx = np.argmax(predictions[0])
     cam = gradcam(CategoricalScore(class_idx), img_array,
                   penultimate_layer=layer_name)
@@ -92,7 +92,7 @@ def generate_lime(img_array, model):
 
     # Wrapper function for prediction to ensure correct batch dimension for Keras
     def predict_fn(images):
-        return model.predict(images)
+        return model.predict(images, verbose=0)
 
     explanation = explainer.explain_instance(
         img_array[0],

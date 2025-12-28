@@ -243,9 +243,10 @@ def randomized_weights_test(model, img, cls, conv_layer, verbose=0):
     try:
         from src.utils.utils import generate_gradcam
         
-        # Get original explanation
-        original = generate_gradcam(img[None], model)
-        original_flat = original.flatten()
+        # Get original explanation (returns tuple: (superimposed_img, cam))
+        original_superimposed, original_cam = generate_gradcam(
+            img[None], model)
+        original_flat = original_cam.flatten()
         
         # Save original weights for restoration
         original_weights = [layer.get_weights() for layer in model.layers if hasattr(layer, 'kernel')]
@@ -256,9 +257,10 @@ def randomized_weights_test(model, img, cls, conv_layer, verbose=0):
                 layer.kernel.assign(tf.random.normal(layer.kernel.shape))
                 break  # Only randomize first kernel layer for efficiency
         
-        # Get explanation after randomization
-        randomized = generate_gradcam(img[None], model)
-        randomized_flat = randomized.flatten()
+        # Get explanation after randomization (returns tuple: (superimposed_img, cam))
+        randomized_superimposed, randomized_cam = generate_gradcam(
+            img[None], model)
+        randomized_flat = randomized_cam.flatten()
         
         # Restore original weights
         weight_idx = 0

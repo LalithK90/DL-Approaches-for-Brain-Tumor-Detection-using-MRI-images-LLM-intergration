@@ -1,0 +1,129 @@
+.metrics-table-card {
+  margin-top: 16px;
+}
+
+.table-wrapper {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.metrics-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 14px;
+}
+
+.metrics-table thead {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+
+.metrics-table th {
+  padding: 12px;
+  text-align: left;
+  font-weight: 600;
+  border-bottom: 2px solid #667eea;
+}
+
+.metrics-table tbody tr {
+  border-bottom: 1px solid #e0e0e0;
+  transition: background-color 0.2s ease;
+}
+
+.metrics-table tbody tr:hover {
+  background-color: #f5f5f5;
+}
+
+.metrics-table td {
+  padding: 12px;
+  vertical-align: top;
+}
+
+.metric-name {
+  font-weight: 500;
+  min-width: 160px;
+}
+
+.metric-explanation {
+  font-size: 12px;
+  color: #666;
+  margin: 4px 0 0 0;
+  font-style: italic;
+}
+
+.metric-value {
+  font-family: 'Courier New', monospace;
+  font-weight: 500;
+  color: #667eea;
+  min-width: 100px;
+}
+
+.metric-value code {
+  background: #f5f5f5;
+  padding: 4px 8px;
+  border-radius: 4px;
+  display: inline-block;
+}
+
+.metric-status {
+  text-align: center;
+  min-width: 80px;
+}
+
+.metric-interpretation {
+  font-size: 13px;
+  color: #555;
+  min-width: 180px;
+}
+
+/* Row highlighting by status */
+.metric-row-good {
+  background-color: rgba(50, 205, 50, 0.03);
+}
+
+.metric-row-good:hover {
+  background-color: rgba(50, 205, 50, 0.08);
+}
+
+.metric-row-warning {
+  background-color: rgba(255, 165, 0, 0.03);
+}
+
+.metric-row-warning:hover {
+  background-color: rgba(255, 165, 0, 0.08);
+}
+
+.metric-row-bad {
+  background-color: rgba(220, 20, 60, 0.03);
+}
+
+.metric-row-bad:hover {
+  background-color: rgba(220, 20, 60, 0.08);
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+  .metrics-table {
+    font-size: 12px;
+  }
+
+  .metrics-table th,
+  .metrics-table td {
+    padding: 8px;
+  }
+
+  .metric-name {
+    min-width: 120px;
+  }
+
+  .metric-interpretation {
+    min-width: 140px;
+  }
+
+  .metric-explanation {
+    font-size: 10px;
+  }
+}
