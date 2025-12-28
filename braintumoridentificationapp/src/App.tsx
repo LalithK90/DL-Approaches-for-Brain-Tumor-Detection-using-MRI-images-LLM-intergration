@@ -9,6 +9,8 @@ import FaithfulnessMetrics from './components/FaithfulnessMetrics';
 import ValidationResults from './components/ValidationResults';
 import MetricsComparison from './components/MetricsComparison';
 import ExpandableMetric from './components/ExpandableMetric';
+import MetricsTable from './components/MetricsTable';
+import Top3PredictionsTable from './components/Top3PredictionsTable';
 import ReactMarkdown from 'react-markdown';
 
 /* Core CSS required for Ionic components to work properly */
@@ -340,14 +342,25 @@ const BrainTumorApp: React.FC<{ user: User; onLogout: () => void }> = ({ user, o
                       <IonCol size="6">
                         <div style={{ textAlign: 'center' }}>
                           <h4>Original Image</h4>
-                          <IonImg src={prediction.original} alt="Original" style={{ width: `${imageSize}%` }} />
+                          {prediction.original && (
+                            <IonImg 
+                              src={prediction.original} 
+                              alt="Original" 
+                              style={{ width: `${imageSize}%`, maxHeight: '300px', objectFit: 'contain' }} 
+                            />
+                          )}
                         </div>
                       </IonCol>
                       <IonCol size="6">
                         <div style={{ textAlign: 'center' }}>
                           <h4>Grad-CAM (Overlay)</h4>
-                          <IonImg src={prediction.gradcam} alt="Grad-CAM" style={{ width: `${imageSize}%` }} />
-                        
+                          {prediction.gradcam && (
+                            <IonImg 
+                              src={prediction.gradcam} 
+                              alt="Grad-CAM" 
+                              style={{ width: `${imageSize}%`, maxHeight: '300px', objectFit: 'contain' }} 
+                            />
+                          )}
                         </div>
                       </IonCol>
                     </IonRow>
@@ -358,7 +371,11 @@ const BrainTumorApp: React.FC<{ user: User; onLogout: () => void }> = ({ user, o
                           <IonCol size="6">
                             <div style={{ textAlign: 'center' }}>
                               <h4>Grad-CAM Analysis</h4>
-                              <IonImg src={prediction.gradcam_analysis} alt="Grad-CAM Analysis" style={{ width: `${imageSize}%` }} />
+                              <IonImg 
+                                src={prediction.gradcam_analysis} 
+                                alt="Grad-CAM Analysis" 
+                                style={{ width: `${imageSize}%`, maxHeight: '300px', objectFit: 'contain' }} 
+                              />
                             </div>
                           </IonCol>
                         )}
@@ -366,7 +383,11 @@ const BrainTumorApp: React.FC<{ user: User; onLogout: () => void }> = ({ user, o
                           <IonCol size="6">
                             <div style={{ textAlign: 'center' }}>
                               <h4>Grad-CAM Heatmap</h4>
-                              <IonImg src={prediction.gradcam_heatmap} alt="Grad-CAM Heatmap" style={{ width: `${imageSize}%` }} />
+                              <IonImg 
+                                src={prediction.gradcam_heatmap} 
+                                alt="Grad-CAM Heatmap" 
+                                style={{ width: `${imageSize}%`, maxHeight: '300px', objectFit: 'contain' }} 
+                              />
                             </div>
                           </IonCol>
                         )}
@@ -377,35 +398,35 @@ const BrainTumorApp: React.FC<{ user: User; onLogout: () => void }> = ({ user, o
                       <IonCol size="6">
                         <div style={{ textAlign: 'center' }}>
                           <h4>Saliency Map</h4>
-                          <IonImg src={prediction.saliency} alt="Saliency" style={{ width: `${imageSize}%` }} />
-                        
+                          {prediction.saliency && (
+                            <IonImg 
+                              src={prediction.saliency} 
+                              alt="Saliency" 
+                              style={{ width: `${imageSize}%`, maxHeight: '300px', objectFit: 'contain' }} 
+                            />
+                          )}
                         </div>
                       </IonCol>
                       <IonCol size="6">
                         <div style={{ textAlign: 'center' }}>
                           <h4>LIME Explanation</h4>
-                          <IonImg src={prediction.lime} alt="LIME" style={{ width: `${imageSize}%` }} />
-                          
+                          {prediction.lime && (
+                            <IonImg 
+                              src={prediction.lime} 
+                              alt="LIME" 
+                              style={{ width: `${imageSize}%`, maxHeight: '300px', objectFit: 'contain' }} 
+                            />
+                          )}
                         </div>
                       </IonCol>
                     </IonRow>
                   </IonGrid>
                   
-                  {/* Top 3 Predictions */}
-                  <div style={{ marginTop: '16px' }}>
-                    <h4>Top 3 Predictions:</h4>
-                    <IonList>
-                      {prediction.top3.map((item, index) => (
-                        <IonItem key={index}>
-                          <IonLabel>
-                            <h3>{item.label}</h3>
-                            <p>{(item.probability * 100).toFixed(2)}%</p>
-                          </IonLabel>
-                          <IonBadge slot="end">{index + 1}</IonBadge>
-                        </IonItem>
-                      ))}
-                    </IonList>
-                  </div>
+                  {/* Top 3 Predictions - First Display */}
+                  <Top3PredictionsTable 
+                    predictions={prediction.top3} 
+                    title="Top 3 Predictions"
+                  />
 
                   {/* Metrics Tabs */}
                   <IonCard style={{ marginTop: '16px' }}>
@@ -423,10 +444,15 @@ const BrainTumorApp: React.FC<{ user: User; onLogout: () => void }> = ({ user, o
 
                       {metricsSegment === 'confidence' && (
                         <div style={{ marginTop: '16px' }}>
-                          <ExpandableMetric title="Brier Score" metric={prediction.brier} />
-                          <ExpandableMetric title="Entropy" metric={prediction.entropy} />
-                          <ExpandableMetric title="Prediction Margin" metric={prediction.margin} />
-                          <ExpandableMetric title="MC Dropout Variance" metric={prediction.mc_variance} />
+                          <MetricsTable 
+                            metrics={{
+                              brier: prediction.brier,
+                              entropy: prediction.entropy,
+                              margin: prediction.margin,
+                              mc_variance: prediction.mc_variance
+                            }}
+                            title="Confidence & Uncertainty Metrics"
+                          />
                         </div>
                       )}
 
@@ -512,7 +538,31 @@ const BrainTumorApp: React.FC<{ user: User; onLogout: () => void }> = ({ user, o
                 </IonCardContent>
               </IonCard>
 
-              {/* AI Report */}
+              {/* Second Display: All Metrics in Table Format */}
+              <IonCard style={{ marginTop: '16px' }}>
+                <IonCardHeader>
+                  <IonCardTitle>📊 Comprehensive Metrics Summary</IonCardTitle>
+                </IonCardHeader>
+                <IonCardContent>
+                  <MetricsTable 
+                    metrics={{
+                      brier: prediction.brier,
+                      entropy: prediction.entropy,
+                      margin: prediction.margin,
+                      mc_variance: prediction.mc_variance,
+                      comprehensiveness: prediction.comprehensiveness,
+                      sufficiency: prediction.sufficiency,
+                      deletion_auc: prediction.deletion_auc,
+                      insertion_auc: prediction.insertion_auc,
+                      randomized_weights_corr: prediction.randomized_weights_corr,
+                      dice: prediction.dice,
+                      iou: prediction.iou
+                    }}
+                    title="All Explainability Metrics"
+                  />
+                </IonCardContent>
+              </IonCard>
+
               {prediction.final_report && (
                 <IonCard>
                   <IonCardHeader>
