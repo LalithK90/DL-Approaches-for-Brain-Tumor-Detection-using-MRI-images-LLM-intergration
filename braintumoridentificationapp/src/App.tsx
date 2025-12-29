@@ -244,7 +244,7 @@ const BrainTumorApp: React.FC<{ user: User; onLogout: () => void }> = ({ user, o
     <IonPage>
       <IonHeader>
         <IonToolbar>
-          <IonTitle>Brain Tumor Identification</IonTitle>
+          <IonTitle>Brain Tumor Support AI</IonTitle>
           <IonButtons slot="end">
             <IonButton fill="clear" onClick={onLogout}>
               <IonIcon icon={logOut} />
