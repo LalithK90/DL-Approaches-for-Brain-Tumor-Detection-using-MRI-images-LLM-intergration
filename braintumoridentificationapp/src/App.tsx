@@ -24,7 +24,6 @@ import '@ionic/react/css/text-alignment.css';
 import '@ionic/react/css/text-transformation.css';
 import '@ionic/react/css/flex-utils.css';
 import '@ionic/react/css/display.css';
-import '@ionic/react/css/palettes/dark.system.css';
 import './theme/variables.css';
 
 setupIonicReact();
@@ -338,88 +337,47 @@ const BrainTumorApp: React.FC<{ user: User; onLogout: () => void }> = ({ user, o
                       <IonLabel>Image Size</IonLabel>
                       <IonRange min={50} max={200} value={imageSize} onIonChange={e => setImageSize(e.detail.value as number)} />
                     </IonItem>
-                    <IonRow>
-                      <IonCol size="6">
-                        <div style={{ textAlign: 'center' }}>
-                          <h4>Original Image</h4>
-                          {prediction.original && (
-                            <IonImg 
-                              src={prediction.original} 
-                              alt="Original" 
-                              style={{ width: `${imageSize}%`, maxHeight: '300px', objectFit: 'contain' }} 
-                            />
-                          )}
-                        </div>
-                      </IonCol>
-                      <IonCol size="6">
-                        <div style={{ textAlign: 'center' }}>
-                          <h4>Grad-CAM (Overlay)</h4>
-                          {prediction.gradcam && (
-                            <IonImg 
-                              src={prediction.gradcam} 
-                              alt="Grad-CAM" 
-                              style={{ width: `${imageSize}%`, maxHeight: '300px', objectFit: 'contain' }} 
-                            />
-                          )}
-                        </div>
-                      </IonCol>
-                    </IonRow>
-                    {/* Additional XAI Images if available */}
-                    {(prediction.gradcam_analysis || prediction.gradcam_heatmap) && (
-                      <IonRow>
-                        {prediction.gradcam_analysis && (
-                          <IonCol size="6">
-                            <div style={{ textAlign: 'center' }}>
-                              <h4>Grad-CAM Analysis</h4>
-                              <IonImg 
-                                src={prediction.gradcam_analysis} 
-                                alt="Grad-CAM Analysis" 
-                                style={{ width: `${imageSize}%`, maxHeight: '300px', objectFit: 'contain' }} 
-                              />
-                            </div>
-                          </IonCol>
-                        )}
-                        {prediction.gradcam_heatmap && (
-                          <IonCol size="6">
-                            <div style={{ textAlign: 'center' }}>
-                              <h4>Grad-CAM Heatmap</h4>
-                              <IonImg 
-                                src={prediction.gradcam_heatmap} 
-                                alt="Grad-CAM Heatmap" 
-                                style={{ width: `${imageSize}%`, maxHeight: '300px', objectFit: 'contain' }} 
-                              />
-                            </div>
-                          </IonCol>
-                        )}
-                      </IonRow>
-                    )}
                     
-                    <IonRow>
-                      <IonCol size="6">
-                        <div style={{ textAlign: 'center' }}>
-                          <h4>Saliency Map</h4>
-                          {prediction.saliency && (
-                            <IonImg 
-                              src={prediction.saliency} 
-                              alt="Saliency" 
-                              style={{ width: `${imageSize}%`, maxHeight: '300px', objectFit: 'contain' }} 
-                            />
-                          )}
+                    {/* Unified responsive image array: 3 per row on desktop, horizontal scroll on mobile */}
+                    {(() => {
+                      const imageItems = [
+                        { title: 'Original Image', src: prediction.original, alt: 'Original' },
+                        { title: 'Grad-CAM (Overlay)', src: prediction.gradcam, alt: 'Grad-CAM' },
+                        { title: 'Grad-CAM Analysis', src: prediction.gradcam_analysis, alt: 'Grad-CAM Analysis' },
+                        { title: 'Grad-CAM Heatmap', src: prediction.gradcam_heatmap, alt: 'Grad-CAM Heatmap' },
+                        { title: 'Saliency Map', src: prediction.saliency, alt: 'Saliency' },
+                        { title: 'LIME Explanation', src: prediction.lime, alt: 'LIME' },
+                      ].filter(item => !!item.src);
+
+                      // Columns: 1 at near-max, 2 at mid, 3 at lower sizes
+                      const columns = imageSize >= 180 ? 1 : imageSize >= 120 ? 2 : 3;
+                      const containerStyle: React.CSSProperties = {
+                        display: 'grid',
+                        gridTemplateColumns: `repeat(${columns}, minmax(0, 1fr))`,
+                        gap: '12px',
+                        marginBottom: '5px'
+                      };
+
+                      // Mobile card basis adapts with slider; at max show full-width cards
+                      const mobileBasis = imageSize >= 180 ? '100%' : imageSize >= 120 ? '80%' : '60%';
+
+                      const imgStyle: React.CSSProperties = {
+                        width: '100%',
+                        height: 'auto',
+                        objectFit: 'contain'
+                      };
+
+                      return (
+                        <div className="image-array" style={containerStyle}>
+                          {imageItems.map((item, idx) => (
+                            <div className="image-card" key={`${item.title}-${idx}`} style={{ flex: `0 0 ${mobileBasis}` }}>
+                              <h4 style={{ textAlign: 'center' }}>{item.title}</h4>
+                              <IonImg src={item.src as string} alt={item.alt} style={imgStyle} />
+                            </div>
+                          ))}
                         </div>
-                      </IonCol>
-                      <IonCol size="6">
-                        <div style={{ textAlign: 'center' }}>
-                          <h4>LIME Explanation</h4>
-                          {prediction.lime && (
-                            <IonImg 
-                              src={prediction.lime} 
-                              alt="LIME" 
-                              style={{ width: `${imageSize}%`, maxHeight: '300px', objectFit: 'contain' }} 
-                            />
-                          )}
-                        </div>
-                      </IonCol>
-                    </IonRow>
+                      );
+                    })()}
                   </IonGrid>
                   
                   {/* Top 3 Predictions - First Display */}
