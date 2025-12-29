@@ -6,9 +6,10 @@
 }
 
 .container-fluid.bg-danger {
-  background-color: var(--ion-color-danger) !important;
-  padding: 0.5rem;
+  background-color: var(--ion-color-primary) !important;
+    padding: 1rem;
   margin-bottom: 0.5rem;
+  border-radius: 4px;
 }
 
 .text-center {

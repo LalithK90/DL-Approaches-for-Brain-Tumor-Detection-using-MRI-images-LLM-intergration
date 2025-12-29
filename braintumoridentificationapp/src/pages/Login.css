@@ -1,5 +1,5 @@
 .login-content {
-  --background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  --background: #ffffff;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -8,6 +8,72 @@
   padding: 0;
 }
 
+/* Two-column layout: login form left, research info right */
+.login-layout {
+  width: 100%;
+  padding: 24px;
+  display: grid;
+  grid-template-columns: minmax(320px, 420px) 1fr;
+  gap: 32px;
+  align-items: start;
+  box-sizing: border-box;
+}
+
+.login-left {}
+
+.login-right {}
+
+.research-card {
+  border-left: 6px solid var(--ion-color-primary);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+}
+
+.research-title {
+  margin: 0 0 12px 0;
+  color: var(--ion-color-primary);
+}
+
+.research-institute {
+  margin: 0 0 12px 0;
+  color: var(--ion-text-color);
+  opacity: 0.9;
+}
+
+.research-supervisors {
+  margin: 12px 0;
+}
+
+.research-supervisors ul {
+  margin: 8px 0 0 18px;
+}
+
+.research-disclaimer {
+  margin-top: 16px;
+  padding: 12px;
+  border-radius: 8px;
+  background: #fff6e6;
+  color: #7a4d00;
+  border: 1px solid #ffdfad;
+}
+
+.research-note {
+  margin-top: 10px;
+  color: var(--ion-text-color);
+  opacity: 0.9;
+}
+
+/* Hover gold only for the specific paragraph being hovered */
+.login-content p:hover {
+  color: var(--ion-color-tertiary) !important;
+}
+
+.login-content h3:hover {
+  color: var(--ion-color-tertiary) !important;
+}
+
+.login-content a:hover {
+  color: var(--ion-color-tertiary) !important;
+}
 .login-container {
   width: 100%;
   max-width: 400px;
@@ -18,12 +84,12 @@
 .login-header {
   text-align: center;
   margin-bottom: 30px;
-  color: white;
+  color: var(--ion-text-color);
 }
 
 .login-icon {
   font-size: 4rem;
-  color: white;
+  color: var(--ion-color-primary);
   margin-bottom: 20px;
 }
 
@@ -48,7 +114,7 @@
 .login-item {
   margin-bottom: 20px;
   --border-radius: 8px;
-  --background: #f8f9fa;
+  --background: #ffffff;
 }
 
 .login-item ion-icon {
@@ -104,6 +170,11 @@
   .login-container {
     padding: 15px;
   }
+                .login-layout {
+                  grid-template-columns: 1fr;
+                  gap: 16px;
+                  padding: 16px;
+                }
   
   .login-header h1 {
     font-size: 1.8rem;
@@ -117,7 +188,7 @@
 /* Dark mode support */
 @media (prefers-color-scheme: dark) {
   .login-item {
-    --background: #2d2d2d;
+    --background: #ffffff;
   }
   
   .demo-credentials {

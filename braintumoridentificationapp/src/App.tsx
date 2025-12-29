@@ -1,14 +1,11 @@
-import { IonApp, IonContent, IonPage, IonRouterOutlet, setupIonicReact, IonHeader, IonToolbar, IonTitle, IonButton, IonItem, IonLabel, IonCard, IonCardContent, IonCardHeader, IonCardTitle, IonGrid, IonRow, IonCol, IonImg, IonTextarea, IonList, IonSelect, IonSelectOption, IonLoading, IonAlert, IonIcon, IonFab, IonFabButton, IonModal, IonButtons, IonChip, IonBadge, IonRange, IonSegment, IonSegmentButton } from '@ionic/react';
+import { IonApp, IonContent, IonPage, IonRouterOutlet, setupIonicReact, IonHeader, IonToolbar, IonTitle, IonButton, IonItem, IonLabel, IonCard, IonCardContent, IonCardHeader, IonCardTitle, IonGrid, IonRow, IonCol, IonImg, IonTextarea, IonList, IonSelect, IonSelectOption, IonLoading, IonAlert, IonIcon, IonFab, IonFabButton, IonModal, IonButtons, IonChip, IonBadge, IonRange } from '@ionic/react';
 import { IonReactRouter } from '@ionic/react-router';
 import { Route } from 'react-router-dom';
 import { useState, useRef, useEffect } from 'react';
 import { cloudUpload, chatbubbles, close, send, medkit, analytics, logOut } from 'ionicons/icons';
 import Login from './pages/Login';
 import Footer from './components/Footer';
-import FaithfulnessMetrics from './components/FaithfulnessMetrics';
-import ValidationResults from './components/ValidationResults';
-import MetricsComparison from './components/MetricsComparison';
-import ExpandableMetric from './components/ExpandableMetric';
+// Removed segmented views; showing a single unified metrics table
 import MetricsTable from './components/MetricsTable';
 import Top3PredictionsTable from './components/Top3PredictionsTable';
 import ReactMarkdown from 'react-markdown';
@@ -109,7 +106,8 @@ const BrainTumorApp: React.FC<{ user: User; onLogout: () => void }> = ({ user, o
   const [chatInput, setChatInput] = useState('');
   const [isChatLoading, setIsChatLoading] = useState(false);
   const [imageSize, setImageSize] = useState<number>(100);
-  const [metricsSegment, setMetricsSegment] = useState<string>('confidence');
+  const [expandThinking, setExpandThinking] = useState<boolean>(false);
+  // Segmented tabs removed; using a single unified metrics table
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const models = [
@@ -386,140 +384,34 @@ const BrainTumorApp: React.FC<{ user: User; onLogout: () => void }> = ({ user, o
                     title="Top 3 Predictions"
                   />
 
-                  {/* Metrics Tabs */}
+                  {/* Unified Metrics Table (no tabs) */}
                   <IonCard style={{ marginTop: '16px' }}>
                     <IonCardHeader>
                       <IonCardTitle>Explainability Metrics</IonCardTitle>
                     </IonCardHeader>
                     <IonCardContent>
-                      <IonSegment value={metricsSegment} onIonChange={(e) => setMetricsSegment(e.detail.value as string)}>
-                        <IonSegmentButton value="confidence">Confidence & Uncertainty</IonSegmentButton>
-                        <IonSegmentButton value="faithfulness">Faithfulness</IonSegmentButton>
-                        <IonSegmentButton value="validation">Validation & AUC</IonSegmentButton>
-                        <IonSegmentButton value="agreement">Agreement</IonSegmentButton>
-                        <IonSegmentButton value="overview">Overview</IonSegmentButton>
-                      </IonSegment>
-
-                      {metricsSegment === 'confidence' && (
-                        <div style={{ marginTop: '16px' }}>
-                          <MetricsTable 
-                            metrics={{
-                              brier: prediction.brier,
-                              entropy: prediction.entropy,
-                              margin: prediction.margin,
-                              mc_variance: prediction.mc_variance
-                            }}
-                            title="Confidence & Uncertainty Metrics"
-                          />
-                        </div>
-                      )}
-
-                      {metricsSegment === 'faithfulness' && (
-                        <div style={{ marginTop: '16px' }}>
-                          <FaithfulnessMetrics 
-                            comprehensiveness={prediction.comprehensiveness}
-                            sufficiency={prediction.sufficiency}
-                          />
-                        </div>
-                      )}
-
-                      {metricsSegment === 'validation' && (
-                        <div style={{ marginTop: '16px' }}>
-                          <ValidationResults
-                            deletion_auc={prediction.deletion_auc}
-                            insertion_auc={prediction.insertion_auc}
-                            randomized_weights_corr={prediction.randomized_weights_corr}
-                          />
-                        </div>
-                      )}
-
-                      {metricsSegment === 'agreement' && (
-                        <div style={{ marginTop: '16px' }}>
-                          <div style={{ marginBottom: '16px', padding: '16px', backgroundColor: '#f5f5f5', borderRadius: '8px' }}>
-                            <h4 style={{ marginTop: 0 }}>Explanation Agreement Metrics</h4>
-                            <p style={{ marginBottom: 0, fontSize: '14px', color: '#666' }}>
-                              These metrics measure how consistent different explanation methods (Grad-CAM, LIME, Saliency) are in identifying important image regions.
-                            </p>
-                          </div>
-                          <ExpandableMetric title="Dice Coefficient" metric={prediction.dice} />
-                          <ExpandableMetric title="Intersection over Union (IoU)" metric={prediction.iou} />
-                          {typeof prediction.activation_ratio === 'number' && (
-                            <IonCard style={{ marginTop: '12px' }}>
-                              <IonCardContent>
-                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                                  <span><strong>Activation Ratio:</strong></span>
-                                  <IonBadge color="primary">{(prediction.activation_ratio * 100).toFixed(2)}%</IonBadge>
-                                </div>
-                                <p style={{ fontSize: '12px', color: '#666', marginTop: '8px' }}>Percentage of image activated by Grad-CAM explanation</p>
-                              </IonCardContent>
-                            </IonCard>
-                          )}
-                          {typeof prediction.center_distance === 'number' && (
-                            <IonCard style={{ marginTop: '12px' }}>
-                              <IonCardContent>
-                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                                  <span><strong>Center Distance:</strong></span>
-                                  <IonBadge color="primary">{prediction.center_distance.toFixed(2)}</IonBadge>
-                                </div>
-                                <p style={{ fontSize: '12px', color: '#666', marginTop: '8px' }}>Distance of heatmap center of mass from image center</p>
-                              </IonCardContent>
-                            </IonCard>
-                          )}
-                          {Array.isArray(prediction.mc_confidence_interval) && prediction.mc_confidence_interval.length === 2 && (
-                            <IonCard style={{ marginTop: '12px' }}>
-                              <IonCardContent>
-                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                                  <span><strong>MC Confidence Interval (95%):</strong></span>
-                                  <IonBadge color="primary">[{prediction.mc_confidence_interval[0].toFixed(3)}, {prediction.mc_confidence_interval[1].toFixed(3)}]</IonBadge>
-                                </div>
-                                <p style={{ fontSize: '12px', color: '#666', marginTop: '8px' }}>95% confidence interval from Monte Carlo Dropout</p>
-                              </IonCardContent>
-                            </IonCard>
-                          )}
-                        </div>
-                      )}
-
-                      {metricsSegment === 'overview' && prediction.comprehensiveness && prediction.sufficiency && (
-                        <div style={{ marginTop: '16px' }}>
-                          <MetricsComparison
-                            dice={prediction.dice}
-                            iou={prediction.iou}
-                            comprehensiveness={prediction.comprehensiveness}
-                            sufficiency={prediction.sufficiency}
-                            deletion_auc={prediction.deletion_auc}
-                            insertion_auc={prediction.insertion_auc}
-                          />
-                        </div>
-                      )}
+                      <MetricsTable 
+                        metrics={{
+                          brier: prediction.brier,
+                          entropy: prediction.entropy,
+                          margin: prediction.margin,
+                          mc_variance: prediction.mc_variance,
+                          comprehensiveness: prediction.comprehensiveness,
+                          sufficiency: prediction.sufficiency,
+                          deletion_auc: prediction.deletion_auc,
+                          insertion_auc: prediction.insertion_auc,
+                          randomized_weights_corr: prediction.randomized_weights_corr,
+                          dice: prediction.dice,
+                          iou: prediction.iou
+                        }}
+                        title="All Explainability Metrics"
+                      />
                     </IonCardContent>
                   </IonCard>
                 </IonCardContent>
               </IonCard>
 
-              {/* Second Display: All Metrics in Table Format */}
-              <IonCard style={{ marginTop: '16px' }}>
-                <IonCardHeader>
-                  <IonCardTitle>📊 Comprehensive Metrics Summary</IonCardTitle>
-                </IonCardHeader>
-                <IonCardContent>
-                  <MetricsTable 
-                    metrics={{
-                      brier: prediction.brier,
-                      entropy: prediction.entropy,
-                      margin: prediction.margin,
-                      mc_variance: prediction.mc_variance,
-                      comprehensiveness: prediction.comprehensiveness,
-                      sufficiency: prediction.sufficiency,
-                      deletion_auc: prediction.deletion_auc,
-                      insertion_auc: prediction.insertion_auc,
-                      randomized_weights_corr: prediction.randomized_weights_corr,
-                      dice: prediction.dice,
-                      iou: prediction.iou
-                    }}
-                    title="All Explainability Metrics"
-                  />
-                </IonCardContent>
-              </IonCard>
+              
 
               {prediction.final_report && (
                 <IonCard>
@@ -540,9 +432,32 @@ const BrainTumorApp: React.FC<{ user: User; onLogout: () => void }> = ({ user, o
                       return (
                         <>
                           {thinkContent && (
-                            <div style={{ marginBottom: '16px', padding: '8px', backgroundColor: 'var(--ion-color-light)', borderRadius: '4px' }}>
-                              <h5>AI Thinking Process:</h5>
-                              <p>{thinkContent}</p>
+                            <div style={{ marginBottom: '16px', borderRadius: '4px', border: '1px solid var(--ion-color-primary)' }}>
+                              <button
+                                onClick={() => setExpandThinking(!expandThinking)}
+                                style={{
+                                  width: '100%',
+                                  padding: '12px',
+                                  backgroundColor: 'var(--ion-color-primary)',
+                                  color: 'white',
+                                  border: 'none',
+                                  borderRadius: '4px',
+                                  cursor: 'pointer',
+                                  fontWeight: 600,
+                                  fontSize: '16px',
+                                  display: 'flex',
+                                  justifyContent: 'space-between',
+                                  alignItems: 'center'
+                                }}
+                              >
+                                <span>AI Thinking Process</span>
+                                <span>{expandThinking ? '▼' : '▶'}</span>
+                              </button>
+                              {expandThinking && (
+                                <div style={{ padding: '12px', backgroundColor: 'var(--ion-color-light)', borderRadius: '0 0 4px 4px' }}>
+                                  <p style={{ margin: 0, whiteSpace: 'pre-wrap', lineHeight: '1.6' }}>{thinkContent}</p>
+                                </div>
+                              )}
                             </div>
                           )}
                           <ReactMarkdown>{reportContent}</ReactMarkdown>
