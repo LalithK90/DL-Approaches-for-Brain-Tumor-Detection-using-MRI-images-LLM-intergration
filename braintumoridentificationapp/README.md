@@ -1,454 +1,361 @@
-# Brain Tumor Identification Mobile Application
+# 📱 Brain Tumor Identification Mobile App
 
-## Overview
+> **Cross-Platform Ionic React Application for AI-Powered Brain Tumor Diagnosis**
 
-This directory contains the cross-platform mobile and web application serving as the presentation layer and user interface for the brain tumor identification system. Built using the Ionic React framework, this application exemplifies the translation of academic research into accessible, user-friendly clinical decision support tools.
+## 🎯 What's Inside
 
-The application facilitates seamless interaction between healthcare practitioners, researchers, and the underlying deep learning inference engine, providing an intuitive gateway to advanced medical imaging analysis capabilities.
+This is the **front-end mobile/web application** that provides an intuitive interface for:
+- ✅ **Upload MRI scans** (camera or file picker)
+- ✅ **Select AI models** (6 CNN architectures)
+- ✅ **View diagnoses** with confidence scores
+- ✅ **Visualize XAI** (Grad-CAM, LIME, Saliency heatmaps)
+- ✅ **Read 12-section reports** with clinical recommendations
+- ✅ **Chat with RAG bot** for medical Q&A
 
-## Technical Architecture
-
-### Technology Stack
-
-**Framework and Runtime**:
-- **Ionic Framework 8.5.0**: Hybrid mobile application framework
-- **React 19.0.0**: Declarative UI library for component-based development
-- **TypeScript**: Type-safe JavaScript superset for robust code
-- **Capacitor 7.4.0**: Native runtime bridging web and mobile platforms
-
-**Platform Support**:
-- **Web**: Progressive Web Application (PWA) with responsive design
-- **Android**: Native Android application via Capacitor integration
-- **iOS**: (Configurable) iOS deployment capability
-- **Desktop**: Electron-based desktop application potential
-
-**Development Tools**:
-- **Vite**: Next-generation frontend build tool for rapid development
-- **ESLint**: Code quality and style enforcement
-- **Cypress**: End-to-end testing framework
-- **Vitest**: Unit testing framework
-
-### Application Architecture
+## 📂 Project Structure
 
 ```
-Presentation Layer (Ionic React)
-         ↓
-HTTP/REST Communication
-         ↓
-Application Layer (Flask API Backend)
-         ↓
-Business Logic (Model Inference, XAI)
-         ↓
-Data Layer (Trained Models, ChromaDB)
+braintumoridentificationapp/
+├── package.json              # Node dependencies
+├── capacitor.config.ts       # Native app configuration
+├── vite.config.ts           # Build configuration
+├── ionic.config.json        # Ionic framework config
+├── index.html               # Entry point HTML
+├── src/                     # Source code
+│   ├── main.tsx            # React app bootstrap
+│   ├── App.tsx             # Main app component
+│   ├── pages/              # Screen components
+│   │   ├── Home.tsx
+│   │   ├── Login.tsx
+│   │   ├── Analysis.tsx
+│   │   ├── Chat.tsx
+│   │   └── History.tsx
+│   ├── components/         # Reusable UI components
+│   │   ├── ImageUploader.tsx
+│   │   ├── ModelSelector.tsx
+│   │   ├── ResultCard.tsx
+│   │   └── XAIVisualizer.tsx
+│   └── theme/              # Ionic styling
+├── android/                # Android native project
+├── cypress/                # E2E testing
+└── public/                 # Static assets
+    ├── favicon.ico
+    ├── favicon.png
+    └── manifest.json       # PWA manifest
 ```
 
-## Core Functionalities
+## 🚀 Quick Start
 
-### 1. Authentication and Authorization
+### Prerequisites
 
-**Secure Access Control**:
-- User registration and login interface
-- Session management with token-based authentication
-- Persistent login state across application restarts
-- Secure credential transmission over HTTPS
+- **Node.js 18+** and npm
+- **Backend API running** (see `brain_tumor_identification_api/`)
+- **Android Studio** (for Android builds)
+- **Xcode** (for iOS builds - macOS only)
 
-**User Experience**:
-- Responsive login/registration forms
-- Input validation and error handling
-- Password strength requirements
-- Remember me functionality
-
-### 2. Medical Image Upload and Management
-
-**Image Acquisition**:
-- **File Selection**: Native file picker integration
-- **Camera Capture**: Direct image capture from device camera (mobile)
-- **Drag-and-Drop**: Intuitive desktop upload interface
-- **Format Support**: JPEG, PNG, DICOM (if implemented)
-
-**Upload Workflow**:
-1. Image selection from gallery or camera
-2. Client-side preview and validation
-3. Compression and optimization for transmission
-4. Asynchronous upload to backend API
-5. Progress indication and error recovery
-
-**Image Management**:
-- Upload history and previous analyses
-- Image metadata display (dimensions, format, size)
-- Delete and re-analyze capabilities
-
-### 3. Model Selection Interface
-
-**Multi-Model Support**:
-Users can select from multiple pre-trained architectures:
-
-- VGG16 (Balanced/Imbalanced)
-- VGG19 (Balanced/Imbalanced)
-- ResNet50 (Balanced/Imbalanced)
-- MobileNetV2 (Balanced/Imbalanced)
-- GoogleLeNet (Balanced/Imbalanced)
-- Proposed Custom Architecture (Balanced/Imbalanced)
-
-**Interactive Selection**:
-- Dropdown or card-based model selector
-- Model metadata display (accuracy, parameters, inference time)
-- Recommended model highlighting
-- Performance comparison tooltips
-
-### 4. Classification Results Visualization
-
-**Prediction Display**:
-- **Primary Diagnosis**: Dominant predicted class with confidence percentage
-- **Class Probabilities**: Bar chart or gauge visualization for all four classes
-  - Glioma
-  - Meningioma
-  - Pituitary
-  - No Tumor
-- **Confidence Indicators**: Color-coded confidence levels (high/medium/low)
-
-**Quantitative Metrics Panel**:
-- **Margin Score**: Decision boundary distance
-- **Softmax Entropy**: Prediction uncertainty measure
-- **Brier Score**: Calibration metric
-- **MC Dropout Statistics**: Epistemic uncertainty quantification
-
-### 5. Explainable AI (XAI) Visualizations
-
-**Multi-Method Interpretation**:
-
-1. **Grad-CAM (Gradient-weighted Class Activation Mapping)**:
-   - Heatmap overlay on original MRI
-   - Highlighting discriminative regions
-   - Interactive opacity slider
-
-2. **LIME (Local Interpretable Model-agnostic Explanations)**:
-   - Superpixel-based segmentation
-   - Positive/negative contribution regions
-   - Feature importance ranking
-
-3. **Saliency Maps**:
-   - Pixel-level gradient visualization
-   - Fine-grained attention representation
-
-**Visualization Controls**:
-- Tab-based navigation between XAI methods
-- Zoom and pan capabilities
-- Export visualizations as images
-- Side-by-side comparison mode
-
-### 6. XAI Agreement Metrics
-
-**Quantitative Explainability Assessment**:
-- **Dice Coefficient**: Spatial overlap between Grad-CAM and LIME
-- **IoU (Intersection over Union)**: Region agreement metric
-- **Interpretation Stability**: Consistency across multiple XAI methods
-
-**Trust and Reliability Indicators**:
-- Visual representation of agreement scores
-- Interpretation coherence assessment
-- Automated quality checks
-
-### 7. AI-Powered Medical Report Generation
-
-**Comprehensive Report Synthesis**:
-- **Patient Demographics**: Age, gender, clinical history (if provided)
-- **Image Analysis**: MRI characteristics and findings
-- **Model Prediction**: Classification result with confidence
-- **XAI Summary**: Interpretation of model decision-making
-- **Quantitative Metrics**: All computed uncertainty and agreement measures
-- **Clinical Recommendations**: Suggested follow-up actions (educational context)
-
-**Multi-LLM Pipeline**:
-- **Llama 3.2 Vision**: Initial image description
-- **MedGemma**: Medical context integration
-- **DeepSeek-R1**: Final report synthesis and quality assurance
-
-**Report Presentation**:
-- Structured Markdown rendering
-- Section navigation (table of contents)
-- Print and PDF export functionality
-- Share report capabilities
-
-### 8. Context-Aware Chatbot Interface
-
-**Retrieval-Augmented Generation (RAG)**:
-- ChromaDB vector store for report context
-- Semantic search over current analysis
-- Follow-up question handling
-- Clarification and education support
-
-**Conversational Features**:
-- Natural language query processing
-- Multi-turn dialogue management
-- Context retention across conversation
-- Response streaming for real-time feedback
-
-**Educational Support**:
-- Terminology explanations
-- Medical concept clarification
-- Interpretation guidance
-- Research context provision
-
-## User Interface Design
-
-### Design Principles
-
-1. **Clinical Usability**: Minimizing cognitive load for medical practitioners
-2. **Accessibility**: WCAG 2.1 AA compliance for inclusive design
-3. **Responsive Design**: Adaptive layouts for mobile, tablet, and desktop
-4. **Progressive Disclosure**: Information hierarchy reducing interface complexity
-5. **Error Prevention**: Validation and confirmation for critical actions
-
-### Navigation Structure
-
-```
-Login/Registration
-    ↓
-Home Dashboard
-    ├── Upload MRI Image
-    ├── Select Model
-    ├── View Analysis History
-    └── Settings
-         ↓
-Analysis Screen
-    ├── Prediction Results
-    ├── XAI Visualizations
-    ├── Quantitative Metrics
-    ├── Generated Report
-    └── AI Chatbot
-```
-
-### Component Architecture
-
-**Reusable Components**:
-- `ImageUploader`: Drag-and-drop and file selection
-- `ModelSelector`: Architecture selection dropdown
-- `PredictionCard`: Classification results display
-- `XAIViewer`: Tabbed explanation visualization
-- `MetricsPanel`: Quantitative metrics table
-- `ReportViewer`: Markdown-rendered medical report
-- `ChatInterface`: Conversational AI component
-
-## Development and Deployment
-
-### Local Development Setup
+### Installation Steps
 
 ```bash
-# Navigate to application directory
+# 1. Navigate to the mobile app directory
 cd braintumoridentificationapp
 
-# Install dependencies
+# 2. Install dependencies
 npm install
 
-# Run development server
+# 3. Configure backend URL
+# Edit API_BASE_URL in your code to point to backend:
+# const API_BASE_URL = "http://localhost:5001"
+
+# 4. Run in browser (development)
 npm run dev
+# Opens at http://localhost:5173
 
-# Access at http://localhost:5173
-```
-
-### Building for Production
-
-**Web Application**:
-```bash
-npm run build
-# Output: dist/ directory for static hosting
-```
-
-**Android Application**:
-```bash
-# Build web assets
+# 5. Build for production
 npm run build
 
-# Sync with Capacitor
+# 6. Preview production build
+npm run preview
+```
+
+### Mobile Deployment
+
+#### Android
+
+```bash
+# 1. Build the web app
+npm run build
+
+# 2. Sync with Capacitor
+npx cap add android
 npx cap sync android
 
-# Open in Android Studio
+# 3. Open in Android Studio
 npx cap open android
 
-# Build APK or AAB
+# 4. Build APK in Android Studio
+# Build > Build Bundle(s) / APK(s) > Build APK
 ```
 
-**iOS Application**:
+#### iOS (macOS only)
+
 ```bash
+# 1. Build the web app
+npm run build
+
+# 2. Sync with Capacitor
+npx cap add ios
 npx cap sync ios
+
+# 3. Open in Xcode
 npx cap open ios
-# Build in Xcode
+
+# 4. Build in Xcode
+# Product > Build
 ```
 
-### Configuration Files
+### PWA Installation
 
-- **capacitor.config.ts**: Native platform configuration
-- **vite.config.ts**: Build tool settings
-- **tsconfig.json**: TypeScript compiler options
-- **ionic.config.json**: Ionic CLI configuration
-- **eslint.config.js**: Code linting rules
+The app can be installed as a Progressive Web App:
+1. Open in browser (Chrome, Edge, Safari)
+2. Click "Install App" in address bar
+3. Access offline capabilities
 
-## Integration with Backend
+## 🔧 Key Features
 
-### API Communication
+### 1. **MRI Image Upload**
 
-**Endpoint Integration**:
-- `POST /api/upload`: Image upload
-- `POST /api/analyze`: Trigger classification and XAI
-- `POST /api/generate-report`: Synthesize medical report
-- `POST /api/chat`: Chatbot interaction
-- `POST /api/login`: User authentication
-- `GET /api/history`: Retrieve analysis history
+Multiple upload methods:
+- 📷 **Camera**: Take photo directly (mobile only)
+- 📁 **File Picker**: Select from gallery
+- 🖱️ **Drag & Drop**: Desktop convenience
 
-**Request/Response Format**:
-- Content-Type: `multipart/form-data` (image upload)
-- Content-Type: `application/json` (data exchange)
-- Authentication: Bearer token in Authorization header
+Supported formats: **JPEG, PNG, JPG**
 
-**Error Handling**:
-- Network error recovery
-- Timeout management
-- User-friendly error messages
-- Retry mechanisms
+### 2. **AI Model Selection**
 
-### State Management
+Choose from 6 CNN architectures:
+- **VGG16** - Deep homogeneous architecture
+- **VGG19** - Extended VGG variant
+- **ResNet50** - Residual connections
+- **MobileNetV2** - Lightweight mobile-optimized
+- **GoogleLeNet** - Inception modules
+- **Proposed** - Custom research model
 
-- **Local State**: React hooks (useState, useEffect)
-- **Global State**: Context API or Redux (if implemented)
-- **Persistent Storage**: Local Storage or Capacitor Storage API
-- **Cache Management**: Image and report caching
+**Each model available in**:
+- ✅ Balanced dataset version
+- ✅ Imbalanced dataset version
 
-## Testing Strategy
+### 3. **Diagnosis Results**
 
-### Unit Testing (Vitest)
+Real-time display of:
+- **Predicted Class**: Glioma / Meningioma / Pituitary / No Tumor
+- **Confidence Score**: Percentage with color-coded badge
+- **Processing Time**: Inference duration
+- **Uncertainty Metrics**: MC Dropout variance, entropy
+
+### 4. **XAI Visualizations**
+
+Three explainability techniques displayed side-by-side:
+
+**Grad-CAM** (Gradient-weighted Class Activation Maps)
+- Heatmap overlay showing important regions
+- Class-specific activation
+
+**LIME** (Local Interpretable Model-agnostic Explanations)
+- Segmented feature importance
+- Superpixel-based explanation
+
+**Saliency Maps**
+- Pixel-level gradient attribution
+- Fine-grained sensitivity analysis
+
+**XAI Metrics**:
+- Comprehensiveness Score
+- Sufficiency Score
+- Dice Coefficient (inter-method agreement)
+
+### 5. **12-Section Clinical Report**
+
+Structured medical report with:
+
+| Section | Content |
+|---------|---------|
+| **0** | Quick Clinical Decision (30-sec summary) |
+| **1** | Executive Summary |
+| **2** | Clinical Presentation |
+| **3** | Imaging Findings |
+| **4** | AI Classification Results |
+| **5** | XAI Interpretation |
+| **6** | Diagnostic Synthesis |
+| **7** | Differential Diagnoses |
+| **8** | Management Recommendations |
+| **9** | Prognosis & Follow-up |
+| **10** | Educational Insights (🎓 Teaching points) |
+| **11** | References & Guidelines |
+| **11.5** | ⭐ **External Learning Resources** (NEW) |
+| **12** | Technical AI Appendix |
+
+**NEW Features**:
+- 🌐 **Direct links** to Neurosurgical Atlas, Radiopaedia, NCCN
+- 🔍 **Specific search terms** for deeper study
+- 📚 **Related conditions** beyond brain tumors
+
+### 6. **RAG-Enhanced Medical Chatbot**
+
+Ask questions and get evidence-based answers:
+- Query medical knowledge base (ChromaDB)
+- Retrieve similar clinical cases
+- Search clinical guidelines
+- Patient-specific Q&A
+
+**Sample Questions**:
+- "What are the symptoms of glioma?"
+- "Explain the difference between meningioma and glioma"
+- "What imaging findings suggest pituitary adenoma?"
+
+### 7. **Analysis History**
+
+Track previous scans:
+- View past diagnoses
+- Compare results across models
+- Export reports as PDF
+- Share with healthcare providers
+
+## 🛠️ Tech Stack
+
+| Technology | Version | Purpose |
+|------------|---------|---------|
+| Ionic Framework | 8.5.0 | UI components |
+| React | 19.0.0 | Frontend framework |
+| TypeScript | Latest | Type safety |
+| Capacitor | 7.4.0 | Native bridge |
+| Vite | Latest | Build tool |
+| Axios | Latest | HTTP client |
+
+## 📦 Available Scripts
 
 ```bash
-npm run test.unit
+npm run dev          # Start development server
+npm run build        # Build for production
+npm run preview      # Preview production build
+npm test             # Run unit tests
+npm run lint         # Lint TypeScript/React code
+npx cap sync         # Sync web code with native platforms
 ```
 
-- Component rendering tests
-- Utility function tests
-- State management logic tests
-- Mock API responses
+## 🎨 Customization
 
-### End-to-End Testing (Cypress)
+### Theme Configuration
+
+Edit `src/theme/variables.css`:
+
+```css
+:root {
+  --ion-color-primary: #1f2937;      /* App primary color */
+  --ion-color-secondary: #3b82f6;    /* Secondary accent */
+  --ion-color-success: #10b981;      /* Success states */
+  --ion-color-danger: #ef4444;       /* Error states */
+}
+```
+
+### App Branding
+
+Update `public/manifest.json`:
+
+```json
+{
+  "short_name": "Brain Tumor ID",
+  "name": "Brain Tumor Identification with XAI",
+  "theme_color": "#1f2937"
+}
+```
+
+Update `capacitor.config.ts`:
+
+```typescript
+const config: CapacitorConfig = {
+  appId: 'com.braintumor.identification',
+  appName: 'Brain Tumor ID'
+};
+```
+
+## 🔐 Security
+
+- ✅ HTTPS-only API communication
+- ✅ Secure token storage
+- ✅ Input sanitization
+- ✅ CORS protection
+- ✅ Client-side validation
+
+## 🐛 Troubleshooting
+
+**Backend connection failed?**
+```typescript
+// For mobile testing, use your computer's IP:
+const API_BASE_URL = "http://192.168.1.100:5001";
+```
+
+**Android build errors?**
+```bash
+cd android
+./gradlew clean
+./gradlew build
+```
+
+**npm install fails?**
+```bash
+rm -rf node_modules package-lock.json
+npm cache clean --force
+npm install
+```
+
+## 📱 Supported Platforms
+
+| Platform | Status | Notes |
+|----------|--------|-------|
+| **Web** | ✅ Full support | Chrome, Firefox, Safari, Edge |
+| **Android** | ✅ Full support | Android 5.0+ (API 21+) |
+| **iOS** | ✅ Configurable | iOS 13.0+ |
+| **PWA** | ✅ Installable | Offline capabilities |
+
+## 📊 Performance
+
+- ⚡ **Lazy loading** for components
+- 🗜️ **Code splitting** via Vite
+- 📦 **Optimized bundles** (<500KB gzipped)
+- 🚀 **Fast page transitions**
+- 💾 **Caching** for API responses
+
+## 🧪 Testing
 
 ```bash
-npm run test.e2e
+# Unit tests
+npm test
+
+# E2E tests (Cypress)
+npx cypress open
+
+# Coverage report
+npm run test:coverage
 ```
 
-- Complete user workflows
-- Authentication flow
-- Image upload and analysis
-- Report generation and chatbot interaction
+## 🤝 Development Workflow
 
-### Manual Testing Checklist
+1. **Run backend**: Start Flask API (`python app.py` in backend folder)
+2. **Run frontend**: Start dev server (`npm run dev`)
+3. **Make changes**: Edit components in `src/`
+4. **Test**: Check browser at `http://localhost:5173`
+5. **Build**: `npm run build` for production
+6. **Deploy**: Sync with Capacitor for mobile (`npx cap sync`)
 
-- [ ] Cross-browser compatibility (Chrome, Firefox, Safari, Edge)
-- [ ] Responsive design on various screen sizes
-- [ ] Touch gestures on mobile devices
-- [ ] Offline mode functionality (PWA)
-- [ ] Performance on low-end devices
+## ⚠️ Clinical Disclaimer
 
-## Performance Optimization
+> This application is designed exclusively for **academic research and educational purposes**. It is **NOT** a medical device and has not been evaluated by regulatory authorities (FDA, CE, etc.). **MUST NOT** be used for clinical diagnosis or patient care decisions.
 
-### Frontend Optimization
+## 📄 License
 
-- **Code Splitting**: Lazy loading of routes and components
-- **Image Optimization**: Compression and lazy loading
-- **Bundle Size**: Tree shaking and minification
-- **Caching**: Service worker for offline capability
-- **Rendering**: Virtual scrolling for large lists
-
-### Network Optimization
-
-- **Request Batching**: Combining multiple API calls
-- **Compression**: Gzip/Brotli for responses
-- **CDN**: Static asset delivery
-- **Prefetching**: Predictive data loading
-
-## Accessibility Features
-
-- **Screen Reader Support**: ARIA labels and semantic HTML
-- **Keyboard Navigation**: Tab order and focus management
-- **Color Contrast**: WCAG AA compliance
-- **Text Scaling**: Responsive typography
-- **Alternative Text**: Image descriptions for assistive technologies
-
-## Security Considerations
-
-### Client-Side Security
-
-- **Input Sanitization**: XSS prevention
-- **Secure Storage**: Encrypted credential storage
-- **HTTPS Enforcement**: Secure communication channels
-- **CORS Configuration**: Proper origin restrictions
-
-### Privacy Protection
-
-- **Data Minimization**: Only essential data collection
-- **Session Timeout**: Automatic logout after inactivity
-- **No Client-Side Model Storage**: Models remain server-side
-- **Anonymization**: No persistent patient identifiable information
-
-## Research and Educational Context
-
-### Academic Contribution
-
-This application demonstrates:
-
-1. **Human-Computer Interaction (HCI)**: User-centered design for medical AI
-2. **Software Engineering**: Modern full-stack development practices
-3. **Clinical Informatics**: Bridging AI research and healthcare delivery
-4. **Explainable AI**: Making black-box models interpretable for end-users
-
-### Educational Use Cases
-
-- **Medical Education**: Training tool for radiology residents
-- **AI Literacy**: Understanding AI decision-making processes
-- **Research Dissemination**: Interactive platform for research findings
-- **Public Engagement**: Demystifying medical AI for general audience
-
-## Limitations and Disclaimers
-
-### Technical Limitations
-
-- **Network Dependency**: Requires internet connection for API access
-- **Processing Time**: Analysis duration dependent on server load
-- **Image Quality**: Performance sensitive to MRI scan quality
-- **Model Constraints**: Accuracy bounds of underlying deep learning models
-
-### Clinical Disclaimer
-
-> **⚠️ Important Notice**  
-> This application is designed exclusively for **academic research and educational purposes**. It is **NOT** a medical device and has not been evaluated or approved by regulatory authorities (FDA, CE, etc.). The system **MUST NOT** be used for clinical diagnosis, treatment planning, or patient care decisions. Always consult qualified healthcare professionals for medical advice.
-
-## Future Enhancements
-
-Planned development roadmap:
-
-- **Offline Mode**: Local model inference for remote areas
-- **Multi-Language Support**: Internationalization (i18n)
-- **3D Visualization**: Volumetric MRI rendering
-- **Collaborative Features**: Multi-user case discussions
-- **Integration**: PACS (Picture Archiving and Communication System) compatibility
-- **Wearable Integration**: Smartwatch notifications for analysis completion
-
-## Related Components
-
-- **Backend API**: See [Brain Tumor Identification API](../brain_tumor_identification_api/README.md)
-- **Model Training**: See [Model Training Notebook](../model_training_notebook/README.md)
-- **Dataset**: See [Brain Tumor Dataset](../brain%20tumor%20dataset/README.md)
-- **Research Methodology**: See [Data Collection Sheet](../data%20collection%20sheet/README.md)
-
-## References
-
-1. Ionic Framework Documentation. (2024). https://ionicframework.com/docs
-2. React Documentation. (2024). https://react.dev
-3. Capacitor Documentation. (2024). https://capacitorjs.com/docs
-4. W3C Web Content Accessibility Guidelines (WCAG) 2.1. (2018).
-5. OWASP Mobile Application Security. (2024). https://owasp.org/www-project-mobile-app-security/
+See [LICENSE](../LICENSE) in the root directory.
 
 ---
 
-**Application Type**: Cross-Platform Mobile/Web Application  
-**Research Component**: Clinical Decision Support Interface  
-**MSc CS Research Project** | SC 699 - Level 10 Research  
-**Institution**: Postgraduate Institute of Science, University of Peradeniya  
-**Last Updated**: December 2025
+**Quick Launch**: `npm install && npm run dev` (make sure backend is running!)
