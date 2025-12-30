@@ -2,7 +2,7 @@ import { IonApp, IonContent, IonPage, IonRouterOutlet, setupIonicReact, IonHeade
 import { IonReactRouter } from '@ionic/react-router';
 import { Route } from 'react-router-dom';
 import { useState, useRef, useEffect } from 'react';
-import { cloudUpload, send, medkit, analytics, logOut } from 'ionicons/icons';
+import { cloudUpload, send, medkit, analytics, logOut, text } from 'ionicons/icons';
 import Login from './pages/Login';
 import Footer from './components/Footer';
 // Removed segmented views; showing a single unified metrics table
@@ -641,7 +641,7 @@ const BrainTumorApp: React.FC<{ user: User; onLogout: () => void }> = ({ user, o
                         onIonInput={(e) => setChatInput(e.detail.value!)}
                         placeholder="Ask anything..."
                         rows={3}
-                        style={{ flex: 1, minHeight: '80px', backgroundColor: '#bdb1b5ff', border: '1px solid #f08cb3', borderRadius: '10px' }}
+                        style={{ flex: 1, minHeight: '40px', backgroundColor: '#fbfbfbff', border: '1px solid #f08cb3', borderRadius: '10px', textColor:'black' }}
                         onKeyDown={(e) => {
                           if (e.key === 'Enter' && !e.shiftKey) {
                             e.preventDefault();
