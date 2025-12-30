@@ -323,7 +323,7 @@ def get_text_reasoning(message: str, image_path: str) -> Optional[str]:
 
         # Process the first chunk
         first_chunk_prompt = (
-            "Summarize key points from first document part:\n--- PART 1 ---\n{chunks[0]}"
+            f"Summarize key points from first document part:\n--- PART 1 ---\n{chunks[0]}"
         )
         logging.info(f"Processing chunk 1 of {len(chunks)}...")
         if OPENROUTER_API_KEY:
@@ -338,9 +338,12 @@ def get_text_reasoning(message: str, image_path: str) -> Optional[str]:
         # Process subsequent chunks
         for i, chunk in enumerate(chunks[1:], start=2):
             refine_prompt = (
-                "Refine existing summary with new part:\n--- EXISTING ---\n{refined_answer}\n--- NEW PART {i} ---\n{chunk}\nProvide updated full summary."
+                f"""Refine existing summary with new part:
+                \n--- EXISTING ---\n{refined_answer}\n--- NEW PART {i} ---\n{chunk}\n
+                Provide updated full summary."""
             )
             logging.info(f"Processing chunk {i} of {len(chunks)}...")
+
             if OPENROUTER_API_KEY:
                 refined_answer = _call_openrouter_model(refine_prompt)
             else:
