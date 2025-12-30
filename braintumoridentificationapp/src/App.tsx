@@ -403,7 +403,7 @@ const BrainTumorApp: React.FC<{ user: User; onLogout: () => void }> = ({ user, o
                     
                     <IonItem>
                       <IonLabel>Image Size</IonLabel>
-                      <IonRange min={50} max={200} value={imageSize} onIonChange={e => setImageSize(e.detail.value as number)} />
+                      <IonRange min={50} max={110} value={imageSize} onIonChange={e => setImageSize(e.detail.value as number)} />
                     </IonItem>
                     
                     <div style={{ textAlign: 'center', marginBottom: '12px', marginTop: '8px' }}>
