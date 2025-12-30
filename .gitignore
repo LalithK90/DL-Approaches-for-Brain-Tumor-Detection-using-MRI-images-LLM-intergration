@@ -321,3 +321,4 @@ VGG19_imbalanced.h5
 */chroma_data/*
 */images for test/*
 XAI_validation/testing
+/logs

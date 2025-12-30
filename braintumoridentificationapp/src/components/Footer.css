@@ -54,11 +54,11 @@
 }
 
 .footer-container a {
-  color: var(--ion-color-primary);
   text-decoration: none;
 }
 
 .footer-container a:hover {
+color: var(--ion-color-primary);
   text-decoration: underline;
 }
 .accreditation-section {
