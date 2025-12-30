@@ -1,8 +1,8 @@
-import { IonApp, IonContent, IonPage, IonRouterOutlet, setupIonicReact, IonHeader, IonToolbar, IonTitle, IonButton, IonItem, IonLabel, IonCard, IonCardContent, IonCardHeader, IonCardTitle, IonGrid, IonRow, IonCol, IonImg, IonTextarea, IonList, IonSelect, IonSelectOption, IonLoading, IonAlert, IonIcon, IonFab, IonFabButton, IonModal, IonButtons, IonChip, IonBadge, IonRange } from '@ionic/react';
+import { IonApp, IonContent, IonPage, IonRouterOutlet, setupIonicReact, IonHeader, IonToolbar, IonTitle, IonButton, IonItem, IonLabel, IonCard, IonCardContent, IonCardHeader, IonCardTitle, IonGrid, IonRow, IonCol, IonImg, IonTextarea, IonList, IonSelect, IonSelectOption, IonLoading, IonAlert, IonIcon, IonButtons, IonChip, IonBadge, IonRange, IonFooter } from '@ionic/react';
 import { IonReactRouter } from '@ionic/react-router';
 import { Route } from 'react-router-dom';
 import { useState, useRef, useEffect } from 'react';
-import { cloudUpload, chatbubbles, close, send, medkit, analytics, logOut } from 'ionicons/icons';
+import { cloudUpload, send, medkit, analytics, logOut } from 'ionicons/icons';
 import Login from './pages/Login';
 import Footer from './components/Footer';
 // Removed segmented views; showing a single unified metrics table
@@ -22,6 +22,7 @@ import '@ionic/react/css/text-transformation.css';
 import '@ionic/react/css/flex-utils.css';
 import '@ionic/react/css/display.css';
 import './theme/variables.css';
+import './CompactMarkdown.css';
 
 setupIonicReact();
 
@@ -86,6 +87,9 @@ interface ChatMessage {
   text: string;
   isUser: boolean;
   timestamp: Date;
+  response_type?: 'user' | 'system';
+  id?: string;
+  thinking_part?: string;
 }
 
 interface User {
@@ -101,12 +105,12 @@ const BrainTumorApp: React.FC<{ user: User; onLogout: () => void }> = ({ user, o
   const [isLoading, setIsLoading] = useState(false);
   const [showAlert, setShowAlert] = useState(false);
   const [alertMessage, setAlertMessage] = useState('');
-  const [isChatOpen, setIsChatOpen] = useState(false);
   const [chatMessages, setChatMessages] = useState<ChatMessage[]>([]);
   const [chatInput, setChatInput] = useState('');
   const [isChatLoading, setIsChatLoading] = useState(false);
   const [imageSize, setImageSize] = useState<number>(100);
-  const [expandThinking, setExpandThinking] = useState<boolean>(false);
+  const [expandedThinks, setExpandedThinks] = useState<Record<number, boolean>>({});
+  const chatContainerRef = useRef<HTMLDivElement>(null);
   // Segmented tabs removed; using a single unified metrics table
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -183,7 +187,9 @@ const BrainTumorApp: React.FC<{ user: User; onLogout: () => void }> = ({ user, o
     const userMessage: ChatMessage = {
       text: chatInput,
       isUser: true,
-      timestamp: new Date()
+      timestamp: new Date(),
+      response_type: 'user',
+      id: `${Date.now()}-user`
     };
 
     setChatMessages(prev => [...prev, userMessage]);
@@ -208,10 +214,26 @@ const BrainTumorApp: React.FC<{ user: User; onLogout: () => void }> = ({ user, o
       }
 
       const result = await response.json();
+      
+      // Extract thinking part from system response
+      let messageText = result.response;
+      let thinkingPart = '';
+      
+      const thinkStartIndex = messageText.indexOf('<think>');
+      const thinkEndIndex = messageText.indexOf('</think>');
+      
+      if (thinkStartIndex !== -1 && thinkEndIndex !== -1 && thinkEndIndex > thinkStartIndex) {
+        thinkingPart = messageText.substring(thinkStartIndex + 7, thinkEndIndex).trim();
+        messageText = (messageText.substring(0, thinkStartIndex) + messageText.substring(thinkEndIndex + 8)).trim();
+      }
+      
       const aiMessage: ChatMessage = {
-        text: result.response,
+        text: messageText,
         isUser: false,
-        timestamp: new Date()
+        timestamp: new Date(),
+        response_type: 'system',
+        id: `${Date.now()}-system`,
+        thinking_part: thinkingPart
       };
 
       setChatMessages(prev => [...prev, aiMessage]);
@@ -220,13 +242,53 @@ const BrainTumorApp: React.FC<{ user: User; onLogout: () => void }> = ({ user, o
       const errorMessage: ChatMessage = {
         text: 'Sorry, I encountered an error. Please try again.',
         isUser: false,
-        timestamp: new Date()
+        timestamp: new Date(),
+        response_type: 'system',
+        id: `${Date.now()}-error`
       };
       setChatMessages(prev => [...prev, errorMessage]);
     } finally {
       setIsChatLoading(false);
     }
   };
+
+  useEffect(() => {
+    console.log('chatMessages', chatMessages);
+    if (chatContainerRef.current) {
+      chatContainerRef.current.scrollTo({
+        top: chatContainerRef.current.scrollHeight,
+        behavior: 'smooth'
+      });
+    }
+  }, [chatMessages, isChatLoading]);
+
+  useEffect(() => {
+    if (prediction && prediction.final_report) {
+      let reportContent = prediction.final_report;
+      const msgId = `${Date.now()}-initial`;
+      
+      // Extract thinking part from initial report
+      let thinkingPart = '';
+      const thinkStartIndex = reportContent.indexOf('<think>');
+      const thinkEndIndex = reportContent.indexOf('</think>');
+      
+      if (thinkStartIndex !== -1 && thinkEndIndex !== -1 && thinkEndIndex > thinkStartIndex) {
+        thinkingPart = reportContent.substring(thinkStartIndex + 7, thinkEndIndex).trim();
+        reportContent = (reportContent.substring(0, thinkStartIndex) + reportContent.substring(thinkEndIndex + 8)).trim();
+      }
+      
+      const initialMessage: ChatMessage = {
+        text: reportContent,
+        isUser: false,
+        timestamp: new Date(),
+        response_type: 'system',
+        id: msgId,
+        thinking_part: thinkingPart
+      };
+      
+      setChatMessages([initialMessage]);
+    }
+  }, [prediction]);
 
   const getConfidenceColor = (level: string) => {
     switch (level) {
@@ -235,6 +297,12 @@ const BrainTumorApp: React.FC<{ user: User; onLogout: () => void }> = ({ user, o
       case 'bad': return 'danger';
       default: return 'medium';
     }
+  };
+
+
+
+  const toggleThink = (idx: number) => {
+    setExpandedThinks(prev => ({ ...prev, [idx]: !prev[idx] }));
   };
 
   return (
@@ -252,7 +320,7 @@ const BrainTumorApp: React.FC<{ user: User; onLogout: () => void }> = ({ user, o
       </IonHeader>
       
       <IonContent fullscreen>
-        <div style={{ padding: '16px' }}>
+        <div style={{ padding: '16px', paddingBottom: '200px' }}>
           {/* File Upload Section */}
           <IonCard>
             <IonCardHeader>
@@ -385,29 +453,24 @@ const BrainTumorApp: React.FC<{ user: User; onLogout: () => void }> = ({ user, o
                   />
 
                   {/* Unified Metrics Table (no tabs) */}
-                  <IonCard style={{ marginTop: '16px' }}>
-                    <IonCardHeader>
-                      <IonCardTitle>Explainability Metrics</IonCardTitle>
-                    </IonCardHeader>
-                    <IonCardContent>
-                      <MetricsTable 
-                        metrics={{
-                          brier: prediction.brier,
-                          entropy: prediction.entropy,
-                          margin: prediction.margin,
-                          mc_variance: prediction.mc_variance,
-                          comprehensiveness: prediction.comprehensiveness,
-                          sufficiency: prediction.sufficiency,
-                          deletion_auc: prediction.deletion_auc,
-                          insertion_auc: prediction.insertion_auc,
-                          randomized_weights_corr: prediction.randomized_weights_corr,
-                          dice: prediction.dice,
-                          iou: prediction.iou
-                        }}
-                        title="All Explainability Metrics"
-                      />
-                    </IonCardContent>
-                  </IonCard>
+                  <div style={{ marginTop: '16px' }}>
+                    <MetricsTable 
+                      metrics={{
+                        brier: prediction.brier,
+                        entropy: prediction.entropy,
+                        margin: prediction.margin,
+                        mc_variance: prediction.mc_variance,
+                        comprehensiveness: prediction.comprehensiveness,
+                        sufficiency: prediction.sufficiency,
+                        deletion_auc: prediction.deletion_auc,
+                        insertion_auc: prediction.insertion_auc,
+                        randomized_weights_corr: prediction.randomized_weights_corr,
+                        dice: prediction.dice,
+                        iou: prediction.iou
+                      }}
+                      title="All Explainability Metrics"
+                    />
+                  </div>
                 </IonCardContent>
               </IonCard>
 
@@ -416,165 +479,161 @@ const BrainTumorApp: React.FC<{ user: User; onLogout: () => void }> = ({ user, o
               {prediction.final_report && (
                 <IonCard>
                   <IonCardHeader>
-                    <IonCardTitle>AI Medical Report</IonCardTitle>
+                    <IonCardTitle>ChatMessage</IonCardTitle>
                   </IonCardHeader>
                   <IonCardContent>
-                    {(() => {
-                      if (!prediction.final_report) return <></>;
-                      const startIndex = prediction.final_report.indexOf('<think>');
-                      const endIndex = prediction.final_report.indexOf('</think>');
-                      let thinkContent = '';
-                      let reportContent = prediction.final_report;
-                      if (startIndex !== -1 && endIndex !== -1 && endIndex > startIndex) {
-                        thinkContent = prediction.final_report.substring(startIndex + 7, endIndex).trim();
-                        reportContent = (prediction.final_report.substring(0, startIndex) + prediction.final_report.substring(endIndex + 8)).trim();
-                      }
-                      return (
-                        <>
-                          {thinkContent && (
-                            <div style={{ marginBottom: '16px', borderRadius: '4px', border: '1px solid var(--ion-color-primary)' }}>
-                              <button
-                                onClick={() => setExpandThinking(!expandThinking)}
+                    <div
+                      ref={chatContainerRef}
+                      style={{
+                        width: '100%',
+                        overflowX: 'hidden',
+                        padding: '12px',
+                        backgroundColor: 'var(--ion-color-light)',
+                        borderRadius: '12px',
+                        display: 'flex',
+                        flexDirection: 'column',
+                        gap: '12px',
+                        border: '1px solid var(--ion-color-primary)',
+                        marginBottom: '12px'
+                      }}
+                    >
+                      {chatMessages.map((msg, index) => {
+                        const isExpanded = expandedThinks[index] ?? false;
+                        
+                        if (msg.isUser) {
+                          // User message - right aligned
+                          return (
+                            <div
+                              key={msg.id || index}
+                              style={{
+                                display: 'flex',
+                                justifyContent: 'flex-end'
+                              }}
+                            >
+                              <div
                                 style={{
-                                  width: '100%',
-                                  padding: '12px',
-                                  backgroundColor: 'var(--ion-color-primary)',
-                                  color: 'white',
-                                  border: 'none',
-                                  borderRadius: '4px',
-                                  cursor: 'pointer',
-                                  fontWeight: 600,
-                                  fontSize: '16px',
-                                  display: 'flex',
-                                  justifyContent: 'space-between',
-                                  alignItems: 'center'
+                                  padding: '10px 14px',
+                                  borderRadius: '14px',
+                                  backgroundColor: '#f8d7e2',
+                                  color: 'var(--ion-color-dark)',
+                                  maxWidth: '80%',
+                                  boxShadow: '0 2px 6px rgba(0,0,0,0.08)',
+                                  whiteSpace: 'pre-wrap',
+                                  wordBreak: 'break-word',
+                                  border: '1px solid #f08cb3'
                                 }}
                               >
-                                <span>AI Thinking Process</span>
-                                <span>{expandThinking ? '▼' : '▶'}</span>
-                              </button>
-                              {expandThinking && (
-                                <div style={{ padding: '12px', backgroundColor: 'var(--ion-color-light)', borderRadius: '0 0 4px 4px' }}>
-                                  <p style={{ margin: 0, whiteSpace: 'pre-wrap', lineHeight: '1.6' }}>{thinkContent}</p>
+                                {msg.text}
+                              </div>
+                            </div>
+                          );
+                        }
+                        
+                        // System message - left aligned with thinking section
+                        return (
+                          <div
+                            key={msg.id || index}
+                            style={{
+                              display: 'flex',
+                              justifyContent: 'flex-start',
+                              width: '100%'
+                            }}
+                          >
+                            <div style={{ maxWidth: '80%', width: '100%' }}>
+                              {msg.thinking_part && (
+                                <div style={{ marginBottom: '8px' }}>
+                                  <button
+                                    onClick={() => toggleThink(index)}
+                                    style={{
+                                      width: '100%',
+                                      padding: '8px',
+                                      backgroundColor: 'var(--ion-color-primary)',
+                                      color: 'white',
+                                      border: 'none',
+                                      borderRadius: '8px',
+                                      cursor: 'pointer',
+                                      fontWeight: 600,
+                                      display: 'flex',
+                                      justifyContent: 'space-between',
+                                      alignItems: 'center'
+                                    }}
+                                  >
+                                    <span>AI Thinking Process</span>
+                                    <span>{isExpanded ? '▲' : '▼'}</span>
+                                  </button>
+                                  {isExpanded && (
+                                    <div style={{ marginTop: '8px', padding: '10px', backgroundColor: '#eef3ff', borderRadius: '8px', border: '1px solid #d0ddff', whiteSpace: 'pre-wrap' }}>
+                                      {msg.thinking_part}
+                                    </div>
+                                  )}
                                 </div>
                               )}
+                              <div
+                                className="compact-markdown"
+                                style={{
+                                  padding: '10px 14px',
+                                  borderRadius: '14px',
+                                  backgroundColor: '#d7f8d7',
+                                  color: 'var(--ion-color-dark)',
+                                  boxShadow: '0 2px 6px rgba(0,0,0,0.08)',
+                                  wordBreak: 'break-word',
+                                  border: '1px solid #63c77a'
+                                }}
+                              >
+                                <ReactMarkdown>{msg.text}</ReactMarkdown>
+                              </div>
                             </div>
-                          )}
-                          <ReactMarkdown>{reportContent}</ReactMarkdown>
-                        <br/>
-                        <br/>
-                        <br/>
-                        <br/>
-                        <br/>
-                        <br/>
-                        <br/>
-                        <br/>
-                        <br/>
-                        <br/>
-                        </>
-                      );
-                    })()}
+                          </div>
+                        );
+                      })}
+                      {isChatLoading && (
+                        <div style={{ display: 'flex', justifyContent: 'flex-start' }}>
+                          <div
+                            style={{
+                              padding: '10px 14px',
+                              borderRadius: '14px',
+                              backgroundColor: '#d7f8d7',
+                              color: 'var(--ion-color-dark)',
+                              boxShadow: '0 2px 6px rgba(0,0,0,0.08)',
+                              border: '1px solid #63c77a'
+                            }}
+                          >
+                            AI is typing...
+                          </div>
+                        </div>
+                      )}
+                    </div>
 
-                  </IonCardContent>
-                  <IonCardContent>
-                {/* Footer */}
-              <Footer></Footer>
+                    <div style={{ display: 'flex', gap: '8px', alignItems: 'flex-end' }}>
+                      <IonTextarea
+                        value={chatInput}
+                        onIonInput={(e) => setChatInput(e.detail.value!)}
+                        placeholder="Ask anything..."
+                        rows={3}
+                        style={{ flex: 1, minHeight: '80px', backgroundColor: '#bdb1b5ff', border: '1px solid #f08cb3', borderRadius: '10px' }}
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter' && !e.shiftKey) {
+                            e.preventDefault();
+                            sendChatMessage();
+                          }
+                        }}
+                      />
+                      <IonButton
+                        onClick={sendChatMessage}
+                        disabled={!chatInput.trim() || isChatLoading}
+                        style={{ alignSelf: 'stretch', minWidth: '56px', backgroundColor: '#f08cb3' }}
+                      >
+                        <IonIcon icon={send} />
+                      </IonButton>
+                    </div>
                   </IonCardContent>
                 </IonCard>
+
               )}
-              
-              
-              {/* Chat FAB */}
-              <IonFab style={{ position: 'fixed', bottom: '20px', right: '20px', zIndex: 1000 }}>
-                <IonFabButton onClick={() => setIsChatOpen(true)}>
-                  <IonIcon icon={chatbubbles} />
-                </IonFabButton>
-              </IonFab>
+
             </>
           )}
         </div>
-
-        {/* Chat Modal */}
-        <IonModal isOpen={isChatOpen} onDidDismiss={() => setIsChatOpen(false)}>
-          <IonHeader>
-            <IonToolbar>
-              <IonTitle>AI Assistant</IonTitle>
-              <IonButtons slot="end">
-                <IonButton onClick={() => setIsChatOpen(false)}>
-                  <IonIcon icon={close} />
-                </IonButton>
-              </IonButtons>
-            </IonToolbar>
-          </IonHeader>
-          
-          <IonContent>
-            <div style={{ padding: '16px', height: '100%', display: 'flex', flexDirection: 'column' }}>
-              <div style={{ flex: 1, overflowY: 'auto', marginBottom: '16px' }}>
-                {chatMessages.map((msg, index) => (
-                  <div
-                    key={index}
-                    style={{
-                      marginBottom: '12px',
-                      textAlign: msg.isUser ? 'right' : 'left'
-                    }}
-                  >
-                    <div
-                      style={{
-                        display: 'inline-block',
-                        padding: '8px 12px',
-                        borderRadius: '12px',
-                        backgroundColor: msg.isUser ? 'var(--ion-color-primary)' : 'var(--ion-color-light)',
-                        color: msg.isUser ? 'white' : 'var(--ion-color-dark)',
-                        maxWidth: '80%',
-                        whiteSpace: 'pre-wrap'
-                      }}
-                    >
-                      {msg.isUser ? msg.text : <ReactMarkdown>{msg.text}</ReactMarkdown>}
-                    </div>
-                  </div>
-                ))}
-                {isChatLoading && (
-                  <div style={{ textAlign: 'left', marginBottom: '12px' }}>
-                    <div
-                      style={{
-                        display: 'inline-block',
-                        padding: '8px 12px',
-                        borderRadius: '12px',
-                        backgroundColor: 'var(--ion-color-light)',
-                        color: 'var(--ion-color-dark)'
-                      }}
-                    >
-                      AI is typing...
-                    </div>
-                  </div>
-                )}
-              </div>
-              
-              <div style={{ display: 'flex', gap: '8px' }}>
-                <IonTextarea
-                  value={chatInput}
-                  onIonInput={(e) => setChatInput(e.detail.value!)}
-                  placeholder="Ask about the diagnosis..."
-                  rows={2}
-                  style={{ flex: 1 }}
-                  onKeyDown={(e) => {
-                    if (e.key === 'Enter' && !e.shiftKey) {
-                      e.preventDefault();
-                      sendChatMessage();
-                    }
-                  }}
-                />
-                <IonButton
-                  onClick={sendChatMessage}
-                  disabled={!chatInput.trim() || isChatLoading}
-                >
-                  <IonIcon icon={send} />
-                </IonButton>
-              </div>
-            </div>
-          </IonContent>
-        </IonModal>
-
         <IonLoading isOpen={isLoading} message="Analyzing image..." />
         
         <IonAlert
@@ -584,8 +643,12 @@ const BrainTumorApp: React.FC<{ user: User; onLogout: () => void }> = ({ user, o
           message={alertMessage}
           buttons={['OK']}
         />
-        
       </IonContent>
+      <IonFooter>
+        <div style={{ padding: '16px', marginTop: '8px' }}>
+          <Footer />
+        </div>
+      </IonFooter>
     </IonPage>
   );
 };
