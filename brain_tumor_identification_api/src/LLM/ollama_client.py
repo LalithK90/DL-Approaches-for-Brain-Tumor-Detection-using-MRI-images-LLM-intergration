@@ -53,7 +53,37 @@ def _chunk_text(text: str, chunk_size: int = 4000, chunk_overlap: int = 200) -> 
     return chunks
 
 
-MAX_PROMPT_LENGTH = 16000  # A conservative character limit for prompts
+MAX_PROMPT_LENGTH = 24000  # Default fallback value
+
+# Model-specific context window limits (in characters)
+# Optimized to reduce chunking and improve response time
+MODEL_MAX_LENGTHS = {
+    # ~6K tokens (75% of 8K capacity)
+    "edwardlo12/medgemma-4b-it-Q4_K_M": 24000,
+    # ~50K tokens (conservatively ~40% of 128K capacity)
+    "llama3.2-vision:latest": 200000,
+    # ~25K tokens (conservatively ~40% of 64K capacity)
+    "deepseek-r1:14b": 100000,
+    # OpenRouter DeepSeek (~25K tokens)
+    "deepseek/deepseek-chat-v3-0324:free": 100000,
+    "deepseek-r1-distill-llama-70b": 100000,  # Groq DeepSeek (~25K tokens)
+    "qwen/qwen3-32b": 80000,  # Groq Qwen (~20K tokens, ~40% of 32K capacity)
+}
+
+
+def get_max_prompt_length(model_name: str) -> int:
+    """
+    Returns the maximum prompt length for a given model.
+    Uses model-specific limits to optimize performance and reduce chunking.
+    
+    Args:
+        model_name: Name of the model (e.g., 'deepseek-r1:14b', 'llama3.2-vision:latest')
+    
+    Returns:
+        Maximum prompt length in characters
+    """
+    return MODEL_MAX_LENGTHS.get(model_name, MAX_PROMPT_LENGTH)
+
 MEDGEMMA_MODEL_NAME = "edwardlo12/medgemma-4b-it-Q4_K_M"
 LAMMA_MODEL_NAME = 'llama3.2-vision:latest'
 DEEPSEEK_MODEL_NAME = 'deepseek-r1:14b'
@@ -257,107 +287,7 @@ Structure:
 
 ---
 
-## 11.5. External Learning Resources & Online References
 
-**For Students & Radiologists to Study Further:**
-
-### Online Atlases & Visual References
-- **Neurosurgical Atlas** (https://www.neurosurgicalatlas.com/)
-  * Search for: [Tumor type, anatomy, surgical approaches]
-  * Why useful: High-quality illustrations of normal anatomy, tumor pathology, surgical corridors
-  
-- **Radiopaedia** (https://radiopaedia.org/)
-  * Search: "[Tumor type] imaging", "[Tumor type] MRI findings"
-  * Why useful: Large database of cases with imaging features, differential diagnosis, clinical correlation
-  
-- **Osmosis** (https://www.osmosis.org/)
-  * Search: "[Tumor type] brain tumor", "[Diagnosis] pathophysiology"
-  * Why useful: Student-focused, explains pathology and clinical manifestations clearly
-
-- **UpToDate** (https://www.uptodate.com/)
-  * Search: "[Tumor type] epidemiology", "[Tumor type] diagnosis and management"
-  * Why useful: Comprehensive, regularly updated clinical information (subscription required)
-
-### Clinical Guidelines & Protocols
-- **NCCN Guidelines** (https://www.nccn.org/professionals/physician_gls/pdf/cns.pdf)
-  * For: Treatment protocols, staging, surveillance schedules
-  * Latest version: [Current year]
-  
-- **WHO Classification** (https://www.who.int/publications/item/9789240045681)
-  * For: Tumor grading criteria, molecular markers, prognostic groups
-  
-- **EANO Guidelines** (https://www.eano.eu/)
-  * For: European standards, brain tumor management in different patient populations
-
-### Medical Imaging & Diagnostic References
-- **Osborn's Brain** (https://www.elsevier.com/books/osborns-brain/osborn/)
-  * Gold standard textbook for neuroimaging - covers all brain tumors with imaging patterns
-  
-- **Diagnostic Imaging: Brain** (Elsevier)
-  * 2000+ high-quality cases with clinical correlation
-  
-- **American Journal of Neuroradiology** (https://www.ajnr.org/)
-  * Latest research on imaging techniques for tumor diagnosis and follow-up
-
-### Pathophysiology & Deep Dive Learning
-- **Johns Hopkins Brain Tumor Center** (https://www.hopkinsmedicine.org/health/conditions-and-diseases/brain-tumors)
-  * Information for: Patient education, clinical staging, prognosis
-  
-- **Mayo Clinic Brain Tumor Resources** (https://www.mayoclinic.org/diseases-conditions/brain-tumor/)
-  * For: Symptoms, diagnosis, staging, treatment options
-  
-- **National Brain Tumor Society** (https://www.braintumorconnect.org/)
-  * For: Patient support, latest research, clinical trials, community resources
-
-### Research & Latest Evidence
-- **PubMed** (https://pubmed.ncbi.nlm.nih.gov/)
-  * Search: "[Tumor type] epidemiology [Current Year]", "[Tumor type] prognosis"
-  * Find: Latest peer-reviewed publications on this tumor type
-  
-- **Google Scholar** (https://scholar.google.com/)
-  * Search: "[Tumor type] imaging features", "[Tumor type] management"
-  * Access: Full-text papers where available
-  
-- **ResearchGate** (https://www.researchgate.net/)
-  * Search: "[Tumor type]", "[Your tumor type] MRI"
-  * Connect: With researchers studying this tumor type
-
-### Student Learning Platforms
-- **Khan Academy** (https://www.khanacademy.org/)
-  * Search: "Brain anatomy", "Nervous system", "Cancer biology"
-  * Why: Foundation knowledge for tumor pathophysiology
-
-- **Lecturio** (https://www.lecturio.com/)
-  * Search: "Brain tumors", "Neurooncology", "Surgical neuropathology"
-  * Why: Video-based learning, organized by specialty
-
-### Related Clinical Conditions to Consider
-**Sometimes brain imaging findings relate to other diagnoses:**
-- **Demyelinating disease:** MS, ADEM (can mimic tumors)
-- **Infectious diseases:** Abscess, toxoplasmosis (especially in immunocompromised)
-- **Vascular disorders:** Cavernoma, AVM, aneurysm (mass-like lesions)
-- **Inflammatory conditions:** Sarcoidosis, vasculitis (can present as masses)
-- **Metabolic disorders:** Leukodystrophies (diffuse changes vs focal mass)
-
-**Resources for these differentials:**
-- https://radiopaedia.org/articles/differential-diagnosis-of-intracranial-masses
-- https://www.osmosis.org/ (search by symptom or imaging finding)
-
-### Red Flags & Urgent Learning Points
-**When to recognize and escalate:**
-- **Imaging features requiring STAT action:** [Herniating mass, acute hemorrhage, etc.]
-- **Clinical scenarios requiring immediate intervention:** [Seizure status, rapidly progressive deficit, etc.]
-- **Resource:** https://www.neurosurgerytoday.org/ (peer-reviewed neurosurgery news)
-
----
-
-**HOW TO USE THESE RESOURCES:**
-1. **Students:** Start with Khan Academy/Osmosis for basics, then move to Radiopaedia for cases
-2. **Radiologists:** Use Radiopaedia to compare cases, NCCN for staging, UpToDate for management updates
-3. **Clinicians:** Reference NCCN/WHO for protocols, Mayo/Johns Hopkins for patient counseling
-4. **All Professionals:** Check PubMed/Google Scholar for latest research on THIS specific tumor type
-
----
 
 ## 12. TECHNICAL APPENDIX (AI/Computer Science Details - For Reference)
 
@@ -720,7 +650,6 @@ def get_text_reasoning(message: str, image_path: str) -> Optional[str]:
         # Each item in retrieved_context is a dict. We need to format it into a string.
         context_str = "\n\n".join([json.dumps(item) for item in retrieved_context])
         augmented_prompt = (
-            f"{COMMON_PROMPT_MESSAGE}" +
             "--- CONTEXT ---\n"
             f"{context_str}\n"
             "--- END CONTEXT ---\n\n"
@@ -730,14 +659,26 @@ def get_text_reasoning(message: str, image_path: str) -> Optional[str]:
     else:
         logging.info("No context found. Proceeding with the original prompt.")
 
+    # Determine which model will be used
+    if OPENROUTER_API_KEY:
+        model_name = "deepseek/deepseek-chat-v3-0324:free"
+    else:
+        model_name = DEEPSEEK_MODEL_NAME
+
+    # Get model-specific max prompt length
+    max_length = get_max_prompt_length(model_name)
+    logging.info(
+        f"Using model '{model_name}' with max prompt length: {max_length} chars")
+
     final_response = None
     # Check if the prompt is too long
-    if len(augmented_prompt) <= MAX_PROMPT_LENGTH:
+    if len(augmented_prompt) <= max_length:
         logging.info("Prompt is within length limits. Calling model directly.")
         if OPENROUTER_API_KEY:
             final_response = _call_openrouter_model(augmented_prompt)
         else:
-            final_response = _call_ollama_model(model_name='deepseek-r1:14b', message=augmented_prompt)
+            final_response = _call_ollama_model(
+                model_name=model_name, message=augmented_prompt)
     else:
         # Handle long prompt with chunking and refining
         logging.info(f"Prompt is too long ({len(augmented_prompt)} chars). Chunking and using refine strategy.")
@@ -753,7 +694,8 @@ def get_text_reasoning(message: str, image_path: str) -> Optional[str]:
         if OPENROUTER_API_KEY:
             refined_answer = _call_openrouter_model(first_chunk_prompt)
         else:
-            refined_answer = _call_ollama_model(model_name='deepseek-r1:14b', message=first_chunk_prompt)
+            refined_answer = _call_ollama_model(
+                model_name=model_name, message=first_chunk_prompt)
 
         if not refined_answer:
             logging.error("Failed to process the first chunk. Aborting.")
@@ -771,7 +713,8 @@ def get_text_reasoning(message: str, image_path: str) -> Optional[str]:
             if OPENROUTER_API_KEY:
                 refined_answer = _call_openrouter_model(refine_prompt)
             else:
-                refined_answer = _call_ollama_model(model_name='deepseek-r1:14b', message=refine_prompt)
+                refined_answer = _call_ollama_model(
+                    model_name=model_name, message=refine_prompt)
             if not refined_answer:
                 logging.warning(f"Failed to process chunk {i}. Continuing with previous summary.")
                 # Continue with the last good answer
