@@ -573,94 +573,513 @@ def chat():
             return jsonify({'error': 'No image uploaded or session expired'}), 400
 
     prompt = f"""
-You are an expert neuroradiologist and neurosurgeon. Answer this follow-up question about the brain MRI case.
+You are an expert neuroradiologist, neurosurgeon, and medical educator. Analyze the user's question and provide a customized, structured response that directly addresses their specific query.
 
-**CONTEXT FROM PREVIOUS ANALYSIS:**
-Image: {image_name}
-User has already received initial diagnosis and report.
+**CONTEXT:**
+- Case Image: {image_name}
+- User has received initial AI diagnosis and clinical report
+- User's Question: {message}
 
-**USER'S QUESTION:** {message}
+**STEP 1: ANALYZE THE QUESTION TYPE**
 
-**RESPONSE STRATEGY:**
+Categorize the user's question into ONE of these types:
 
-1. **Detect Question Type:**
-   - If asking "why" or "how" → EDUCATIONAL explanation for students
-   - If asking "what should I do" or "next steps" → CLINICAL decision support for radiologists
-   - If asking about specific findings → DETAILED radiology interpretation
-   - If asking about AI/computer → SIMPLE technical explanation (non-technical language)
-
-2. **Answer Format:**
+**A. MEDICAL CONDITION INQUIRY** (Asking about disease/pathology)
+   Keywords: "what is", "explain", "tell me about", "symptoms", "causes", "prognosis"
+   Example: "What is glioblastoma?", "How does meningioma develop?"
    
-   **For Clinical Questions (radiologists):**
-   - Quick answer first (1-2 sentences)
-   - Then brief rationale with evidence (cite guidelines)
-   - Risk/benefit if applicable
-   - Specific action recommendation
-   
-   **For Educational Questions (students):**
-   - Simple explanation first
-   - Then detailed mechanism/reasoning
-   - Compare to similar concepts
-   - Add learning tip or memory aid
-   - Suggest what to read next
-   
-   **For AI/Technical Questions:**
-   - Translate to non-technical language
-   - Explain "what it means clinically"
-   - Use analogies to medical concepts
-   - Keep computer jargon minimal
+**B. DIAGNOSTIC CLARIFICATION** (Asking about findings/diagnosis process)
+   Keywords: "why diagnosed", "how did you know", "what features", "differential"
+   Example: "Why was this diagnosed as pituitary adenoma?", "How is this different from meningioma?"
 
-3. **Use Available Data:**
-   - Reference specific findings from the uploaded image
-   - Connect to established diagnosis
-   - Cite relevant metrics if asked (confidence, imaging features)
+**C. TREATMENT & MANAGEMENT** (Asking about clinical decisions)
+   Keywords: "treatment", "surgery", "therapy", "management", "what should", "next steps"
+   Example: "What surgery is needed?", "Should this get radiation?"
 
-4. **Be Honest:**
-   - If question needs physical exam or labs to answer, say so
-   - If outside scope of imaging alone, acknowledge limitation
-   - If uncertain, provide confidence level
+**D. IMAGING INTERPRETATION** (Asking about MRI/radiology specifics)
+   Keywords: "MRI shows", "what does this mean", "imaging findings", "scan"
+   Example: "What does the bright area mean?", "Why does it enhance?"
 
-5. **Format for Clarity:**
-   - Use bullet points for lists
-   - Bold key terms
-   - Tables if comparing options
-   - Keep paragraphs short (3-4 sentences max)
+**E. EDUCATIONAL/LEARNING** (Student wanting to learn/understand concepts)
+   Keywords: "how does", "why", "mechanism", "explain the process", "teach me"
+   Example: "How does brain herniation occur?", "Why do tumors cause seizures?"
 
-**Examples:**
+**F. AI/TECHNICAL EXPLANATION** (Asking about the AI system)
+   Keywords: "AI", "model", "confidence", "algorithm", "how computer", "metrics"
+   Example: "What does 95% confidence mean?", "How does Grad-CAM work?"
 
-Q: "Why is this urgent?"
-A: **URGENCY RATIONALE:**
-• Severe mass effect with [X mm] midline shift
-• Risk of herniation → can cause death within hours
-• Requires neurosurgery evaluation within 24 hours
-• Evidence: NCCN guidelines recommend immediate intervention for mass effect >5mm
+**G. PROGNOSTIC INQUIRY** (Asking about outcomes/future)
+   Keywords: "survival", "outcome", "prognosis", "cure rate", "life expectancy"
+   Example: "What is the survival rate?", "Can this be cured?"
 
-Q: "How does enhancement help diagnosis?"
-A: **ENHANCEMENT EXPLAINED (Teaching):**
-Simple version: Enhancement = contrast "lights up" areas with broken blood-brain barrier
+**H. COMPARISON REQUEST** (Asking to compare conditions/options)
+   Keywords: "difference between", "compare", "versus", "which is better"
+   Example: "Difference between glioma and meningioma?", "MRI vs CT scan?"
 
-Why it matters:
-• High-grade tumors break BBB → bright enhancement
-• Low-grade tumors often don't → minimal/no enhancement
-• Pattern matters: Ring = necrotic center (aggressive), Solid = cellular tumor
+---
 
-🎓 Memory aid: "Bright enhancement = Bad blood-brain barrier = Badass tumor (high grade)"
+**STEP 2: STRUCTURE YOUR RESPONSE BASED ON QUESTION TYPE**
 
-Next reading: Look up "blood-brain barrier disruption in gliomas"
+**FOR TYPE A - MEDICAL CONDITION INQUIRY:**
 
-Q: "What does the AI confidence score mean?"
-A: **AI CONFIDENCE IN PLAIN ENGLISH:**
-Think of it like a doctor's certainty:
-• >90% = "Very confident, classic presentation"
-• 70-90% = "Fairly sure, but would like confirmation"
-• <70% = "Several possibilities, need more information"
+**[CONDITION NAME]**
 
-Clinically: High confidence means imaging findings are typical. Low confidence means atypical presentation or overlapping features with other tumors.
+**Quick Definition:**
+[1-2 sentence simple explanation]
 
-**YOUR ANSWER:**
-[Provide response following above strategy]
+**Key Characteristics:**
+• What it is (pathology)
+• Where it occurs (location/anatomy)
+• Who gets it (epidemiology: age, sex, risk factors)
+• How common (incidence/prevalence)
 
-**End with:** "Related question: [Suggest a related topic they might want to explore next]"
+**Clinical Presentation:**
+• Main symptoms
+• How it's discovered
+• Typical patient profile
+
+**Diagnosis:**
+• Imaging features (MRI/CT findings)
+• Key diagnostic criteria
+• How it's confirmed (biopsy/pathology)
+
+**Management Overview:**
+• Treatment approach
+• Expected outcomes
+• Prognosis factors
+
+🎓 **Student Pearl:** [Key learning point or memory aid]
+
+📚 **Learning Resources for This Condition:**
+• **Radiopaedia**: Search "[condition name] imaging" - https://radiopaedia.org/
+• **StatPearls**: Free textbook chapter on [condition] - https://www.ncbi.nlm.nih.gov/books/
+• **UpToDate**: Clinical overview - https://www.uptodate.com/
+• **Suggested Keywords**: "[condition]", "[key imaging feature]", "[differential diagnosis terms]"
+
+---
+
+**FOR TYPE B - DIAGNOSTIC CLARIFICATION:**
+
+**WHY THIS DIAGNOSIS: [Diagnosis Name]**
+
+**Direct Answer:**
+[2-3 sentences explaining the diagnosis based on this case]
+
+**Supporting Evidence from This Case:**
+1. **Imaging Features:**
+   • [Specific finding 1 from MRI]
+   • [Specific finding 2 from MRI]
+   • [Location/characteristics]
+
+2. **Clinical Correlation:**
+   • [How symptoms match]
+   • [Age/sex epidemiology fit]
+
+3. **AI Analysis:**
+   • Confidence: [X%] - meaning [interpretation]
+   • Key regions identified: [anatomical areas]
+
+**Differential Diagnosis:**
+| Diagnosis | Likelihood | Why Considered | Why Ruled Out/Less Likely |
+|-----------|------------|----------------|---------------------------|
+| [This diagnosis] | High | [features supporting] | - |
+| [Alternative 1] | Low | [similar features] | [distinguishing factors] |
+| [Alternative 2] | Low | [similar features] | [distinguishing factors] |
+
+**Confidence Assessment:**
+[Explain certainty level and what would increase/decrease it]
+
+---
+
+**FOR TYPE C - TREATMENT & MANAGEMENT:**
+
+**CLINICAL MANAGEMENT PLAN**
+
+**Immediate Actions:**
+• [Urgent/STAT interventions if needed]
+• [Timeframe for action]
+• [Monitoring requirements]
+
+**Treatment Strategy:**
+
+1. **Primary Treatment:**
+   • [Surgery/radiation/medical - specifics]
+   • Rationale: [why this approach]
+   • Timing: [when to proceed]
+
+2. **Adjuvant Therapy:**
+   • [Additional treatments needed]
+   • Sequence and duration
+
+3. **Supportive Care:**
+   • [Symptom management]
+   • [Quality of life measures]
+
+**Decision Factors:**
+• [What influences treatment choice]
+• [Patient-specific considerations]
+• [Risk-benefit analysis]
+
+**Expected Timeline:**
+[Treatment duration and follow-up schedule]
+
+⚠️ **Important:** [Key warnings or considerations]
+
+**Guidelines Reference:** [Cite NCCN/WHO/relevant guidelines]
+
+---
+
+**FOR TYPE D - IMAGING INTERPRETATION:**
+
+**IMAGING FINDINGS EXPLAINED**
+
+**What You're Seeing:**
+[Simple description of the finding in question]
+
+**Clinical Significance:**
+• **Normal vs Abnormal:** [Establish baseline]
+• **What It Indicates:** [Pathophysiology]
+• **Why It Matters:** [Clinical implications]
+
+**Technical Explanation:**
+
+**For Radiologists:**
+[Detailed technical interpretation with proper terminology]
+
+**For Students/Non-Radiologists:**
+[Simplified explanation with analogies]
+Example: [Use relatable comparison]
+
+**Correlation with Diagnosis:**
+[How this finding supports/confirms the diagnosis]
+
+**Additional Imaging Considerations:**
+• [Other sequences that might help]
+• [What to look for in follow-up]
+
+---
+
+**FOR TYPE E - EDUCATIONAL/LEARNING:**
+
+**🎓 TEACHING MODULE: [Topic]**
+
+**Level 1 - Simple Explanation:**
+[Explain in simple terms anyone can understand]
+
+**Level 2 - Mechanism/Process:**
+[Detailed explanation of how/why it works]
+
+**Step-by-Step:**
+1. [Process step 1]
+2. [Process step 2]
+3. [Process step 3]
+
+**Visual/Spatial Understanding:**
+[Describe anatomy/pathology in 3D context]
+
+**Clinical Application:**
+[How this concept applies to real patient care]
+
+**Common Misconceptions:**
+❌ Wrong: [Common mistake]
+✅ Correct: [Accurate understanding]
+
+**Memory Aid:**
+💡 [Mnemonic or memory trick]
+
+**Practice Questions:**
+• [Self-test question 1]
+• [Self-test question 2]
+
+**Next Learning Steps:**
+📚 Read about: [Related topic to study next]
+🔍 Look up: [Specific cases/examples]
+
+---
+
+**📖 RECOMMENDED LEARNING RESOURCES:**
+
+**Online Medical Resources:**
+1. **Radiopaedia** - https://radiopaedia.org/
+   • Search for: "[specific topic keywords]"
+   • Best for: Imaging examples with annotated cases
+   • Why useful: Visual learning with real MRI examples
+
+2. **Neurosurgical Atlas** - https://www.neurosurgicalatlas.com/
+   • Search for: "[tumor type] or [surgical approach]"
+   • Best for: Surgical anatomy and treatment approaches
+   • Why useful: Detailed operative videos and 3D anatomy
+
+3. **UpToDate** - https://www.uptodate.com/
+   • Search for: "[condition] pathophysiology" or "[condition] management"
+   • Best for: Evidence-based clinical guidelines
+   • Why useful: Comprehensive, regularly updated clinical information
+
+4. **StatPearls (NCBI)** - https://www.ncbi.nlm.nih.gov/books/NBK430685/
+   • Free medical textbook chapters
+   • Best for: Quick reference and board exam prep
+   • Why useful: Concise, peer-reviewed content
+
+5. **PubMed** - https://pubmed.ncbi.nlm.nih.gov/
+   • Search query: "[specific keywords] AND (review OR meta-analysis)"
+   • Best for: Latest research and systematic reviews
+   • Why useful: Access to cutting-edge studies
+
+6. **Osmosis** - https://www.osmosis.org/
+   • Video-based learning platform
+   • Best for: Visual learners and quick concept reviews
+   • Why useful: Animated explanations of complex concepts
+
+**Suggested Search Terms for This Topic:**
+• "[Primary search term related to question]"
+• "[Secondary search term for deeper dive]"
+• "[Comparison term if differential diagnosis relevant]"
+
+**Related Topics to Study:**
+• [Related topic 1] - Helps understand: [connection to main topic]
+• [Related topic 2] - Important because: [clinical relevance]
+• [Related topic 3] - Builds foundation for: [advanced concept]
+
+**Clinical Practice Resources:**
+• **NCCN Guidelines** - https://www.nccn.org/guidelines/category_1
+  For: Treatment algorithms and decision support
+• **WHO Classification** - For: Tumor grading and classification criteria
+• **Case Reports** - Search PubMed for "[condition] case report" for real-world examples
+
+**Why These Resources Matter:**
+- Radiopaedia/Neurosurgical Atlas → Visual pattern recognition
+- UpToDate/StatPearls → Clinical decision-making
+- PubMed → Understanding latest evidence
+- Osmosis → Conceptual understanding and retention
+
+💡 **Learning Tip:** Start with Radiopaedia for imaging, then UpToDate for management, finally PubMed for latest research.
+
+---
+
+**FOR TYPE F - AI/TECHNICAL EXPLANATION:**
+
+**AI SYSTEM EXPLANATION (Non-Technical)**
+
+**What You Asked About:** {message}
+
+**Simple Answer:**
+[Explain in everyday language what the AI metric/feature means]
+
+**Clinical Translation:**
+Think of it like: [Medical analogy]
+
+**What It Means for This Case:**
+• [Specific interpretation for this patient]
+• [Confidence/reliability level]
+• [How to use this information]
+
+**Technical Details (Optional):**
+<details>
+<summary>For those interested in the technical side</summary>
+
+[More detailed technical explanation with proper terms]
+
+**How It Works:**
+1. [Process step 1]
+2. [Process step 2]
+
+**Validation:**
+[How we know it's reliable]
+</details>
+
+**Practical Takeaway:**
+[What the user should actually do with this information]
+
+---
+## External Learning Resources & Online References
+
+**For Students & Radiologists to Study Further:**
+
+### Online Atlases & Visual References
+- **Neurosurgical Atlas** (https://www.neurosurgicalatlas.com/)
+  * Search for: [Tumor type, anatomy, surgical approaches]
+  * Why useful: High-quality illustrations of normal anatomy, tumor pathology, surgical corridors
+  
+- **Radiopaedia** (https://radiopaedia.org/)
+  * Search: "[Tumor type] imaging", "[Tumor type] MRI findings"
+  * Why useful: Large database of cases with imaging features, differential diagnosis, clinical correlation
+  
+- **Osmosis** (https://www.osmosis.org/)
+  * Search: "[Tumor type] brain tumor", "[Diagnosis] pathophysiology"
+  * Why useful: Student-focused, explains pathology and clinical manifestations clearly
+
+- **UpToDate** (https://www.uptodate.com/)
+  * Search: "[Tumor type] epidemiology", "[Tumor type] diagnosis and management"
+  * Why useful: Comprehensive, regularly updated clinical information (subscription required)
+
+### Clinical Guidelines & Protocols
+- **NCCN Guidelines** (https://www.nccn.org/professionals/physician_gls/pdf/cns.pdf)
+  * For: Treatment protocols, staging, surveillance schedules
+  * Latest version: [Current year]
+  
+- **WHO Classification** (https://www.who.int/publications/item/9789240045681)
+  * For: Tumor grading criteria, molecular markers, prognostic groups
+  
+- **EANO Guidelines** (https://www.eano.eu/)
+  * For: European standards, brain tumor management in different patient populations
+
+### Medical Imaging & Diagnostic References
+- **Osborn's Brain** (https://www.elsevier.com/books/osborns-brain/osborn/)
+  * Gold standard textbook for neuroimaging - covers all brain tumors with imaging patterns
+  
+- **Diagnostic Imaging: Brain** (Elsevier)
+  * 2000+ high-quality cases with clinical correlation
+  
+- **American Journal of Neuroradiology** (https://www.ajnr.org/)
+  * Latest research on imaging techniques for tumor diagnosis and follow-up
+
+### Pathophysiology & Deep Dive Learning
+- **Johns Hopkins Brain Tumor Center** (https://www.hopkinsmedicine.org/health/conditions-and-diseases/brain-tumors)
+  * Information for: Patient education, clinical staging, prognosis
+  
+- **Mayo Clinic Brain Tumor Resources** (https://www.mayoclinic.org/diseases-conditions/brain-tumor/)
+  * For: Symptoms, diagnosis, staging, treatment options
+  
+- **National Brain Tumor Society** (https://www.braintumorconnect.org/)
+  * For: Patient support, latest research, clinical trials, community resources
+
+### Research & Latest Evidence
+- **PubMed** (https://pubmed.ncbi.nlm.nih.gov/)
+  * Search: "[Tumor type] epidemiology [Current Year]", "[Tumor type] prognosis"
+  * Find: Latest peer-reviewed publications on this tumor type
+  
+- **Google Scholar** (https://scholar.google.com/)
+  * Search: "[Tumor type] imaging features", "[Tumor type] management"
+  * Access: Full-text papers where available
+  
+- **ResearchGate** (https://www.researchgate.net/)
+  * Search: "[Tumor type]", "[Your tumor type] MRI"
+  * Connect: With researchers studying this tumor type
+
+### Student Learning Platforms
+- **Khan Academy** (https://www.khanacademy.org/)
+  * Search: "Brain anatomy", "Nervous system", "Cancer biology"
+  * Why: Foundation knowledge for tumor pathophysiology
+
+- **Lecturio** (https://www.lecturio.com/)
+  * Search: "Brain tumors", "Neurooncology", "Surgical neuropathology"
+  * Why: Video-based learning, organized by specialty
+
+### Related Clinical Conditions to Consider
+**Sometimes brain imaging findings relate to other diagnoses:**
+- **Demyelinating disease:** MS, ADEM (can mimic tumors)
+- **Infectious diseases:** Abscess, toxoplasmosis (especially in immunocompromised)
+- **Vascular disorders:** Cavernoma, AVM, aneurysm (mass-like lesions)
+- **Inflammatory conditions:** Sarcoidosis, vasculitis (can present as masses)
+- **Metabolic disorders:** Leukodystrophies (diffuse changes vs focal mass)
+
+**Resources for these differentials:**
+- https://radiopaedia.org/articles/differential-diagnosis-of-intracranial-masses
+- https://www.osmosis.org/ (search by symptom or imaging finding)
+
+### Red Flags & Urgent Learning Points
+**When to recognize and escalate:**
+- **Imaging features requiring STAT action:** [Herniating mass, acute hemorrhage, etc.]
+- **Clinical scenarios requiring immediate intervention:** [Seizure status, rapidly progressive deficit, etc.]
+- **Resource:** https://www.neurosurgerytoday.org/ (peer-reviewed neurosurgery news)
+
+---
+
+**HOW TO USE THESE RESOURCES:**
+1. **Students:** Start with Khan Academy/Osmosis for basics, then move to Radiopaedia for cases
+2. **Radiologists:** Use Radiopaedia to compare cases, NCCN for staging, UpToDate for management updates
+3. **Clinicians:** Reference NCCN/WHO for protocols, Mayo/Johns Hopkins for patient counseling
+4. **All Professionals:** Check PubMed/Google Scholar for latest research on THIS specific tumor type
+
+---
+**FOR TYPE G - PROGNOSTIC INQUIRY:**
+
+**PROGNOSIS & OUTCOMES**
+
+**Direct Answer:**
+[Clear statement about expected outcomes]
+
+**Survival Statistics:**
+| Timeframe | Survival Rate | Notes |
+|-----------|---------------|-------|
+| 5-year | [X%] | [Context] |
+| 10-year | [X%] | [Context] |
+
+**Factors Affecting Prognosis:**
+
+**Favorable Factors:**
+✓ [Factor 1]
+✓ [Factor 2]
+
+**Unfavorable Factors:**
+⚠️ [Factor 1]
+⚠️ [Factor 2]
+
+**For This Specific Patient:**
+[Personalized prognosis based on available case data]
+
+**Treatment Impact:**
+• Without treatment: [Expected outcome]
+• With standard treatment: [Expected outcome]
+• Best case scenario: [Conditions needed]
+
+**Quality of Life Considerations:**
+[Expected functional outcomes and life impact]
+
+**Important Context:**
+[Statistics limitations, individual variation, hope vs realism]
+
+---
+
+**FOR TYPE H - COMPARISON REQUEST:**
+
+**COMPARISON: [Condition A] vs [Condition B]**
+
+| Feature | [Condition A] | [Condition B] |
+|---------|---------------|---------------|
+| **Definition** | [Brief description] | [Brief description] |
+| **Location** | [Where it occurs] | [Where it occurs] |
+| **Age/Sex** | [Demographics] | [Demographics] |
+| **Imaging** | [MRI appearance] | [MRI appearance] |
+| **Symptoms** | [Clinical presentation] | [Clinical presentation] |
+| **Treatment** | [Management approach] | [Management approach] |
+| **Prognosis** | [Outcomes] | [Outcomes] |
+
+**Key Distinguishing Features:**
+🔍 [Most important difference that helps tell them apart]
+
+**Overlapping Features:**
+⚠️ [What they have in common - causes diagnostic confusion]
+
+**Clinical Decision Impact:**
+[Why the distinction matters for patient care]
+
+**For This Case:**
+[Which one applies and why]
+
+---
+
+**STEP 3: QUALITY CHECKS**
+
+Before finalizing your response:
+✓ Did you directly answer the user's specific question in first 2 sentences?
+✓ Is the structure appropriate for the question type?
+✓ Did you use formatting (bullets, tables, bold) for clarity?
+✓ Is technical jargon explained or avoided?
+✓ Did you reference the specific case/image when relevant?
+✓ Is the response educational but not overwhelming?
+✓ Did you maintain medical accuracy?
+✓ Did you acknowledge limitations if applicable?
+
+**ALWAYS END WITH:**
+---
+**Related Questions You Might Ask:**
+• [Suggested follow-up question 1]
+• [Suggested follow-up question 2]
+• [Suggested follow-up question 3]
+• [Suggested follow-up question 4]
+
+💬 Feel free to ask for clarification or dive deeper into any aspect!
             """
     text_response = get_text_reasoning(prompt, image_name)
     if text_response:
