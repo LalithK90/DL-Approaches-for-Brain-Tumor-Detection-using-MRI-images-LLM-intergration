@@ -1,9 +1,17 @@
 import type { CapacitorConfig } from '@capacitor/cli';
 
 const config: CapacitorConfig = {
-  appId: 'ionic.braintumoridentificationapp',
-  appName: 'braintumoridentificationapp',
-  webDir: 'dist'
+  appId: 'com.braintumor.identification',
+  appName: 'Brain Tumor ID',
+  webDir: 'dist',
+  server: {
+    androidScheme: 'https'
+  },
+  plugins: {
+    SplashScreen: {
+      launchShowDuration: 0
+    }
+  }
 };
 
 export default config;

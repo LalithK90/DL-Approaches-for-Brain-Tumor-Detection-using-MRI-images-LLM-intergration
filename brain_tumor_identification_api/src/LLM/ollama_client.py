@@ -64,7 +64,7 @@ As an expert oncologist, physician, radiologist, and ruthless mentor, analyze th
 
 Structure:
 
-## 0. QUICK CLINICAL DECISION (For Radiologists - 30 seconds)
+## QUICK CLINICAL DECISION (For Radiologists - 30 seconds)
 **Urgency:** [STAT / Urgent / Routine]
 **Key Finding:** [One critical sentence]
 **Confidence:** [High 90%+ / Medium 70-90% / Low <70%]
@@ -233,11 +233,129 @@ Structure:
 9. Always correlate imaging + clinical presentation - never diagnose on images alone
 10. If uncertain, say so explicitly → Better to recommend additional workup than misdiagnose
 
+**Additional Clinical Considerations Beyond Brain Tumors:**
+🎓 **BROADER CLINICAL CONTEXT:** This imaging pattern can also present in related conditions:
+- [Related condition 1: e.g., Demyelinating disease if demyelination features present] - [How to differentiate from tumor: Key distinguishing feature]
+- [Related condition 2: e.g., Abscess if ring enhancement with restricted DWI] - [Clinical history clue: fever, immunosuppression, focal neurologic deficit]
+- [Related condition 3: e.g., Vascular malformation or hemorrhage] - [Imaging feature: gradient echo, microhemorrhages, flow void]
+
+**Teaching Example:** A ring-enhancing lesion with edema could be tumor, abscess, or demyelinating plaque. 
+- Question: What additional history/imaging would help distinguish?
+- Answer: Check for fever/infection signs (abscess), immunosuppression status (toxo vs lymphoma), clinical onset (acute vs gradual)
+- Benefit: Prevents misdiagnosis, catches treatable conditions early
+
+**Why This Matters:**
+- Patients benefit: Getting correct diagnosis leads to correct treatment (antibiotics vs chemotherapy vs immunotherapy)
+- Radiologists benefit: Broader differential reduces miss-rate, improves patient outcomes
+- Students benefit: Learn to think beyond most obvious diagnosis
+
 ## 11. References (Evidence-Based Medicine)
 - **Clinical Guidelines:** NCCN CNS Tumors v[version], WHO Classification of CNS Tumors
 - **Key Studies:** [Cite 2-3 landmark papers for this tumor type]
 - **Radiology References:** Osborn's Brain, Diagnostic Imaging Brain
 - **Treatment Protocols:** [Stupp protocol for GBM, etc. if applicable]
+
+---
+
+## 11.5. External Learning Resources & Online References
+
+**For Students & Radiologists to Study Further:**
+
+### Online Atlases & Visual References
+- **Neurosurgical Atlas** (https://www.neurosurgicalatlas.com/)
+  * Search for: [Tumor type, anatomy, surgical approaches]
+  * Why useful: High-quality illustrations of normal anatomy, tumor pathology, surgical corridors
+  
+- **Radiopaedia** (https://radiopaedia.org/)
+  * Search: "[Tumor type] imaging", "[Tumor type] MRI findings"
+  * Why useful: Large database of cases with imaging features, differential diagnosis, clinical correlation
+  
+- **Osmosis** (https://www.osmosis.org/)
+  * Search: "[Tumor type] brain tumor", "[Diagnosis] pathophysiology"
+  * Why useful: Student-focused, explains pathology and clinical manifestations clearly
+
+- **UpToDate** (https://www.uptodate.com/)
+  * Search: "[Tumor type] epidemiology", "[Tumor type] diagnosis and management"
+  * Why useful: Comprehensive, regularly updated clinical information (subscription required)
+
+### Clinical Guidelines & Protocols
+- **NCCN Guidelines** (https://www.nccn.org/professionals/physician_gls/pdf/cns.pdf)
+  * For: Treatment protocols, staging, surveillance schedules
+  * Latest version: [Current year]
+  
+- **WHO Classification** (https://www.who.int/publications/item/9789240045681)
+  * For: Tumor grading criteria, molecular markers, prognostic groups
+  
+- **EANO Guidelines** (https://www.eano.eu/)
+  * For: European standards, brain tumor management in different patient populations
+
+### Medical Imaging & Diagnostic References
+- **Osborn's Brain** (https://www.elsevier.com/books/osborns-brain/osborn/)
+  * Gold standard textbook for neuroimaging - covers all brain tumors with imaging patterns
+  
+- **Diagnostic Imaging: Brain** (Elsevier)
+  * 2000+ high-quality cases with clinical correlation
+  
+- **American Journal of Neuroradiology** (https://www.ajnr.org/)
+  * Latest research on imaging techniques for tumor diagnosis and follow-up
+
+### Pathophysiology & Deep Dive Learning
+- **Johns Hopkins Brain Tumor Center** (https://www.hopkinsmedicine.org/health/conditions-and-diseases/brain-tumors)
+  * Information for: Patient education, clinical staging, prognosis
+  
+- **Mayo Clinic Brain Tumor Resources** (https://www.mayoclinic.org/diseases-conditions/brain-tumor/)
+  * For: Symptoms, diagnosis, staging, treatment options
+  
+- **National Brain Tumor Society** (https://www.braintumorconnect.org/)
+  * For: Patient support, latest research, clinical trials, community resources
+
+### Research & Latest Evidence
+- **PubMed** (https://pubmed.ncbi.nlm.nih.gov/)
+  * Search: "[Tumor type] epidemiology [Current Year]", "[Tumor type] prognosis"
+  * Find: Latest peer-reviewed publications on this tumor type
+  
+- **Google Scholar** (https://scholar.google.com/)
+  * Search: "[Tumor type] imaging features", "[Tumor type] management"
+  * Access: Full-text papers where available
+  
+- **ResearchGate** (https://www.researchgate.net/)
+  * Search: "[Tumor type]", "[Your tumor type] MRI"
+  * Connect: With researchers studying this tumor type
+
+### Student Learning Platforms
+- **Khan Academy** (https://www.khanacademy.org/)
+  * Search: "Brain anatomy", "Nervous system", "Cancer biology"
+  * Why: Foundation knowledge for tumor pathophysiology
+
+- **Lecturio** (https://www.lecturio.com/)
+  * Search: "Brain tumors", "Neurooncology", "Surgical neuropathology"
+  * Why: Video-based learning, organized by specialty
+
+### Related Clinical Conditions to Consider
+**Sometimes brain imaging findings relate to other diagnoses:**
+- **Demyelinating disease:** MS, ADEM (can mimic tumors)
+- **Infectious diseases:** Abscess, toxoplasmosis (especially in immunocompromised)
+- **Vascular disorders:** Cavernoma, AVM, aneurysm (mass-like lesions)
+- **Inflammatory conditions:** Sarcoidosis, vasculitis (can present as masses)
+- **Metabolic disorders:** Leukodystrophies (diffuse changes vs focal mass)
+
+**Resources for these differentials:**
+- https://radiopaedia.org/articles/differential-diagnosis-of-intracranial-masses
+- https://www.osmosis.org/ (search by symptom or imaging finding)
+
+### Red Flags & Urgent Learning Points
+**When to recognize and escalate:**
+- **Imaging features requiring STAT action:** [Herniating mass, acute hemorrhage, etc.]
+- **Clinical scenarios requiring immediate intervention:** [Seizure status, rapidly progressive deficit, etc.]
+- **Resource:** https://www.neurosurgerytoday.org/ (peer-reviewed neurosurgery news)
+
+---
+
+**HOW TO USE THESE RESOURCES:**
+1. **Students:** Start with Khan Academy/Osmosis for basics, then move to Radiopaedia for cases
+2. **Radiologists:** Use Radiopaedia to compare cases, NCCN for staging, UpToDate for management updates
+3. **Clinicians:** Reference NCCN/WHO for protocols, Mayo/Johns Hopkins for patient counseling
+4. **All Professionals:** Check PubMed/Google Scholar for latest research on THIS specific tumor type
 
 ---
 
@@ -273,8 +391,26 @@ Structure:
 - Use ⚠️ for pitfall warnings
 - Be direct and honest - if uncertain, say so with confidence intervals
 - Medical content (sections 0-11) BEFORE technical AI details (section 12)
-- NO "Prepared by" or "Date" fields
-- NO administrative placeholders
+
+**CRITICAL INSTRUCTION FOR SECTION 11.5 (EXTERNAL LEARNING RESOURCES):**
+For EVERY diagnosis you provide, you MUST suggest relevant online resources including:
+1. At least 2-3 specific website URLs (Neurosurgical Atlas, Radiopaedia, NCCN, UpToDate, etc.)
+2. Specific search terms (e.g., "Search Radiopaedia for 'Glioblastoma imaging' or 'GBM MRI findings'")
+3. Why each resource is valuable for this specific case
+4. Related differential diagnoses the student/radiologist should study (e.g., if ring enhancement tumor, also study abscess, demyelination)
+5. Clinical scenarios where this knowledge helps non-tumor patients too (e.g., identifying infection, inflammation, vascular disease)
+
+**IMPORTANT:** Include Section 11.5 in EVERY report. It helps both students learn and experienced radiologists stay updated.
+
+You have access to these high-quality medical resources through MedGemma's training data:
+- Neurosurgical Atlas: https://www.neurosurgicalatlas.com/
+- Radiopaedia: https://radiopaedia.org/
+- NCCN Guidelines: https://www.nccn.org/
+- UpToDate: https://www.uptodate.com/
+- Osmosis: https://www.osmosis.org/
+- PubMed/Google Scholar for latest research
+
+Use this knowledge to enhance Section 11.5 with REAL, ACCESSIBLE online resources.
 """
 
 MEDGEMMA_IMAGE_PROMPT = """
@@ -412,7 +548,6 @@ IMPRESSION: [Differential diagnosis in order of likelihood]. Recommend [next ste
 - Visual findings FIRST, clinical correlation SECOND, AI analysis LAST
 - If image quality poor, state limitations clearly
 - Medical content prioritized over technical AI details
-- NO administrative fields (Prepared by, Date)
 """
 
 
@@ -459,15 +594,18 @@ def _query_vector_db(
         return None
 
     try:
-        # Build the where clause
+        # Build the where clause - USER_ID IS PRIMARY FILTER (for privacy/isolation)
         where_clause = {}
-        if image_name and user_id:
-            where_clause = {
-                "$and": [{"image": image_name}, {"user_id": str(user_id)}]}
-        elif image_name:
-            where_clause = {"image": image_name}
-        elif user_id:
+        if user_id:
             where_clause = {"user_id": str(user_id)}
+            if image_name:
+                # If both provided, filter by both (user first for security)
+                where_clause = {
+                    "$and": [{"user_id": str(user_id)}, {"image": image_name}]
+                }
+        elif image_name:
+            # Only use image_name if user_id not available
+            where_clause = {"image": image_name}
 
         logging.debug(
             f"Querying ChromaDB with where_clause: {where_clause}, query_text: {query_text}"

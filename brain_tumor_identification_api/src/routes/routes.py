@@ -369,7 +369,8 @@ def _generate_response_data(filename, predicted_class, confidence_val, patient_i
     }
     return response_data
 
-def _generate_final_report(filepath, predicted_class, patient_info, metrics, llama3_response):
+
+def _generate_final_report(filepath, predicted_class, confidence_val, patient_info, metrics, llama3_response):
     patient_info_string = json.dumps(patient_info, indent=2)
     metrics_string = json.dumps(metrics, indent=2)
 
@@ -495,7 +496,6 @@ Translate technical metrics to plain English:
 ✓ Are student checkpoints distributed throughout (not just at end)?
 ✓ Is technical AI content confined to Section 12 (end)?
 ✓ Are all claims backed by evidence from provided data sources?
-✓ No "Prepared by" or "Date" fields included?
 
 **OUTPUT:** Complete clinical report following structure above, integrating all data sources into cohesive medical narrative with technical details at end.
     """
@@ -547,7 +547,8 @@ def predict():
     response_data = _generate_response_data(filename, predicted_class, confidence_val, patient_info, visuals)
     response_data.update(metrics)
 
-    final_report = _generate_final_report(filepath, predicted_class, patient_info, metrics, "not_implemented_yet")
+    final_report = _generate_final_report(
+        filepath, predicted_class, confidence_val, patient_info, metrics, "not_implemented_yet")
     response_data['final_report'] = final_report
 
     return jsonify(response_data)
