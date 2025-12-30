@@ -61,3 +61,18 @@
 .footer-container a:hover {
   text-decoration: underline;
 }
+.accreditation-section {
+  color: #c58f00;
+}
+
+.accreditation-section p {
+  color: #c58f00;
+}
+
+.accreditation-link {
+  color: #c58f00;
+}
+
+.accreditation-link:hover {
+  color: #a87400;
+}

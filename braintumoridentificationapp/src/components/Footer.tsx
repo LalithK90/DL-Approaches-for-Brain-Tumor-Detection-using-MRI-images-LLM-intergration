@@ -15,15 +15,15 @@ const Footer: React.FC = () => {
           </p>
         </div>
         {/* Accreditation Section */}
-        <div className="container text-center mt-3">
-          <p className="text-muted small mb-1">
-            This is a final research work for the Master of Science in Computer Science (MSc in CS - SLQF Level 10) degree program conducted by the <a href="https://www.pgis.lk" target="_blank" rel="noopener noreferrer">Postgraduate Institute of Science (PGIS)</a> and the Department of Statistics & Computer Science, University of Peradeniya.
+        <div className="container text-center mt-3 accreditation-section">
+          <p className="accreditation-text small mb-1">
+            This is a final research work for the Master of Science in Computer Science (MSc in CS - SLQF Level 10) degree program conducted by the <a href="https://www.pgis.lk" target="_blank" rel="noopener noreferrer" className="accreditation-text">Postgraduate Institute of Science (PGIS)</a> and the Department of Statistics & Computer Science, University of Peradeniya.
           </p>
-          <p className="text-muted small mb-1">
+          <p className="accreditation-text small mb-1">
             All rights reserved © PGIS & Department of Statistics & Computer Science, University of Peradeniya.
           </p>
-          <p className="text-center small">
-            <a href="https://github.com/LalithK90/Deep-Learning-Approaches-for-Brain-Tumor-Detection-using-MRI-WebApp.git">View Project on Github</a>
+          <p className="text-center small accreditation-text">
+            <a href="https://github.com/LalithK90/Deep-Learning-Approaches-for-Brain-Tumor-Detection-using-MRI-WebApp.git" target="_blank" rel="noopener noreferrer" className="accreditation-text accreditation-link">View Project on Github</a>
           </p>
         </div>
       </div>
