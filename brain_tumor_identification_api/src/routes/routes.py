@@ -374,26 +374,130 @@ def _generate_final_report(filepath, predicted_class, patient_info, metrics, lla
     metrics_string = json.dumps(metrics, indent=2)
 
     final_report_prompt_medgemma = f"""
-       Give me a detailed, educational final report for a brain tumor diagnosis case:
-        - Patient Info: {patient_info_string}
+Create a comprehensive brain tumor clinical report based on this MRI image analysis. Focus on MEDICAL ASSESSMENT, education for students, and decision support for radiologists.
+
+**AVAILABLE DATA:**
+Diagnosis: {predicted_class}
+Confidence: {confidence_val}
+Patient Information: {patient_info_string}
+
+**REPORT STRUCTURE (Medical-First):**
+
+## 1. Clinical Summary (Quick Decision Support)
+- What is this tumor?
+- How confident are we?
+- What action is needed? (STAT/Urgent/Routine)
+- Key red flags if any
+
+## 2. Patient Clinical Context
+Analyze the patient data provided:
+- Demographics relevant to diagnosis (age/sex epidemiology)
+- Symptom correlation: Do presenting symptoms match expected pattern for {predicted_class}?
+- Medical history: Any risk factors?
+
+## 3. Imaging-Based Diagnosis
+Based on the MRI you analyzed:
+- Location and extent of tumor
+- Key imaging features supporting {predicted_class} diagnosis
+- Why this diagnosis over alternatives (brief differential)
+
+## 4. What This Means for Patient
+**Prognosis:**
+- Expected outcomes with treatment
+- Factors affecting prognosis for this patient specifically
+
+**Treatment Approach:**
+- Likely surgical plan based on location
+- Adjuvant therapy needs (chemo/radiation)
+- Timeline expectations
+
+## 5. Educational Points for Students
+- Most diagnostic features of {predicted_class}
+- Common pitfalls in diagnosis
+- Key management principles
+
+**KEEP TECHNICAL AI DETAILS MINIMAL** - focus on clinical medicine, pathophysiology, and patient care.
+
+Format: Use bullets, short paragraphs, clear headings. Be direct and educational.
     """
 
     medgemma_text_response = get_medical_report_from_image_medgemma(
         final_report_prompt_medgemma, filepath)
 
     final_report_prompt_deepsek = f"""
-        Create a final educational brain tumor diagnosis report incorporating XAI validation metrics:
-        - Source 1: MedGemma Analysis: {medgemma_text_response}
-        - Source 2: Patient Info: {patient_info_string}
-        - Source 3: Metrics: {metrics_string}
-        - Source 4: Primary Diagnosis: {predicted_class}
-        - Source 5: XAI Metrics Analysis:
-            * Faithfulness Metrics (Comprehensiveness, Sufficiency): Measure how much the explanation reflects actual model decision-making
-            * AUC Metrics (Deletion, Insertion): Quantify the importance ranking of image regions
-            * Agreement Metrics (Dice, IoU): Show consistency between different explanation methods
-            * Validation Tests (Randomized Weights): Sanity check that explanations depend on learned features
-        - Include interpretations of these metrics and what they mean for diagnostic confidence
-        - Explain which regions are most important for the diagnosis based on XAI visualizations
+Synthesize a COMPLETE educational brain tumor diagnosis report using ALL available information. Follow COMMON_PROMPT_MESSAGE structure exactly, with MEDICAL CONTENT prioritized over technical details.
+
+**DATA SOURCES TO INTEGRATE:**
+
+1. **Image Analysis Report:** {medgemma_text_response}
+2. **Patient Clinical Data:** {patient_info_string}
+3. **Diagnosis:** {predicted_class}
+4. **Quantitative Metrics:** {metrics_string}
+
+**YOUR TASK:**
+Create the final diagnostic report following the COMMON_PROMPT_MESSAGE structure:
+- Sections 0-11: MEDICAL CONTENT (clinical decision, diagnosis, treatment, education)
+- Section 12: TECHNICAL APPENDIX (AI metrics, XAI validation - for reference only)
+
+**CRITICAL SYNTHESIS REQUIREMENTS:**
+
+1. **Validate Consistency:**
+   - Does MedGemma image analysis agree with {predicted_class}?
+   - Do patient symptoms match expected presentation?
+   - Do metrics support the diagnosis confidence?
+   - If inconsistencies exist, address them explicitly
+
+2. **Integrate XAI Insights INTO Clinical Sections** (not separate):
+   - When describing Imaging Findings (Section 3): Mention what regions AI highlighted and why they matter clinically
+   - When discussing Differential (Section 4): Use AI confidence to support likelihood percentages
+   - When assessing uncertainty: Use entropy/variance to justify confidence levels
+
+3. **Translate Metrics to Clinical Language:**
+   - Comprehensiveness {metrics_string}: "Highlighted regions are [critical/somewhat relevant] to diagnosis because..."
+   - Sufficiency: "These regions alone [can/cannot] explain the diagnosis, suggesting..."
+   - Agreement (Dice/IoU): "Multiple AI methods [agree/disagree] on important areas, so trust level is [high/medium/low]"
+   - Deletion/Insertion AUC: "Removing key regions [drastically/moderately] changes AI confidence"
+   - Sanity check: "AI explanations [passed/failed] validation, meaning [trust/question] the highlighted regions"
+
+4. **Build Evidence-Based Argument:**
+   - Claim: "{predicted_class} is the diagnosis"
+   - Evidence 1: Image features (from MedGemma)
+   - Evidence 2: Clinical correlation (from patient data)
+   - Evidence 3: Statistical confidence (from metrics)
+   - Evidence 4: XAI validation (regions make clinical sense)
+   - Conclusion: Confidence level with action plan
+
+5. **Address the Dual Audience:**
+   - Radiologists need: Quick summary (Section 0), confidence scores, urgency, next steps
+   - Students need: Checkpoints, differential comparison table, pitfall warnings, learning pearls
+   - Everyone gets: Clear medical reasoning BEFORE technical AI details
+
+**STRUCTURAL REQUIREMENTS:**
+- Use exact section numbering and titles from COMMON_PROMPT_MESSAGE
+- Include ALL sections (0-12)
+- Use markdown tables for differential diagnosis
+- Use 🎓 for student checkpoints
+- Use ⚠️ for pitfall warnings
+- Medical content (0-11) comes BEFORE technical AI appendix (12)
+
+**XAI VALIDATION APPENDIX (Section 12) - Place at END:**
+Translate technical metrics to plain English:
+- What regions did AI highlight? [Anatomical description]
+- Do these make medical sense? [Validate against known diagnostic features]
+- Trust assessment: [Based on faithfulness scores, can we trust this explanation?]
+- Model performance: [Confidence, uncertainty, agreement metrics]
+- Final validation: [Do all data sources converge on {predicted_class}?]
+
+**QUALITY CHECKS:**
+✓ Does Section 0 give radiologist 30-second decision summary?
+✓ Does Section 4 use table format for differential?
+✓ Does Section 6b include WHO grade and prognosis data?
+✓ Are student checkpoints distributed throughout (not just at end)?
+✓ Is technical AI content confined to Section 12 (end)?
+✓ Are all claims backed by evidence from provided data sources?
+✓ No "Prepared by" or "Date" fields included?
+
+**OUTPUT:** Complete clinical report following structure above, integrating all data sources into cohesive medical narrative with technical details at end.
     """
 
     resoning_final_report = get_text_reasoning(final_report_prompt_deepsek, filepath)
@@ -468,10 +572,94 @@ def chat():
             return jsonify({'error': 'No image uploaded or session expired'}), 400
 
     prompt = f"""
-                As expert neuroradiologist and neurosurgeon in brain tumors, answer the practitioner's question about the uploaded MRI scan. Provide detailed, educational response addressing the query directly, with insights on diagnosis and management.
-                USER QUESTION: {message}
-                IMAGE: {image_name}
-                Output flexibly based on query; use headings/bullets as needed for clarity and education.
+You are an expert neuroradiologist and neurosurgeon. Answer this follow-up question about the brain MRI case.
+
+**CONTEXT FROM PREVIOUS ANALYSIS:**
+Image: {image_name}
+User has already received initial diagnosis and report.
+
+**USER'S QUESTION:** {message}
+
+**RESPONSE STRATEGY:**
+
+1. **Detect Question Type:**
+   - If asking "why" or "how" → EDUCATIONAL explanation for students
+   - If asking "what should I do" or "next steps" → CLINICAL decision support for radiologists
+   - If asking about specific findings → DETAILED radiology interpretation
+   - If asking about AI/computer → SIMPLE technical explanation (non-technical language)
+
+2. **Answer Format:**
+   
+   **For Clinical Questions (radiologists):**
+   - Quick answer first (1-2 sentences)
+   - Then brief rationale with evidence (cite guidelines)
+   - Risk/benefit if applicable
+   - Specific action recommendation
+   
+   **For Educational Questions (students):**
+   - Simple explanation first
+   - Then detailed mechanism/reasoning
+   - Compare to similar concepts
+   - Add learning tip or memory aid
+   - Suggest what to read next
+   
+   **For AI/Technical Questions:**
+   - Translate to non-technical language
+   - Explain "what it means clinically"
+   - Use analogies to medical concepts
+   - Keep computer jargon minimal
+
+3. **Use Available Data:**
+   - Reference specific findings from the uploaded image
+   - Connect to established diagnosis
+   - Cite relevant metrics if asked (confidence, imaging features)
+
+4. **Be Honest:**
+   - If question needs physical exam or labs to answer, say so
+   - If outside scope of imaging alone, acknowledge limitation
+   - If uncertain, provide confidence level
+
+5. **Format for Clarity:**
+   - Use bullet points for lists
+   - Bold key terms
+   - Tables if comparing options
+   - Keep paragraphs short (3-4 sentences max)
+
+**Examples:**
+
+Q: "Why is this urgent?"
+A: **URGENCY RATIONALE:**
+• Severe mass effect with [X mm] midline shift
+• Risk of herniation → can cause death within hours
+• Requires neurosurgery evaluation within 24 hours
+• Evidence: NCCN guidelines recommend immediate intervention for mass effect >5mm
+
+Q: "How does enhancement help diagnosis?"
+A: **ENHANCEMENT EXPLAINED (Teaching):**
+Simple version: Enhancement = contrast "lights up" areas with broken blood-brain barrier
+
+Why it matters:
+• High-grade tumors break BBB → bright enhancement
+• Low-grade tumors often don't → minimal/no enhancement
+• Pattern matters: Ring = necrotic center (aggressive), Solid = cellular tumor
+
+🎓 Memory aid: "Bright enhancement = Bad blood-brain barrier = Badass tumor (high grade)"
+
+Next reading: Look up "blood-brain barrier disruption in gliomas"
+
+Q: "What does the AI confidence score mean?"
+A: **AI CONFIDENCE IN PLAIN ENGLISH:**
+Think of it like a doctor's certainty:
+• >90% = "Very confident, classic presentation"
+• 70-90% = "Fairly sure, but would like confirmation"
+• <70% = "Several possibilities, need more information"
+
+Clinically: High confidence means imaging findings are typical. Low confidence means atypical presentation or overlapping features with other tumors.
+
+**YOUR ANSWER:**
+[Provide response following above strategy]
+
+**End with:** "Related question: [Suggest a related topic they might want to explore next]"
             """
     text_response = get_text_reasoning(prompt, image_name)
     if text_response:
