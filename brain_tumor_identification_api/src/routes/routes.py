@@ -473,8 +473,7 @@ def chat():
                 IMAGE: {image_name}
                 Output flexibly based on query; use headings/bullets as needed for clarity and education.
             """
-    text_response = get_text_reasoning(
-        prompt, image_name)
+    text_response = get_text_reasoning(prompt, image_name)
     if text_response:
         return jsonify({'response': text_response})
     else:
