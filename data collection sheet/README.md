@@ -1,201 +1,332 @@
-# Research Data Collection and Methodology Documentation
+# 📊 Research Data Collection & Methodology
 
-## Overview
+> **Experimental Design, Data Tracking, and Research Documentation**
 
-This directory contains the structured data collection instruments, experimental protocols, and methodological documentation developed for this MSc Computer Science (SLQF Level 10) research investigation. The materials housed within this component ensure methodological rigor, reproducibility, and adherence to established scientific research standards.
+## 🎯 What's Inside
 
-## Purpose and Scope
+This directory contains **research planning and data collection materials**:
+- ✅ **Experimental design** documentation
+- ✅ **Model performance tracking** sheets
+- ✅ **Comparative analysis** templates
+- ✅ **Research milestones** and progress logs
+- ✅ **Statistical analysis** results
 
-The data collection framework serves multiple critical functions within the research lifecycle:
+## 📂 Directory Contents
 
-1. **Experimental Design Documentation**: Systematic recording of research hypotheses, variables, and experimental conditions
-2. **Data Acquisition Protocols**: Standardized procedures for gathering empirical evidence
-3. **Metadata Management**: Comprehensive annotation of experimental parameters and configurations
-4. **Reproducibility Assurance**: Detailed documentation enabling independent verification of research findings
-5. **Progress Tracking**: Monitoring of research milestones and deliverables
+```
+data collection sheet/
+├── README.md                   # This file
+└── Level 10 Research.xlsx     # Comprehensive research workbook
+```
 
-## Contents
+## 📋 Research Workbook Overview
 
-### Primary Documents
+**File**: `Level 10 Research.xlsx`
 
-- **Level 10 Research.xlsx**: Comprehensive research planning and data collection instrument
+This Excel workbook serves as the central repository for experimental data and research planning.
 
-This spreadsheet encompasses multiple dimensions of the research process, potentially including:
+### Potential Worksheets
 
-#### Research Planning Components
-- **Literature Review Matrix**: Systematic cataloging of relevant scholarly works
-- **Research Questions and Hypotheses**: Formalized research objectives and testable propositions
-- **Experimental Design Schema**: Independent and dependent variables, control conditions
-- **Timeline and Milestones**: Gantt charts or project scheduling artifacts
+1. **Literature Review**
+   - Cataloging of relevant papers
+   - Research gap analysis
+   - Methodological approaches from literature
+   - Citation tracking
 
-#### Data Collection Instruments
-- **Model Performance Metrics**: Tabulated results across different architectures and configurations
-- **Comparative Analysis Templates**: Structured comparison of model performance
-- **Hyperparameter Configuration Log**: Systematic recording of training parameters
-- **Validation Results**: Cross-validation scores, test set performance metrics
-- **Statistical Analysis**: Significance testing, confidence intervals, effect sizes
+2. **Research Questions & Hypotheses**
+   - Primary research questions
+   - Testable hypotheses
+   - Expected outcomes
+   - Success criteria
 
-#### Quality Assurance Documentation
-- **Data Provenance**: Source, version, and preprocessing history of datasets
-- **Experimental Conditions**: Hardware specifications, software versions, random seeds
-- **Anomaly Logs**: Documentation of unexpected behaviors or outliers
-- **Validation Checklists**: Quality control procedures and verification steps
+3. **Model Performance Metrics**
+   - Accuracy, Precision, Recall, F1-Score
+   - Confusion matrices
+   - ROC curves and AUC values
+   - Training/validation loss curves
 
-## Methodological Framework
+4. **Comparative Analysis**
+   - VGG16 vs VGG19 vs ResNet50 vs MobileNetV2 vs GoogleLeNet vs Proposed
+   - Balanced vs Imbalanced dataset results
+   - XAI method comparisons
+   - Statistical significance testing
 
-### Research Design Paradigm
+5. **Hyperparameter Configuration Log**
+   - Learning rate schedules
+   - Batch sizes
+   - Optimizer settings (Adam, SGD, RMSprop)
+   - Regularization parameters (dropout, L2)
+   - Data augmentation parameters
 
-This investigation employs a **quantitative experimental research design** with the following characteristics:
+6. **XAI Validation Results**
+   - Comprehensiveness scores
+   - Sufficiency scores
+   - Dice coefficients
+   - Inter-method agreement metrics
 
-- **Research Type**: Applied research in computational medical imaging
-- **Methodology**: Comparative experimental analysis
-- **Data Nature**: Secondary data (publicly available MRI datasets)
-- **Analysis Approach**: Statistical evaluation of deep learning model performance
+7. **Experimental Timeline**
+   - Research milestones
+   - Gantt chart or project schedule
+   - Deliverable deadlines
+   - Progress tracking
 
-### Key Research Variables
+8. **Dataset Provenance**
+   - Data source details
+   - Preprocessing steps applied
+   - Train/val/test split records
+   - Data quality checks
 
-#### Independent Variables
-- Model architecture (VGG16, VGG19, ResNet50, MobileNet, GoogleLeNet, Proposed architecture)
-- Training data distribution (balanced vs. imbalanced)
-- Hyperparameters (learning rate, batch size, epochs, optimizers)
-- Data augmentation strategies
+9. **Computational Environment**
+   - Hardware specifications (CPU, GPU, RAM)
+   - Software versions (Python, TensorFlow, libraries)
+   - Random seeds for reproducibility
+   - Training duration logs
 
-#### Dependent Variables
+10. **Statistical Analysis**
+    - Hypothesis testing results
+    - p-values and confidence intervals
+    - Effect sizes
+    - ANOVA / t-tests
+
+## 🔬 Research Methodology
+
+### Experimental Design
+
+**Research Type**: Quantitative experimental research  
+**Paradigm**: Applied research in medical AI  
+**Methodology**: Comparative analysis with controlled variables
+
+**Independent Variables**:
+- CNN architecture type
+- Dataset balance strategy
+- XAI method selection
+- Hyperparameter configurations
+
+**Dependent Variables**:
 - Classification accuracy
-- Precision, recall, and F1-score
-- Area Under the Curve (AUC-ROC)
-- Confusion matrix metrics
-- Computational efficiency (training time, inference latency)
-- Explainability metrics (faithfulness, stability, complexity)
+- Inference time
+- XAI explanation quality
+- Clinical interpretability
 
-#### Control Variables
-- Dataset source and version
-- Image preprocessing pipeline
-- Hardware configuration
-- Random seed initialization
-- Cross-validation methodology
+**Control Variables**:
+- Dataset (same 7,023 MRI images)
+- Image preprocessing
+- Training/validation/test splits
+- Hardware environment
 
-### Experimental Protocol
+### Data Collection Protocol
 
-#### Phase 1: Data Preparation
-1. Dataset acquisition and verification
-2. Exploratory data analysis (EDA)
-3. Preprocessing pipeline development
-4. Train-validation-test partitioning
+**Phase 1: Model Training**
+1. Train each architecture (6 models × 2 datasets = 12 configurations)
+2. Record training metrics (loss, accuracy per epoch)
+3. Log computational resources used
+4. Save model checkpoints
 
-#### Phase 2: Model Development
-1. Baseline model establishment
-2. Architecture selection and implementation
-3. Hyperparameter tuning via systematic search
-4. Training protocol execution
+**Phase 2: Performance Evaluation**
+1. Test on held-out test set
+2. Generate confusion matrices
+3. Calculate precision, recall, F1-score
+4. Measure inference times
 
-#### Phase 3: Evaluation and Analysis
-1. Performance metric calculation
-2. Statistical significance testing
-3. Comparative analysis across architectures
-4. Explainability visualization generation
+**Phase 3: XAI Generation**
+1. Apply Grad-CAM, LIME, Saliency Maps
+2. Generate visual explanations
+3. Compute XAI validation metrics
+4. Expert radiologist review (if applicable)
 
-#### Phase 4: Documentation and Dissemination
-1. Results compilation and interpretation
-2. Manuscript preparation
-3. Research artifact archival
+**Phase 4: LLM Integration**
+1. Test multi-LLM pipeline
+2. Evaluate report quality
+3. Measure generation time
+4. Clinical relevance assessment
 
-## Data Collection Standards
+**Phase 5: Statistical Analysis**
+1. Compare model performances
+2. Test for statistical significance
+3. Conduct ablation studies
+4. Document findings
 
-### Quantitative Metrics
+## 📊 Data Recording Template
 
-All experimental results are documented with:
+### Model Performance Template
 
-- **Precision**: Minimum 4 decimal places for accuracy metrics
-- **Replicability**: Multiple runs with different random seeds
-- **Statistical Rigor**: Mean, standard deviation, confidence intervals
-- **Comparative Context**: Baseline benchmarks and state-of-the-art comparisons
+| Model | Dataset | Accuracy | Precision | Recall | F1-Score | Training Time | Inference Time |
+|-------|---------|----------|-----------|--------|----------|---------------|----------------|
+| VGG16 | Balanced | 96.2% | 95.8% | 96.1% | 96.0% | 2.5 hrs | 35 ms |
+| VGG19 | Balanced | 96.5% | 96.2% | 96.4% | 96.3% | 3.1 hrs | 38 ms |
+| ResNet50 | Balanced | 97.1% | 96.9% | 97.0% | 97.0% | 2.8 hrs | 40 ms |
+| ... | ... | ... | ... | ... | ... | ... | ... |
 
-### Qualitative Observations
+### XAI Metrics Template
 
-Supplementary qualitative data includes:
+| Model | Grad-CAM Comp | LIME Comp | Saliency Comp | Avg Sufficiency | Dice Coeff |
+|-------|---------------|-----------|---------------|-----------------|------------|
+| VGG16 | 0.82 | 0.79 | 0.85 | 0.68 | 0.74 |
+| VGG19 | 0.84 | 0.81 | 0.87 | 0.71 | 0.76 |
+| ... | ... | ... | ... | ... | ... |
 
-- Training convergence behavior notes
-- Visual inspection of model predictions
-- Failure case analysis
-- Computational resource utilization observations
+## 🎓 Research Compliance
 
-## Reproducibility Considerations
+### Quality Assurance Checklist
 
-### Documentation Standards
+- [ ] All experiments documented
+- [ ] Random seeds recorded for reproducibility
+- [ ] Software versions logged
+- [ ] Hardware specifications noted
+- [ ] Data splits preserved
+- [ ] Model checkpoints saved
+- [ ] Results peer-reviewed
+- [ ] Statistical tests conducted
+- [ ] Figures and tables prepared
+- [ ] Thesis/paper draft updated
 
-To ensure independent replication of research findings:
+### Reproducibility Standards
 
-1. **Complete Parameter Specification**: All hyperparameters, random seeds, software versions
-2. **Environmental Description**: Hardware specifications, operating system, library versions
-3. **Preprocessing Details**: Exact transformation pipeline, normalization parameters
-4. **Data Splits**: Explicit indices or random seed for train-validation-test partitioning
+**Version Control**:
+- Git commits for code changes
+- Model version tracking
+- Dataset version control
 
-### Version Control
+**Documentation**:
+- Clear experimental procedures
+- Step-by-step protocols
+- Troubleshooting notes
 
-- **Dataset Version**: Specific Kaggle dataset version or download date
-- **Code Repository**: Git commit hash for exact code state
-- **Model Checkpoints**: Saved weights and architecture definitions
-- **Dependency Manifest**: requirements.txt or environment.yml files
+**Data Management**:
+- Organized file structure
+- Backup procedures
+- Data integrity checks
 
-## Integration with Research Components
+## 🔍 Analysis Techniques
 
-This methodological documentation supports:
+### Performance Metrics
 
-- **Dataset**: Provides context for [Brain Tumor Dataset](../brain%20tumor%20dataset/README.md) utilization
-- **Training**: Guides experimental protocols in [Model Training Notebook](../model_training_notebook/README.md)
-- **Implementation**: Informs deployment decisions in [API Backend](../brain_tumor_identification_api/README.md)
-- **Validation**: Structures performance evaluation in [Frontend Application](../braintumoridentificationapp/README.md)
+**Classification Metrics**:
+```python
+from sklearn.metrics import accuracy_score, precision_recall_fscore_support
+from sklearn.metrics import confusion_matrix, classification_report
 
-## Ethical and Regulatory Compliance
+# Calculate metrics
+accuracy = accuracy_score(y_true, y_pred)
+precision, recall, f1, _ = precision_recall_fscore_support(
+    y_true, y_pred, average='weighted'
+)
 
-### Research Ethics
+# Generate confusion matrix
+cm = confusion_matrix(y_true, y_pred)
 
-This investigation adheres to:
+# Print detailed report
+print(classification_report(y_true, y_pred, 
+    target_names=['glioma', 'meningioma', 'notumor', 'pituitary']))
+```
 
-- **Institutional Review Board (IRB)**: Research conducted under appropriate ethical oversight
-- **Data Privacy**: Use of de-identified, publicly available datasets only
-- **Academic Integrity**: Proper attribution, citation, and acknowledgment of prior work
-- **Responsible AI**: Commitment to transparency, fairness, and beneficence
+**Statistical Significance**:
+```python
+from scipy.stats import ttest_rel, friedmanchisquare
 
-### Limitations and Constraints
+# Paired t-test (comparing two models)
+statistic, pvalue = ttest_rel(model1_accuracies, model2_accuracies)
 
-Explicitly documented limitations include:
+# Friedman test (comparing multiple models)
+statistic, pvalue = friedmanchisquare(
+    vgg16_acc, vgg19_acc, resnet_acc, mobile_acc, google_acc, proposed_acc
+)
+```
 
-- Non-clinical validation (not evaluated by medical professionals)
-- Dataset bias and representativeness constraints
-- Computational resource limitations
-- Temporal scope of investigation
+### Visualization Templates
 
-## Academic Contribution
+**Training Curves**:
+```python
+import matplotlib.pyplot as plt
 
-This research contributes to the scholarly discourse on:
+plt.plot(history.history['accuracy'], label='Train Accuracy')
+plt.plot(history.history['val_accuracy'], label='Val Accuracy')
+plt.title('Model Accuracy over Epochs')
+plt.xlabel('Epoch')
+plt.ylabel('Accuracy')
+plt.legend()
+plt.savefig('training_curve.png')
+```
 
-1. **Explainable AI in Medical Imaging**: Novel integration of multiple XAI techniques
-2. **Comparative Deep Learning Analysis**: Systematic benchmarking of architectures
-3. **Clinical Decision Support Systems**: Practical implementation frameworks
-4. **Model Transparency**: Quantitative evaluation of explainability methods
+**Confusion Matrix Heatmap**:
+```python
+import seaborn as sns
 
-## Future Research Directions
+sns.heatmap(cm, annot=True, fmt='d', cmap='Blues',
+            xticklabels=class_names, yticklabels=class_names)
+plt.title('Confusion Matrix')
+plt.ylabel('True Label')
+plt.xlabel('Predicted Label')
+plt.savefig('confusion_matrix.png')
+```
 
-Potential extensions documented for future investigation:
+## 📚 Related Components
 
-- Multi-modal imaging integration (MRI + CT + PET)
-- Longitudinal tumor progression tracking
-- 3D volumetric analysis
-- Federated learning for privacy-preserving model training
-- Clinical validation studies with radiologist evaluation
+- **Dataset**: See [brain tumor dataset/](../brain%20tumor%20dataset/)
+- **Model Training**: See [model_training_notebook/](../model_training_notebook/)
+- **Backend API**: See [brain_tumor_identification_api/](../brain_tumor_identification_api/)
 
-## References and Standards
+## 🔗 Research Resources
 
-1. **Research Methodology**: Creswell, J. W., & Creswell, J. D. (2017). Research design: Qualitative, quantitative, and mixed methods approaches.
-2. **Medical Imaging Standards**: DICOM (Digital Imaging and Communications in Medicine)
-3. **AI Ethics**: IEEE Ethically Aligned Design principles
-4. **Statistical Analysis**: American Psychological Association (APA) guidelines for statistical reporting
+### Thesis/Dissertation Guidelines
+- MSc CS - SLQF Level 10 Research
+- Postgraduate Institute of Science (PGIS)
+- University of Peradeniya
+
+### Statistical Software
+- SPSS / R / Python (scipy, statsmodels)
+- Excel for data organization
+- GraphPad Prism for visualization
+
+### Citation Management
+- Mendeley / Zotero / EndNote
+- IEEE / APA citation formats
+
+## 📄 Deliverables Checklist
+
+- [ ] Comprehensive data collection spreadsheet
+- [ ] Model performance comparison tables
+- [ ] Statistical analysis results
+- [ ] Training curves and visualizations
+- [ ] XAI validation metrics
+- [ ] Thesis methodology chapter
+- [ ] Research findings summary
+- [ ] Future work recommendations
+
+## 🎯 Usage Instructions
+
+```bash
+# Open the research workbook
+open "data collection sheet/Level 10 Research.xlsx"
+
+# Or use LibreOffice / Excel / Google Sheets
+
+# Update sheets as experiments progress
+# - Log each experiment run
+# - Record all hyperparameters
+# - Note any anomalies or observations
+# - Calculate aggregate statistics
+```
+
+## ⚠️ Data Integrity
+
+**Best Practices**:
+- Regular backups (cloud + local)
+- Version control for data files
+- Audit trail for modifications
+- Data validation checks
+- Peer review of results
+
+**Never**:
+- Modify raw data without documentation
+- Delete original recordings
+- Cherry-pick results
+- Skip failed experiments
+
+## 📄 License
+
+Research data follows university research ethics guidelines and is intended for academic use.
 
 ---
 
-**Research Level**: MSc Computer Science (SLQF Level 10)  
-**Institution**: Postgraduate Institute of Science, University of Peradeniya  
-**Research Code**: SC 699 - Level 10 Research  
-**Last Updated**: December 2025
+**Research Excellence**: Systematic documentation ensures reproducible, credible, and impactful research!

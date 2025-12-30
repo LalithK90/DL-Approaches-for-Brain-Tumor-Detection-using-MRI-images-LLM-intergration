@@ -1,0 +1,590 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description"
+        content="AI-Powered Brain Tumor Identification with Explainable Deep Learning & Multi-LLM Report Generation">
+    <title>Brain Tumor Identification - AI Research Project</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background: #f5f7fa;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+
+        header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 60px 0;
+            text-align: center;
+        }
+
+        header h1 {
+            font-size: 3rem;
+            margin-bottom: 10px;
+            font-weight: 700;
+        }
+
+        header p {
+            font-size: 1.2rem;
+            opacity: 0.9;
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 5px 12px;
+            margin: 5px;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 20px;
+            font-size: 0.9rem;
+        }
+
+        nav {
+            background: white;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        nav ul {
+            list-style: none;
+            display: flex;
+            justify-content: center;
+            padding: 15px 0;
+            flex-wrap: wrap;
+        }
+
+        nav li {
+            margin: 0 20px;
+        }
+
+        nav a {
+            text-decoration: none;
+            color: #667eea;
+            font-weight: 600;
+            transition: color 0.3s;
+        }
+
+        nav a:hover {
+            color: #764ba2;
+        }
+
+        section {
+            background: white;
+            margin: 30px 0;
+            padding: 40px;
+            border-radius: 10px;
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.05);
+        }
+
+        h2 {
+            color: #667eea;
+            margin-bottom: 20px;
+            font-size: 2rem;
+            border-bottom: 3px solid #667eea;
+            padding-bottom: 10px;
+        }
+
+        h3 {
+            color: #764ba2;
+            margin: 25px 0 15px;
+            font-size: 1.5rem;
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 25px;
+            margin: 30px 0;
+        }
+
+        .card {
+            background: #f8f9fa;
+            padding: 25px;
+            border-radius: 10px;
+            border-left: 4px solid #667eea;
+            transition: transform 0.3s, box-shadow 0.3s;
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 30px rgba(102, 126, 234, 0.2);
+        }
+
+        .card h4 {
+            color: #667eea;
+            margin-bottom: 10px;
+            font-size: 1.3rem;
+        }
+
+        .feature-list {
+            list-style: none;
+            padding-left: 0;
+        }
+
+        .feature-list li {
+            padding: 8px 0;
+            padding-left: 25px;
+            position: relative;
+        }
+
+        .feature-list li:before {
+            content: "✓";
+            position: absolute;
+            left: 0;
+            color: #10b981;
+            font-weight: bold;
+        }
+
+        pre {
+            background: #1e293b;
+            color: #e2e8f0;
+            padding: 20px;
+            border-radius: 8px;
+            overflow-x: auto;
+            margin: 20px 0;
+        }
+
+        code {
+            font-family: 'Courier New', monospace;
+            font-size: 0.9rem;
+        }
+
+        .btn {
+            display: inline-block;
+            padding: 12px 30px;
+            background: #667eea;
+            color: white;
+            text-decoration: none;
+            border-radius: 6px;
+            font-weight: 600;
+            transition: background 0.3s, transform 0.2s;
+            margin: 10px 5px;
+        }
+
+        .btn:hover {
+            background: #764ba2;
+            transform: translateY(-2px);
+        }
+
+        .btn-secondary {
+            background: #10b981;
+        }
+
+        .btn-secondary:hover {
+            background: #059669;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+        }
+
+        th,
+        td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #e5e7eb;
+        }
+
+        th {
+            background: #667eea;
+            color: white;
+            font-weight: 600;
+        }
+
+        tr:hover {
+            background: #f9fafb;
+        }
+
+        .alert {
+            padding: 15px 20px;
+            border-radius: 6px;
+            margin: 20px 0;
+            border-left: 4px solid;
+        }
+
+        .alert-info {
+            background: #eff6ff;
+            border-color: #3b82f6;
+            color: #1e40af;
+        }
+
+        .alert-warning {
+            background: #fef3c7;
+            border-color: #f59e0b;
+            color: #92400e;
+        }
+
+        footer {
+            background: #1e293b;
+            color: white;
+            text-align: center;
+            padding: 30px 0;
+            margin-top: 50px;
+        }
+
+        .tech-stack {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            margin: 20px 0;
+        }
+
+        .tech-badge {
+            padding: 8px 16px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            font-weight: 500;
+        }
+
+        @media (max-width: 768px) {
+            header h1 {
+                font-size: 2rem;
+            }
+
+            .grid {
+                grid-template-columns: 1fr;
+            }
+
+            nav ul {
+                flex-direction: column;
+                align-items: center;
+            }
+
+            nav li {
+                margin: 10px 0;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <header>
+        <div class="container">
+            <h1>🧠 Brain Tumor Identification</h1>
+            <p>AI-Powered Medical Imaging Analysis with Explainable Deep Learning</p>
+            <div style="margin-top: 20px;">
+                <span class="badge">6 CNN Models</span>
+                <span class="badge">3 XAI Techniques</span>
+                <span class="badge">Multi-LLM Pipeline</span>
+                <span class="badge">RAG-Enhanced Chat</span>
+            </div>
+        </div>
+    </header>
+
+    <nav>
+        <ul>
+            <li><a href="#overview">Overview</a></li>
+            <li><a href="#features">Features</a></li>
+            <li><a href="#architecture">Architecture</a></li>
+            <li><a href="#quick-start">Quick Start</a></li>
+            <li><a href="#components">Components</a></li>
+            <li><a href="#research">Research</a></li>
+        </ul>
+    </nav>
+
+    <div class="container">
+        <section id="overview">
+            <h2>📖 Project Overview</h2>
+            <p>This is a comprehensive <strong>AI-powered brain tumor identification system</strong> developed as an MSc
+                Computer Science (SLQF Level 10) research project at the Postgraduate Institute of Science (PGIS),
+                University of Peradeniya.</p>
+
+            <div class="alert alert-info">
+                <strong>🎯 Mission:</strong> Combine state-of-the-art deep learning with explainable AI to create a
+                clinically trustworthy diagnostic system that assists radiologists and educates medical students.
+            </div>
+
+            <h3>What Makes This Different?</h3>
+            <ul class="feature-list">
+                <li><strong>Multi-Model Ensemble</strong>: 6 CNN architectures (VGG16/19, ResNet50, MobileNetV2,
+                    GoogleLeNet, Custom)</li>
+                <li><strong>Triple XAI</strong>: Grad-CAM, LIME, and Saliency Maps with validation metrics</li>
+                <li><strong>Multi-LLM Pipeline</strong>: Llama Vision → MedGemma → DeepSeek for clinical report
+                    generation</li>
+                <li><strong>RAG Integration</strong>: ChromaDB-powered knowledge retrieval for evidence-based answers
+                </li>
+                <li><strong>Uncertainty Quantification</strong>: MC Dropout, entropy, confidence intervals</li>
+                <li><strong>Educational Focus</strong>: Teaching checkpoints, pitfall warnings, external learning
+                    resources</li>
+            </ul>
+        </section>
+
+        <section id="features">
+            <h2>✨ Key Features</h2>
+            <div class="grid">
+                <div class="card">
+                    <h4>🔬 Multi-Model CNN</h4>
+                    <p>6 pre-trained architectures with balanced & imbalanced dataset variants for robust classification
+                        across 4 tumor types: Glioma, Meningioma, Pituitary, No Tumor</p>
+                </div>
+                <div class="card">
+                    <h4>📊 XAI Visualization</h4>
+                    <p>Generate Grad-CAM heatmaps, LIME explanations, and saliency maps. Validate with comprehensiveness
+                        and sufficiency scores.</p>
+                </div>
+                <div class="card">
+                    <h4>📝 12-Section Reports</h4>
+                    <p>Structured clinical reports with executive summary, diagnostic findings, differential diagnoses,
+                        management plans, and <strong>external learning resources</strong></p>
+                </div>
+                <div class="card">
+                    <h4>💬 RAG Chatbot</h4>
+                    <p>Query medical knowledge base, retrieve similar cases, access clinical guidelines through natural
+                        language conversation</p>
+                </div>
+                <div class="card">
+                    <h4>📱 Cross-Platform</h4>
+                    <p>Ionic React mobile app for Web, Android, iOS with PWA support. Professional UI with drag-drop
+                        upload and real-time results</p>
+                </div>
+                <div class="card">
+                    <h4>⚡ Fast Inference</h4>
+                    <p>Optimized models with ~35-40ms inference time on GPU. Real-time XAI generation and report
+                        synthesis</p>
+                </div>
+            </div>
+        </section>
+
+        <section id="architecture">
+            <h2>🏗️ System Architecture</h2>
+            <pre><code>┌──────────────────────────────────────────────────────────────────┐
+                    │ Mobile/Web Application │
+                    │ (Ionic React + Capacitor + PWA) │
+                    └────────────────────┬─────────────────────────────────────────────┘
+                    │ HTTPS/REST API
+                    ┌────────────────────▼─────────────────────────────────────────────┐
+                    │ Flask Backend API (Port 5001) │
+                    │ ┌──────────────────────────────────────────────────────────────┐│
+                    │ │ Routes: /api/analyze, /api/chat, /api/history ││
+                    │ └──────────────────────────────────────────────────────────────┘│
+                    └──┬────────┬────────┬────────┬──────────┬─────────────────────────┘
+                    │ │ │ │ │
+                    ▼ ▼ ▼ ▼ ▼
+                    ┌─────┐ ┌──────┐ ┌──────┐ ┌────────┐ ┌──────────┐
+                    │ CNN │ │ XAI │ │ LLM │ │ChromaDB│ │OpenRouter│
+                    │Model│ │Utils │ │Ollama│ │ Vector │ │ API Call │
+                    │ .h5 │ │Grad │ │Local │ │ DB │ │ Cloud │
+                    │ │ │LIME │ │Server│ │Storage │ │ Service │
+                    └─────┘ └──────┘ └──────┘ └────────┘ └──────────┘
+                </code></pre>
+
+            <h3>Technology Stack</h3>
+            <div class="tech-stack">
+                <span class="tech-badge">Python 3.10+</span>
+                <span class="tech-badge">TensorFlow/Keras</span>
+                <span class="tech-badge">Flask</span>
+                <span class="tech-badge">Ollama (LLMs)</span>
+                <span class="tech-badge">ChromaDB</span>
+                <span class="tech-badge">React 19</span>
+                <span class="tech-badge">Ionic 8.5</span>
+                <span class="tech-badge">TypeScript</span>
+                <span class="tech-badge">Capacitor 7.4</span>
+                <span class="tech-badge">OpenRouter API</span>
+            </div>
+        </section>
+
+        <section id="quick-start">
+            <h2>🚀 Quick Start Guide</h2>
+
+            <h3>Prerequisites</h3>
+            <ul class="feature-list">
+                <li>Python 3.10+ with Conda</li>
+                <li>Node.js 18+ and npm</li>
+                <li>Ollama installed (<a href="https://ollama.ai" target="_blank">ollama.ai</a>)</li>
+                <li>OpenRouter API Key (<a href="https://openrouter.ai" target="_blank">openrouter.ai</a>)</li>
+                <li>GPU recommended (NVIDIA with CUDA)</li>
+            </ul>
+
+            <h3>Backend Setup</h3>
+            <pre><code># 1. Clone repository
+                    git clone https://github.com/yourusername/brain_tumor_app.git
+                    cd brain_tumor_app/brain_tumor_identification_api
+
+                    # 2. Create conda environment
+                    conda create -n mri_data python=3.10 -y
+                    conda activate mri_data
+
+                    # 3. Install dependencies
+                    pip install -r requirements.txt
+
+                    # 4. Configure API keys
+                    echo "OPENROUTER_API_KEY=your_key_here" > api_key.env
+
+                    # 5. Pull Ollama models
+                    ollama pull llama3.2-vision:11b
+                    ollama pull medgemma
+                    ollama pull deepseek-r1:14b
+
+                    # 6. Run Flask server
+                    python app.py
+                    # Server starts at http://localhost:5001
+                </code></pre>
+
+            <h3>Frontend Setup</h3>
+            <pre><code># 1. Navigate to mobile app
+                    cd ../braintumoridentificationapp
+
+                    # 2. Install dependencies
+                    npm install
+
+                    # 3. Run development server
+                    npm run dev
+                    # App opens at http://localhost:5173
+
+                    # 4. Build for production
+                    npm run build
+
+                    # 5. Build native Android app
+                    npx cap add android
+                    npx cap sync android
+                    npx cap open android
+                </code></pre>
+
+            <div class="alert alert-warning">
+                <strong>⚠️ Clinical Disclaimer:</strong> This is a research prototype for academic purposes. NOT
+                approved for clinical diagnosis or patient care. Always consult qualified healthcare professionals.
+            </div>
+        </section>
+
+        <section id="components">
+            <h2>📦 Project Components</h2>
+
+            <table>
+                <thead>
+                    <tr>
+                        <th>Directory</th>
+                        <th>Description</th>
+                        <th>Quick Link</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><strong>brain_tumor_identification_api/</strong></td>
+                        <td>Flask backend with CNN models, XAI, Multi-LLM pipeline, RAG chatbot</td>
+                        <td><a href="brain_tumor_identification_api/README.md">README</a></td>
+                    </tr>
+                    <tr>
+                        <td><strong>braintumoridentificationapp/</strong></td>
+                        <td>Ionic React mobile/web app with PWA support (iOS/Android)</td>
+                        <td><a href="braintumoridentificationapp/README.md">README</a></td>
+                    </tr>
+                    <tr>
+                        <td><strong>brain tumor dataset/</strong></td>
+                        <td>7,023 MRI images across 4 classes (Glioma, Meningioma, Pituitary, No Tumor)</td>
+                        <td><a href="brain%20tumor%20dataset/README.md">README</a></td>
+                    </tr>
+                    <tr>
+                        <td><strong>model_training_notebook/</strong></td>
+                        <td>Jupyter Notebook for training 6 CNN architectures with comparative analysis</td>
+                        <td><a href="model_training_notebook/README.md">README</a></td>
+                    </tr>
+                    <tr>
+                        <td><strong>data collection sheet/</strong></td>
+                        <td>Research methodology, experimental design, performance tracking</td>
+                        <td><a href="data%20collection%20sheet/README.md">README</a></td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <h3>Model Performance</h3>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Model</th>
+                        <th>Accuracy</th>
+                        <th>Precision</th>
+                        <th>Recall</th>
+                        <th>F1-Score</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>VGG16 (Balanced)</td>
+                        <td>96.2%</td>
+                        <td>95.8%</td>
+                        <td>96.1%</td>
+                        <td>96.0%</td>
+                    </tr>
+                    <tr>
+                        <td>ResNet50 (Balanced)</td>
+                        <td>97.1%</td>
+                        <td>96.9%</td>
+                        <td>97.0%</td>
+                        <td>97.0%</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Proposed Model (Balanced)</strong></td>
+                        <td><strong>97.8%</strong></td>
+                        <td><strong>97.6%</strong></td>
+                        <td><strong>97.7%</strong></td>
+                        <td><strong>97.7%</strong></td>
+                    </tr>
+                </tbody>
+            </table>
+        </section>
+
+        <section id="research">
+            <h2>🎓 Research Context</h2>
+            <p><strong>Degree Program:</strong> Master of Science in Computer Science (MSc CS - SLQF Level 10)</p>
+            <p><strong>Institution:</strong> Postgraduate Institute of Science (PGIS), University of Peradeniya, Sri
+                Lanka</p>
+            <p><strong>Research Focus:</strong> Explainable Deep Learning for Medical Image Analysis</p>
+
+            <h3>Research Questions Addressed</h3>
+            <ol>
+                <li>How can CNN decision-making be made transparent to clinicians?</li>
+                <li>Do multiple XAI methods converge on consistent interpretations?</li>
+                <li>Can LLMs synthesize multimodal medical data into clinically useful reports?</li>
+                <li>How does dataset balance affect model performance in medical imaging?</li>
+                <li>What metrics effectively validate XAI explanations?</li>
+            </ol>
+
+            <h3>Novel Contributions</h3>
+            <ul class="feature-list">
+                <li>Multi-LLM orchestration (Llama Vision → MedGemma → DeepSeek) for medical report generation</li>
+                <li>XAI validation framework with comprehensiveness and sufficiency metrics</li>
+                <li>RAG-enhanced chatbot for medical knowledge retrieval</li>
+                <li>Uncertainty quantification using MC Dropout and entropy measures</li>
+                <li>Integration of external learning resources (Section 11.5) for continuous education</li>
+            </ul>
+
+            <h3>Publications & Presentations</h3>
+            <p><em>Research findings will be submitted to medical imaging and AI conferences/journals</em></p>
+
+            <div style="margin-top: 30px;">
+                <a href="https://github.com/yourusername/brain_tumor_app" class="btn">View on GitHub</a>
+                <a href="readme.md" class="btn btn-secondary">Main README</a>
+            </div>
+        </section>
+    </div>
+
+    <footer>
+        <div class="container">
+            <p>&copy; 2024-2025 Brain Tumor Identification Research Project</p>
+            <p>MSc Computer Science | PGIS, University of Peradeniya</p>
+        </div>
+    </footer>
+</body>
+
+</html>
