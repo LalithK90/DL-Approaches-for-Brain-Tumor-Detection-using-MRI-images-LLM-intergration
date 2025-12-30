@@ -1,14 +1,11 @@
 .footer-container {
   width: 100%;
-  /* margin-top: 0; */
-    /* keep footer immediately after content */
-  /* padding-bottom: 1rem; */
 }
 
 .container-fluid.bg-danger {
   background-color: var(--ion-color-primary) !important;
-    padding: 1rem;
-  margin-bottom: 0.5rem;
+  padding: 0.3rem 0.5rem;
+    margin-bottom: 0.2rem;
   border-radius: 4px;
 }
 
@@ -29,7 +26,7 @@
 }
 
 .small {
-  font-size: 0.875rem;
+  font-size: 0.7rem;
 }
 
 .mb-0 {
@@ -37,20 +34,20 @@
 }
 
 .mb-1 {
-  margin-bottom: 0.25rem;
+  margin-bottom: 0.1rem;
 }
 
 .mt-3 {
-  margin-top: 0.75rem;
+  margin-top: 0.3rem;
 }
 
 .mt-4 {
-  margin-top: 1rem;
+  margin-top: 0.3rem;
 }
 
 .container {
-  padding-left: 1rem;
-  padding-right: 1rem;
+  padding-left: 0.3rem;
+    padding-right: 0.3rem;
 }
 
 .footer-container a {
