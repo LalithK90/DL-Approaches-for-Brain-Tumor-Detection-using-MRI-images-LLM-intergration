@@ -19,10 +19,6 @@
   box-sizing: border-box;
 }
 
-.login-left {}
-
-.login-right {}
-
 .research-card {
   border-left: 6px solid var(--ion-color-primary);
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
