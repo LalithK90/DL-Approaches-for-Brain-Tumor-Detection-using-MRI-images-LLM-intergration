@@ -9,6 +9,7 @@ import Footer from './components/Footer';
 import MetricsTable from './components/MetricsTable';
 import Top3PredictionsTable from './components/Top3PredictionsTable';
 import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
 
 /* Core CSS required for Ionic components to work properly */
 import '@ionic/react/css/core.css';
@@ -110,6 +111,7 @@ const BrainTumorApp: React.FC<{ user: User; onLogout: () => void }> = ({ user, o
   const [isChatLoading, setIsChatLoading] = useState(false);
   const [imageSize, setImageSize] = useState<number>(100);
   const [expandedThinks, setExpandedThinks] = useState<Record<number, boolean>>({});
+  const [isMetricsExpanded, setIsMetricsExpanded] = useState<boolean>(false);
   const chatContainerRef = useRef<HTMLDivElement>(null);
   // Segmented tabs removed; using a single unified metrics table
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -404,19 +406,25 @@ const BrainTumorApp: React.FC<{ user: User; onLogout: () => void }> = ({ user, o
                       <IonRange min={50} max={200} value={imageSize} onIonChange={e => setImageSize(e.detail.value as number)} />
                     </IonItem>
                     
+                    <div style={{ textAlign: 'center', marginBottom: '12px', marginTop: '8px' }}>
+                      <p style={{ margin: '0', fontSize: '14px', color: 'var(--ion-color-primary)', fontWeight: '600' }}>
+                        Current Size: {imageSize}%
+                      </p>
+                    </div>
+                    
                     {/* Unified responsive image array: 3 per row on desktop, horizontal scroll on mobile */}
                     {(() => {
                       const imageItems = [
                         { title: 'Original Image', src: prediction.original, alt: 'Original' },
-                        { title: 'Grad-CAM (Overlay)', src: prediction.gradcam, alt: 'Grad-CAM' },
+                        // { title: 'Grad-CAM (Overlay)', src: prediction.gradcam, alt: 'Grad-CAM' },
                         { title: 'Grad-CAM Analysis', src: prediction.gradcam_analysis, alt: 'Grad-CAM Analysis' },
                         { title: 'Grad-CAM Heatmap', src: prediction.gradcam_heatmap, alt: 'Grad-CAM Heatmap' },
                         { title: 'Saliency Map', src: prediction.saliency, alt: 'Saliency' },
                         { title: 'LIME Explanation', src: prediction.lime, alt: 'LIME' },
                       ].filter(item => !!item.src);
 
-                      // Columns: 1 at near-max, 2 at mid, 3 at lower sizes
-                      const columns = imageSize >= 180 ? 1 : imageSize >= 120 ? 2 : 3;
+                      // Columns: 1 for large images (full width), 2 for medium, 3 for small (space efficient)
+                      const columns = imageSize >= 150 ? 1 : imageSize >= 100 ? 2 : 3;
                       const containerStyle: React.CSSProperties = {
                         display: 'grid',
                         gridTemplateColumns: `repeat(${columns}, minmax(0, 1fr))`,
@@ -436,7 +444,7 @@ const BrainTumorApp: React.FC<{ user: User; onLogout: () => void }> = ({ user, o
                       return (
                         <div className="image-array" style={containerStyle}>
                           {imageItems.map((item, idx) => (
-                            <div className="image-card" key={`${item.title}-${idx}`} style={{ flex: `0 0 ${mobileBasis}` }}>
+                            <div className="image-card" key={`${item.title}-${idx}`} style={{ flex: `0 0 ${mobileBasis}`, maxWidth: `${imageSize}%` }}>
                               <h4 style={{ textAlign: 'center' }}>{item.title}</h4>
                               <IonImg src={item.src as string} alt={item.alt} style={imgStyle} />
                             </div>
@@ -454,22 +462,45 @@ const BrainTumorApp: React.FC<{ user: User; onLogout: () => void }> = ({ user, o
 
                   {/* Unified Metrics Table (no tabs) */}
                   <div style={{ marginTop: '16px' }}>
-                    <MetricsTable 
-                      metrics={{
-                        brier: prediction.brier,
-                        entropy: prediction.entropy,
-                        margin: prediction.margin,
-                        mc_variance: prediction.mc_variance,
-                        comprehensiveness: prediction.comprehensiveness,
-                        sufficiency: prediction.sufficiency,
-                        deletion_auc: prediction.deletion_auc,
-                        insertion_auc: prediction.insertion_auc,
-                        randomized_weights_corr: prediction.randomized_weights_corr,
-                        dice: prediction.dice,
-                        iou: prediction.iou
+                    <button
+                      onClick={() => setIsMetricsExpanded(!isMetricsExpanded)}
+                      style={{
+                        width: '100%',
+                        padding: '12px',
+                        backgroundColor: 'var(--ion-color-primary)',
+                        color: 'white',
+                        border: 'none',
+                        borderRadius: '8px',
+                        cursor: 'pointer',
+                        fontWeight: 600,
+                        fontSize: '16px',
+                        display: 'flex',
+                        justifyContent: 'space-between',
+                        alignItems: 'center',
+                        marginBottom: isMetricsExpanded ? '12px' : '0'
                       }}
-                      title="All Explainability Metrics"
-                    />
+                    >
+                      <span>All Explainability Metrics</span>
+                      <span>{isMetricsExpanded ? '▲' : '▼'}</span>
+                    </button>
+                    {isMetricsExpanded && (
+                      <MetricsTable 
+                        metrics={{
+                          brier: prediction.brier,
+                          entropy: prediction.entropy,
+                          margin: prediction.margin,
+                          mc_variance: prediction.mc_variance,
+                          comprehensiveness: prediction.comprehensiveness,
+                          sufficiency: prediction.sufficiency,
+                          deletion_auc: prediction.deletion_auc,
+                          insertion_auc: prediction.insertion_auc,
+                          randomized_weights_corr: prediction.randomized_weights_corr,
+                          dice: prediction.dice,
+                          iou: prediction.iou
+                        }}
+                        title=""
+                      />
+                    )}
                   </div>
                 </IonCardContent>
               </IonCard>
@@ -479,7 +510,7 @@ const BrainTumorApp: React.FC<{ user: User; onLogout: () => void }> = ({ user, o
               {prediction.final_report && (
                 <IonCard>
                   <IonCardHeader>
-                    <IonCardTitle>ChatMessage</IonCardTitle>
+                    <IonCardTitle>AI Medical Assistant</IonCardTitle>
                   </IonCardHeader>
                   <IonCardContent>
                     <div
@@ -580,7 +611,7 @@ const BrainTumorApp: React.FC<{ user: User; onLogout: () => void }> = ({ user, o
                                   border: '1px solid #63c77a'
                                 }}
                               >
-                                <ReactMarkdown>{msg.text}</ReactMarkdown>
+                                <ReactMarkdown remarkPlugins={[remarkGfm]}>{msg.text}</ReactMarkdown>
                               </div>
                             </div>
                           </div>
@@ -645,7 +676,7 @@ const BrainTumorApp: React.FC<{ user: User; onLogout: () => void }> = ({ user, o
         />
       </IonContent>
       <IonFooter>
-        <div style={{ padding: '16px', marginTop: '8px' }}>
+        <div style={{ padding: '4px', margin: '0' }}>
           <Footer />
         </div>
       </IonFooter>
