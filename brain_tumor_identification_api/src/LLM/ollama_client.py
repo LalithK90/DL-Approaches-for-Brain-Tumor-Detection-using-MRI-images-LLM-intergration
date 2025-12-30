@@ -408,29 +408,48 @@ def _call_groq_model(prompt: str) -> Optional[str]:
     if not GROQ_API_KEY:
         logging.error("GROQ API key is not set. Cannot call model.")
         return _call_ollama_model(model_name='deepseek-r1:14b', message=prompt)
-    try:
-        response = requests.post(
-            url="https://api.groq.com/openai/v1/chat/completions",
-            headers={
-                "Authorization": f"Bearer {GROQ_API_KEY}",
-                "Content-Type": "application/json"
-            },
-            json={
-                "model": "deepseek-r1-distill-llama-70b",
-                "messages": [
-                    {"role": "user",
-                     "content": prompt}
-                ],
-                "temperature": 0.7
-            }
-        )
-        response.raise_for_status()
-        response_data = response.json()
-        return response_data.get("choices", [{}])[0].get("message", {}).get("content")
 
-    except requests.exceptions.RequestException as e:
-        logging.error(f"Error calling Groq API: {e}")
-        return _call_ollama_model(model_name='deepseek-r1:14b', message=prompt)
+    # List of models to try in order
+    models_to_try = ["deepseek-r1-distill-llama-70b", "qwen/qwen3-32b"]
+
+    for model_name in models_to_try:
+        try:
+            logging.info(f"Attempting Groq API with model: {model_name}")
+            response = requests.post(
+                url="https://api.groq.com/openai/v1/chat/completions",
+                headers={
+                    "Authorization": f"Bearer {GROQ_API_KEY}",
+                    "Content-Type": "application/json"
+                },
+                json={
+                    "model": model_name,
+                    "messages": [
+                        {"role": "user",
+                         "content": prompt}
+                    ],
+                    "temperature": 0.7
+                }
+            )
+            response.raise_for_status()
+            response_data = response.json()
+            result = response_data.get("choices", [{}])[0].get(
+                "message", {}).get("content")
+            if result:
+                logging.info(
+                    f"Successfully received response from Groq model: {model_name}")
+                return result
+
+        except requests.exceptions.RequestException as e:
+            logging.warning(
+                f"Error calling Groq API with model {model_name}: {e}")
+            if model_name == models_to_try[-1]:
+                # Last model failed, fall back to Ollama
+                logging.error(
+                    f"All Groq models failed. Falling back to Ollama.")
+                return _call_ollama_model(model_name='deepseek-r1:14b', message=prompt)
+            # Try next model in list
+            continue
+
 
 def get_medical_report_from_image_medgemma(message: str, image_path: str) -> Optional[str]:
     prompt = (
