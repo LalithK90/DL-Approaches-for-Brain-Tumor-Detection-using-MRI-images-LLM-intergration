@@ -1,21 +1,54 @@
 {
-  "short_name": "Ionic App",
-  "name": "My Ionic App",
+  "short_name": "Brain Tumor ID",
+  "name": "Brain Tumor Identification with XAI",
+  "description": "AI-Powered Brain Tumor Classification with Explainable AI for Medical Professionals",
   "icons": [
     {
-      "src": "assets/icon/favicon.png",
+      "src": "favicon.ico",
       "sizes": "64x64 32x32 24x24 16x16",
-      "type": "image/x-icon"
+      "type": "image/x-icon",
+      "purpose": "any"
     },
     {
-      "src": "assets/icon/icon.png",
+      "src": "favicon.png",
+      "type": "image/png",
+      "sizes": "192x192",
+      "purpose": "any"
+    },
+    {
+      "src": "favicon.png",
       "type": "image/png",
       "sizes": "512x512",
       "purpose": "maskable"
     }
   ],
   "start_url": ".",
+  "scope": "/",
   "display": "standalone",
-  "theme_color": "#ffffff",
-  "background_color": "#ffffff"
+  "orientation": "portrait-primary",
+  "theme_color": "#1f2937",
+  "background_color": "#ffffff",
+  "shortcuts": [
+    {
+      "name": "Analyze Image",
+      "short_name": "Analyze",
+      "description": "Analyze a brain MRI image",
+      "url": "/?action=analyze",
+      "icons": [{"src": "favicon.png", "sizes": "192x192"}]
+    }
+  ],
+  "screenshots": [
+    {
+      "src": "favicon.png",
+      "sizes": "540x720",
+      "type": "image/png",
+      "form_factor": "narrow"
+    },
+    {
+      "src": "favicon.png",
+      "sizes": "1280x720",
+      "type": "image/png",
+      "form_factor": "wide"
+    }
+  ]
 }
