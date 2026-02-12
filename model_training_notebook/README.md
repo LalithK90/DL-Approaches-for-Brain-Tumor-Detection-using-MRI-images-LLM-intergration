@@ -11,14 +11,47 @@ This directory contains the **Jupyter Notebook for model training**:
 - ✅ **Transfer learning** from ImageNet weights
 - ✅ **Hyperparameter tuning** experiments
 - ✅ **Model export** for production deployment
+- ✅ **XAI methods** (Grad-CAM, LIME, saliency) for interpretability
+- ✅ **XAI evaluation** with consistency/faithfulness metrics
+
+## 🔬 Research Focus
+
+**Task:** 4-class brain tumor MRI slice classification (glioma, meningioma, pituitary, no tumor)
+
+**XAI Methods:**
+- **Grad-CAM** - Gradient-weighted Class Activation Mapping
+- **LIME** - Local Interpretable Model-agnostic Explanations
+- **Saliency Maps** - Gradient-based visualization
+
+**XAI Evaluation:** Quantitative consistency and faithfulness metrics without pixel-level ground truth.
+
+**Note:** This is not clinical validation. Results are based on public datasets and do not establish clinical utility.
 
 ## 📂 Directory Structure
 
 ```
 model_training_notebook/
 ├── README.md                                          # This file
-└── enhanced-dl-techniques-for-brain-tumor-identificat.ipynb  # Main notebook
+├── enhanced-dl-techniques-for-brain-tumor-identificat.ipynb  # Main notebook
+├── enhanced-dl-techniques-for-brain-tumor-identificat_v2.ipynb  # Version 2 with XAI
+├── requirements.txt                                   # Python dependencies
+└── artifacts/                                         # Generated outputs
+    ├── splits/                                        # Train/val/test manifests
+    ├── metrics/                                       # Evaluation results
+    └── figures/                                       # Visualizations
 ```
+
+## ⚠️ Key Reproducibility Rule
+
+**The `Testing/` split is locked and used only once for final reporting.**
+
+Critical practices to avoid test data leakage:
+- Training uses the dataset's `Training/` split only
+- Validation is created by stratified splitting **only** the `Training/` data (default **val_fraction=0.15**)
+- Early stopping, learning-rate scheduling, and checkpoint selection use **validation** only
+- **Never** train with `validation_data=(x_test, y_test)`
+
+If you use test data during training, your results are not scientifically defensible.
 
 ## 📊 Notebook Overview
 
@@ -38,8 +71,9 @@ This comprehensive Jupyter Notebook implements the complete machine learning pip
    - Load 7,023 MRI images from dataset
    - Parse directory structure for labels
    - Apply preprocessing (normalization, resizing)
-   - Split data (70% train, 15% val, 15% test)
-   - Data augmentation implementation
+   - **Proper data splitting**: Create val split from Training/ only (15% stratified)
+   - Keep Testing/ completely isolated until final evaluation
+   - Data augmentation implementation (restricted to safe transforms)
 
 3. **🏗️ Model Architecture Definitions**
    - **VGG16** - 16-layer homogeneous CNN
@@ -67,23 +101,30 @@ This comprehensive Jupyter Notebook implements the complete machine learning pip
    - Plot learning curves
    - Save best model weights
 
-7. **📈 Performance Evaluation**
-   - Test on held-out test set
+7. **📈 Performance Evaluation (used only once)
    - Generate confusion matrices
    - Calculate precision, recall, F1-score
    - ROC curves and AUC
 
-8. **📊 Comparative Analysis**
+8. **🔍 XAI Generation & Evaluation**
+   - Generate Grad-CAM, LIME, and saliency visualizations
+   - Compute quantitative consistency metrics
+   - Evaluate faithfulness without pixel-level ground truth
+   - Save XAI metrics to artifacts/metrics/xai_metrics.csv
+
+9. **📊 Comparative Analysis**
    - Compare all 6 architectures
    - Balanced vs imbalanced dataset results
    - Statistical significance testing
    - Performance visualization (bar charts, tables)
 
-9. **💾 Model Export**
-   - Save trained models (.h5 format)
-   - Export for Flask backend integration
-   - Model versioning
+10. **💾 Model Export**
+    - Save trained models (.h5 format)
+    - Export for Flask backend integration
+    - Model versioning
+    - Save split manifests (train_files.json, val_files.json, test_files.json)
 
+11
 10. **📝 Results Documentation**
     - Summarize findings
     - Best performing model
@@ -437,13 +478,54 @@ After running the notebook, you'll have:
 - Run cells sequentially (top to bottom)
 - Save checkpoints frequently
 - Monitor training curves for overfitting
-- Validate on separate test set
+- Va� Dataset Requirements
 
-**Time Estimates**:
-- Complete notebook execution: 6-8 hours (with GPU)
-- All 12 model configurations: 15-20 hours
-- Without GPU: 3-5x longer
+Expected Kaggle dataset structure:
 
+```
+/kaggle/input/brain-tumor-mri-dataset/
+  Training/
+    glioma/
+    meningioma/
+    notumor/
+    pituitary/
+  Testing/
+    glioma/
+    meningioma/
+    notumor/
+    pituitary/
+```
+
+## 🔬 Notes on Data Augmentation
+
+**Important**: No geometric flipping is applied because laterality can be clinically meaningful in brain MRI analysis.
+
+**Safe augmentation transforms**:
+- Small rotations (±10-15°)
+- Mild intensity jitter
+- Zoom variations (±10%)
+- Width/height shifts
+
+Always document augmentation strategies in research papers.
+
+## 🧪 Ethical and Clinical Scope
+
+**Important Disclaimers**:
+- Uses public, de-identified dataset
+- No patient recruitment or protected health information
+- **No clinical workflow validation** or reader study conducted
+- Results do not establish clinical utility
+- Not intended for direct clinical use without proper validation
+
+**These limitations must be explicitly stated in any research publication.**
+
+## 📄 License
+
+Academic research code. See [LICENSE](../LICENSE) in root directory.
+
+---
+
+**Ready to Train**: Open Jupyter Notebook and start training state-of-the-art CNN models with proper reproducibility practice
 ## 📄 License
 
 Academic research code. See [LICENSE](../LICENSE) in root directory.
