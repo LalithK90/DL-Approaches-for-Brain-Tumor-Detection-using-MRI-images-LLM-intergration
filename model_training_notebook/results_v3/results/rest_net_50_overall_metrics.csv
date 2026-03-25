@@ -1,0 +1,2 @@
+model_name,accuracy,balanced_accuracy,macro_precision,macro_recall,macro_f1,weighted_f1,cohen_kappa,matthews_corrcoef,log_loss
+rest_net_50,0.920625,0.920625,0.925764344057027,0.920625,0.9189527660236214,0.9189527660236213,0.8941666666666667,0.8966668088384863,0.579278900066107

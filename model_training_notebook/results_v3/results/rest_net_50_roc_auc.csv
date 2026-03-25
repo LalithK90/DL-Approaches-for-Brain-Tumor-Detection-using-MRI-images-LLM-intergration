@@ -1,0 +1,2 @@
+model_name,roc_auc_ovr,roc_auc_ovo
+rest_net_50,0.982771875,0.982771875

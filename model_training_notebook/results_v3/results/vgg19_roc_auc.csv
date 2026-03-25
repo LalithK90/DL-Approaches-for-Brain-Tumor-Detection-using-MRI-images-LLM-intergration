@@ -1,0 +1,2 @@
+model_name,roc_auc_ovr,roc_auc_ovo
+vgg19,0.9844768229166666,0.9844768229166666
