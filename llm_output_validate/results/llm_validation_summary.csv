@@ -1,0 +1,6 @@
+timestamp,model_name,predicted_class,model_confidence,tier1_structure_score,tier2_diagnostic_consistent,tier3_medical_plausibility_score,tier4_confidence_aligned,overall_score,overall_pass,extracted_diagnosis,extracted_urgency,extracted_confidence_text,semantic_similarity,error_count,warning_count
+2026-04-01T11:33:09.677613,propose_balanced,glioma,0.91,0.0833,True,1.0,True,0.6333,False,glioma,urgent,high,0.5056,1,11
+2026-04-01T11:34:37.806054,propose_balanced,glioma,0.91,0.0,True,1.0,True,0.6,False,glioma,stat,high,0.5056,1,12
+2026-04-01T11:35:40.665878,propose_balanced,glioma,0.91,1.0,True,1.0,True,1.0,True,glioma,urgent,high,0.5056,0,0
+2026-04-01T11:47:25.817582,propose_balanced,glioma,0.91,1.0,True,1.0,True,1.0,True,glioma,urgent,high,0.5056,0,0
+2026-04-01T11:50:41.191197,propose_balanced,glioma,0.91,1.0,True,1.0,True,1.0,True,glioma,urgent,high,0.5056,0,0

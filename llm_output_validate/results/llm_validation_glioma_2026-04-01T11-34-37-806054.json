@@ -1,0 +1,163 @@
+{
+  "timestamp": "2026-04-01T11:34:37.806054",
+  "predicted_class": "glioma",
+  "model_confidence": 0.91,
+  "model_name": "propose_balanced",
+  "tier1_structure_score": 0.0,
+  "tier2_diagnostic_consistent": true,
+  "tier3_medical_plausibility_score": 1.0,
+  "tier4_confidence_aligned": true,
+  "overall_score": 0.6,
+  "overall_pass": false,
+  "sections": [
+    {
+      "name": "QUICK CLINICAL DECISION",
+      "present": true,
+      "min_length_ok": false,
+      "char_count": 0
+    },
+    {
+      "name": "Executive Summary",
+      "present": true,
+      "min_length_ok": false,
+      "char_count": 0
+    },
+    {
+      "name": "Clinical Presentation",
+      "present": true,
+      "min_length_ok": false,
+      "char_count": 0
+    },
+    {
+      "name": "Imaging Findings",
+      "present": true,
+      "min_length_ok": false,
+      "char_count": 0
+    },
+    {
+      "name": "Differential Diagnosis",
+      "present": true,
+      "min_length_ok": false,
+      "char_count": 0
+    },
+    {
+      "name": "Pathophysiology",
+      "present": true,
+      "min_length_ok": false,
+      "char_count": 0
+    },
+    {
+      "name": "Tumor Grading",
+      "present": true,
+      "min_length_ok": false,
+      "char_count": 0
+    },
+    {
+      "name": "Clinical Implications",
+      "present": true,
+      "min_length_ok": false,
+      "char_count": 0
+    },
+    {
+      "name": "Management Plan",
+      "present": true,
+      "min_length_ok": false,
+      "char_count": 0
+    },
+    {
+      "name": "Next Steps",
+      "present": true,
+      "min_length_ok": false,
+      "char_count": 0
+    },
+    {
+      "name": "Educational Pearls",
+      "present": true,
+      "min_length_ok": false,
+      "char_count": 0
+    },
+    {
+      "name": "References",
+      "present": true,
+      "min_length_ok": false,
+      "char_count": 0
+    }
+  ],
+  "issues": [
+    {
+      "tier": "Tier1-Structure",
+      "severity": "WARNING",
+      "message": "Section 'QUICK CLINICAL DECISION' is present but very short (0 chars) – may be a placeholder"
+    },
+    {
+      "tier": "Tier1-Structure",
+      "severity": "WARNING",
+      "message": "Section 'Executive Summary' is present but very short (0 chars) – may be a placeholder"
+    },
+    {
+      "tier": "Tier1-Structure",
+      "severity": "WARNING",
+      "message": "Section 'Clinical Presentation' is present but very short (0 chars) – may be a placeholder"
+    },
+    {
+      "tier": "Tier1-Structure",
+      "severity": "WARNING",
+      "message": "Section 'Imaging Findings' is present but very short (0 chars) – may be a placeholder"
+    },
+    {
+      "tier": "Tier1-Structure",
+      "severity": "WARNING",
+      "message": "Section 'Differential Diagnosis' is present but very short (0 chars) – may be a placeholder"
+    },
+    {
+      "tier": "Tier1-Structure",
+      "severity": "WARNING",
+      "message": "Section 'Pathophysiology' is present but very short (0 chars) – may be a placeholder"
+    },
+    {
+      "tier": "Tier1-Structure",
+      "severity": "WARNING",
+      "message": "Section 'Tumor Grading' is present but very short (0 chars) – may be a placeholder"
+    },
+    {
+      "tier": "Tier1-Structure",
+      "severity": "WARNING",
+      "message": "Section 'Clinical Implications' is present but very short (0 chars) – may be a placeholder"
+    },
+    {
+      "tier": "Tier1-Structure",
+      "severity": "WARNING",
+      "message": "Section 'Management Plan' is present but very short (0 chars) – may be a placeholder"
+    },
+    {
+      "tier": "Tier1-Structure",
+      "severity": "WARNING",
+      "message": "Section 'Next Steps' is present but very short (0 chars) – may be a placeholder"
+    },
+    {
+      "tier": "Tier1-Structure",
+      "severity": "WARNING",
+      "message": "Section 'Educational Pearls' is present but very short (0 chars) – may be a placeholder"
+    },
+    {
+      "tier": "Tier1-Structure",
+      "severity": "WARNING",
+      "message": "Section 'References' is present but very short (0 chars) – may be a placeholder"
+    },
+    {
+      "tier": "Tier4-Confidence",
+      "severity": "INFO",
+      "message": "Confidence aligned: DL=91.0%, LLM label='high' → expected range 90%–100%"
+    },
+    {
+      "tier": "Overall",
+      "severity": "ERROR",
+      "message": "Report FAILED validation. Overall score 0.60 is below threshold 0.65."
+    }
+  ],
+  "extracted_diagnosis": "glioma",
+  "extracted_urgency": "stat",
+  "extracted_confidence_text": "high",
+  "semantic_similarity": 0.5056,
+  "spacy_entities": []
+}
