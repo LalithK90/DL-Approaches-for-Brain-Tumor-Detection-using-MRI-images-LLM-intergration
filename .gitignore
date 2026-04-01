@@ -322,3 +322,8 @@ VGG19_imbalanced.h5
 */images for test/*
 XAI_validation/testing
 /logs
+
+save-propose.h5
+save-rest_net_50.h5
+save-vgg16.h5
+save-vgg19.h5

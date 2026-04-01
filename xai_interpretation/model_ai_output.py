@@ -295,3 +295,7 @@ def main() -> None:
 
 if __name__ == "__main__":
 	main()
+
+
+# git push --force --all
+# git push --force --tags
