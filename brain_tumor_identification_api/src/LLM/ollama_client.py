@@ -84,8 +84,7 @@ def get_max_prompt_length(model_name: str) -> int:
     """
     return MODEL_MAX_LENGTHS.get(model_name, MAX_PROMPT_LENGTH)
 
-MEDGEMMA_MODEL_NAME = "alibayram/medgemma:4b"
-LAMMA_MODEL_NAME = 'llama3.2-vision:latest'
+MEDGEMMA_MODEL_NAME = "dcarrascosa/medgemma-1.5-4b-it:F16"
 DEEPSEEK_MODEL_NAME = 'deepseek-r1:14b'
 COMMON_PROMPT_MESSAGE = """
 As an expert oncologist, physician, radiologist, and ruthless mentor, analyze this case for BOTH medical students (learning) AND radiologists (decision support). Prioritize clinical medicine over technical details. Don't sugarcoat anything.
@@ -864,9 +863,9 @@ def get_image_description_llama3_vision(message: str, image_path: str) -> Option
     )
     logging.info(f"Calling Llama3.2 Vision model with image")
     response = _call_ollama_model(
-        model_name=LAMMA_MODEL_NAME, message=prompt, image_path=image_path)
+        model_name=MEDGEMMA_MODEL_NAME, message=prompt, image_path=image_path)
     if response:
-        store_in_vector_db(model_name=LAMMA_MODEL_NAME,
+        store_in_vector_db(model_name=MEDGEMMA_MODEL_NAME,
                            prompt=message,
                            response=response,
                            image_path=image_path,
