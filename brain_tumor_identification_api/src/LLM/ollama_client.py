@@ -84,7 +84,7 @@ def get_max_prompt_length(model_name: str) -> int:
     """
     return MODEL_MAX_LENGTHS.get(model_name, MAX_PROMPT_LENGTH)
 
-MEDGEMMA_MODEL_NAME = "edwardlo12/medgemma-4b-it-Q4_K_M"
+MEDGEMMA_MODEL_NAME = "alibayram/medgemma:4b"
 LAMMA_MODEL_NAME = 'llama3.2-vision:latest'
 DEEPSEEK_MODEL_NAME = 'deepseek-r1:14b'
 COMMON_PROMPT_MESSAGE = """
