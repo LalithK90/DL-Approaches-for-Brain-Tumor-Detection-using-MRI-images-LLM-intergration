@@ -519,7 +519,7 @@ def predict():
     current_image=filename.replace(" ", "")
     print(f"File saved at: {current_image}")
     # Process the image and load the model
-    model_name = request.form.get('model_name', 'propose_balance')
+    model_name = request.form.get('model_name', 'propose_balanced')
     img, img_array, model = _process_image(filepath, model_name)
     if model is None:
         return jsonify({'error': 'Model not found'}), 404
@@ -1105,7 +1105,7 @@ def predict():
     current_image = filename.replace(" ", "")
     print(f"File saved at: {current_image}")
     # Process the image and load the model
-    model_name = request.form.get('model_name', 'propose_balance')
+    model_name = request.form.get('model_name', 'propose_balanced')
     img, img_array, model = _process_image(filepath, model_name)
     if model is None:
         return jsonify({'error': 'Model not found'}), 404

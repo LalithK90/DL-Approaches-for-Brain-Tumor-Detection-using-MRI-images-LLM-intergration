@@ -13,7 +13,7 @@ IMAGE_SIZE = 224
 # If you provide a list of paths here, the script will choose one at random.
 TEST_IMAGE_PATHS = []  
 TEST_IMAGE_PATH = "testing/glioma/Tr-gl_001.jpg"
-MODEL_BALANCED_PATH = "../brain_tumor_identification_api/models/propose_balance.h5"
+MODEL_BALANCED_PATH = "../brain_tumor_identification_api/models/propose_balanced.h5"
 MODEL_IMBALANCED_PATH = "../brain_tumor_identification_api/models/propose_imbalanced.h5"
 
 CLASS_NAMES = ['glioma', 'meningioma', 'notumor', 'pituitary']

@@ -396,7 +396,7 @@ if __name__ == "__main__":
     # Configuration
     TESTING_FOLDER = "testing"  # Path to testing folder
     MODEL_PATHS = [
-        "../brain_tumor_identification_api/models/propose_balance.h5",
+        "../brain_tumor_identification_api/models/propose_balanced.h5",
         "../brain_tumor_identification_api/models/propose_imbalanced.h5"
     ]
     IMAGE_SIZE = 224

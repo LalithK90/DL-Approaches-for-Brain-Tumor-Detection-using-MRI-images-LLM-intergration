@@ -2,17 +2,17 @@ import tensorflow as tf
 
 MODELS = {
     'vgg19_imbalanced': 'models/vgg19_imbalanced.h5',
-    'vgg19_balance': 'models/vgg19_balance.h5',
+    'vgg19_balanced': 'models/vgg19_balanced.h5',
     'vgg16_imbalanced': 'models/vgg16_imbalanced.h5',
-    'vgg16_balance': 'models/vgg16_balance.h5',
+    'vgg16_balanced': 'models/vgg16_balanced.h5',
     'propose_imbalanced': 'models/propose_imbalanced.h5',
-    'propose_balance': 'models/propose_balance.h5',
+    'propose_balanced': 'models/propose_balanced.h5',
     'ResNet50_imbalanced': 'models/ResNet50_imbalanced.h5',
-    'ResNet50_balance': 'models/ResNet50_balance.h5',
+    'ResNet50_balanced': 'models/ResNet50_balanced.h5',
     'MobileVNet_imbalanced': 'models/MobileVNet_imbalanced.h5',
-    'MobileVNet_balance': 'models/MobileVNet_balance.h5',
+    'MobileVNet_balanced': 'models/MobileVNet_balanced.h5',
     'GoogleLeNet_imbalanced': 'models/GoogleLeNet_imbalanced.h5',
-    'GoogleLeNet_balance': 'models/GoogleLeNet_balance.h5',
+    'GoogleLeNet_balanced': 'models/GoogleLeNet_balanced.h5',
 }
 
 LABELS = ['Glioma', 'Meningioma', 'Notumor', 'Pituitary']
