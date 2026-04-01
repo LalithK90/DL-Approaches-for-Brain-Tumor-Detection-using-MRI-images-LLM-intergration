@@ -197,7 +197,10 @@ def main():
         margins = []
         mc_vars = []
 
-        input_name = model.input_names[0] if model.input_names else None
+        try:
+            input_name = model.inputs[0].name.split(':')[0]
+        except (AttributeError, IndexError):
+            input_name = None
 
         for img, label in zip(images, labels):
             img_batch = np.expand_dims(img, axis=0)

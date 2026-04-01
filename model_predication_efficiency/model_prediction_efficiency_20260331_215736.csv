@@ -1,2 +1,0 @@
-model,total_time,avg_time,accuracy,brier_score,softmax_entropy,margin,mc_dropout_var
-vgg19_imbalanced,6.0392,0.15098,0.6,0.1109,1.109,0.4847,0.016415
