@@ -375,13 +375,7 @@ def _semantic_similarity(text: str, predicted_class: str) -> Optional[float]:
 # ---------------------------------------------------------------------------
 # Main validation function
 # ---------------------------------------------------------------------------
-def validate_llm_report(
-    llm_text: str,
-    predicted_class: str,
-    model_confidence: float,
-    model_name: str = "unknown",
-    pass_threshold: float = 0.65,
-) -> ValidationReport:
+def validate_llm_report( llm_text: str, predicted_class: str, model_confidence: float, model_name: str = "unknown",pass_threshold: float = 0.65,) -> ValidationReport:
     """
     Validate one LLM-generated clinical report.
 
@@ -660,12 +654,7 @@ def save_report(report: ValidationReport, output_dir: str) -> tuple[str, str]:
 # ---------------------------------------------------------------------------
 # Batch validate from stored ChromaDB / log folder
 # ---------------------------------------------------------------------------
-def batch_validate_from_folder(
-    log_folder: str,
-    output_dir: str,
-    predicted_class_default: str = "glioma",
-    model_confidence_default: float = 0.80,
-) -> list[ValidationReport]:
+def batch_validate_from_folder( log_folder: str, output_dir: str, predicted_class_default: str = "glioma", model_confidence_default: float = 0.80,) -> list[ValidationReport]:
     """
     Validate all .json or .txt files in log_folder that contain LLM responses.
 
