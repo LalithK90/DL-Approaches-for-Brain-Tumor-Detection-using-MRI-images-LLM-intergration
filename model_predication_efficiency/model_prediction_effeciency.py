@@ -174,21 +174,52 @@ def main():
     images, labels = load_test_images()
     print(f"Loaded {len(images)} images for testing.")
 
-    fieldnames = ['model', 'total_time', 'avg_time', 'accuracy', 'brier_score', 'softmax_entropy', 'margin', 'mc_dropout_var']
+    fieldnames = [
+        'model',
+        'model_size_MB',
+        'parameters_count',
+        'last_modified',
+        'total_time',
+        'avg_time',
+        'accuracy',
+        'brier_score',
+        'softmax_entropy',
+        'margin',
+        'mc_dropout_var',
+        'notes',
+    ]
     with open(results_csv, 'w', newline='') as csvfile:
         writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
         writer.writeheader()
 
+
     for model_name, model_path in MODELS.items():
         print(f"\nEvaluating model: {model_name}")
+        model_file_path = os.path.join(PROJECT_ROOT, 'brain_tumor_identification_api', model_path)
         try:
-            model = tf.keras.models.load_model(
-                os.path.join(PROJECT_ROOT, 'brain_tumor_identification_api', model_path),
-                compile=False
-            )
+            model = tf.keras.models.load_model(model_file_path, compile=False)
         except OSError as e:
             print(f"  Skipping {model_name}: could not load model — {e}")
             continue
+
+        # Model size in MB
+        try:
+            model_size_bytes = os.path.getsize(model_file_path)
+            model_size_mb = model_size_bytes / (1024 * 1024)
+        except Exception as e:
+            model_size_mb = None
+
+        # Model parameter count
+        try:
+            parameters_count = model.count_params()
+        except Exception as e:
+            parameters_count = None
+
+        # Last modified date
+        try:
+            last_modified = datetime.fromtimestamp(os.path.getmtime(model_file_path)).strftime('%Y-%m-%d %H:%M:%S')
+        except Exception as e:
+            last_modified = ''
 
         total_time = 0.0
         correct = 0
@@ -224,6 +255,9 @@ def main():
         accuracy = correct / len(images)
         result_row = {
             'model': model_name,
+            'model_size_MB': round(model_size_mb, 2) if model_size_mb is not None else '',
+            'parameters_count': parameters_count if parameters_count is not None else '',
+            'last_modified': last_modified,
             'total_time': round(total_time, 4),
             'avg_time': round(avg_time, 6),
             'accuracy': round(accuracy, 4),
@@ -231,8 +265,9 @@ def main():
             'softmax_entropy': round(float(np.mean(entropies)), 4),
             'margin': round(float(np.mean(margins)), 4),
             'mc_dropout_var': round(float(np.mean(mc_vars)), 6),
+            'notes': '',
         }
-        print(f"  Total: {total_time:.2f}s | Avg: {avg_time:.4f}s | Acc: {accuracy:.3f}")
+        print(f"  Total: {total_time:.2f}s | Avg: {avg_time:.4f}s | Acc: {accuracy:.3f} | Size: {result_row['model_size_MB']} MB | Params: {result_row['parameters_count']}")
 
         with open(results_csv, 'a', newline='') as csvfile:
             writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
