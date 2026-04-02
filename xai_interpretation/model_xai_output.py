@@ -30,7 +30,7 @@ from brain_tumor_identification_api.src.utils.utils import (  # noqa: E402
 )
 
 
-TESTING_FOLDER = os.path.join(PROJECT_ROOT, "XAI_validation", "testing")
+TESTING_FOLDER = os.path.join(PROJECT_ROOT, "xai_interpretation", "test_image")
 OUTPUT_ROOT = os.path.join(PROJECT_ROOT, "xai_interpretation", "generated")
 TIMESTAMP = datetime.now().strftime("%Y%m%d_%H%M%S")
 
@@ -145,14 +145,27 @@ def _plot_method_grid(
 	axes_flat[0].set_title("Given Image", fontsize=12)
 	axes_flat[0].axis("off")
 
-	for idx, (model_name, model_img) in enumerate(model_visuals, start=1):
+
+	# Place propose model output always next to the base image (index 1)
+	propose_idx = None
+	for i, (model_name, _) in enumerate(model_visuals):
+		if model_name.startswith("propose"):
+			propose_idx = i
+			break
+	visuals_ordered = model_visuals.copy()
+	if propose_idx is not None:
+		# Move propose model to first position
+		propose_visual = visuals_ordered.pop(propose_idx)
+		visuals_ordered.insert(0, propose_visual)
+
+	for idx, (model_name, model_img) in enumerate(visuals_ordered, start=1):
 		if idx >= len(axes_flat):
 			break
 		axes_flat[idx].imshow(model_img)
 		axes_flat[idx].set_title(model_name, fontsize=10)
 		axes_flat[idx].axis("off")
 
-	used = min(len(model_visuals) + 1, len(axes_flat))
+	used = min(len(visuals_ordered) + 1, len(axes_flat))
 	for idx in range(used, len(axes_flat)):
 		axes_flat[idx].axis("off")
 
@@ -295,7 +308,3 @@ def main() -> None:
 
 if __name__ == "__main__":
 	main()
-
-
-# git push --force --all
-# git push --force --tags

@@ -1,0 +1,23 @@
+Class: glioma
+  Model agreement: 12/12
+  Mean true-class confidence: 0.7551
+  Strongest model: propose_balanced (1.0000)
+  Weakest model: GoogleLeNet_balanced (0.3227)
+
+Class: meningioma
+  Model agreement: 10/12
+  Mean true-class confidence: 0.8202
+  Strongest model: propose_imbalanced (1.0000)
+  Weakest model: vgg16_imbalanced (0.0263)
+
+Class: notumor
+  Model agreement: 12/12
+  Mean true-class confidence: 0.9445
+  Strongest model: propose_imbalanced (1.0000)
+  Weakest model: GoogleLeNet_balanced (0.3542)
+
+Class: pituitary
+  Model agreement: 10/12
+  Mean true-class confidence: 0.7268
+  Strongest model: propose_imbalanced (1.0000)
+  Weakest model: GoogleLeNet_balanced (0.0691)
