@@ -1,38 +1,3 @@
-"""
-LLM Output Validator for Brain Tumor Clinical Reports
-======================================================
-
-Validates LLM-generated clinical reports against four tiers:
-
-  Tier 1 — Structural   : all required sections are present and non-empty
-  Tier 2 — Diagnostic   : LLM diagnosis is consistent with DL model prediction
-  Tier 3 — Medical      : expected medical entities / keywords appear per class
-  Tier 4 — Confidence   : confidence text extracted and aligned with numeric score
-
-No human doctor is required.  The validator acts as an automated clinical
-contract checker – it cannot judge prose quality, but it CAN catch:
-  - Missing sections (hallucinated structure)
-  - Wrong or missing diagnosis name
-  - Inappropriate urgency level for the predicted class
-  - Absent critical medical terminology for the diagnosis
-  - Confidence mismatch between DL model score and LLM text
-
-Usage
------
-from llm_output_validate.llm_output_validator import validate_llm_report, print_report
-
-result = validate_llm_report(
-    llm_text=my_llm_string,
-    predicted_class="glioma",       # from DL model
-    model_confidence=0.87,          # numeric e.g. 0.87 = 87 %
-    model_name="propose_balanced",  # which DL model was used
-)
-print_report(result)
-
-The function also returns a dict that can be stored in ChromaDB / CSV for
-longitudinal quality monitoring.
-"""
-
 from __future__ import annotations
 
 import json

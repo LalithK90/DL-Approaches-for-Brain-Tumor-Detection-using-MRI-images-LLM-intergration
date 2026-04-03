@@ -1,0 +1,175 @@
+{
+  "timestamp": "2026-04-02T21:11:34.671181",
+  "predicted_class": "meningioma",
+  "model_confidence": 1.0,
+  "model_name": "propose_imbalanced",
+  "tier1_structure_score": 0.0,
+  "tier2_diagnostic_consistent": true,
+  "tier3_medical_plausibility_score": 0.8,
+  "tier4_confidence_aligned": true,
+  "overall_score": 0.56,
+  "overall_pass": false,
+  "sections": [
+    {
+      "name": "QUICK CLINICAL DECISION",
+      "present": false,
+      "min_length_ok": false,
+      "char_count": 0
+    },
+    {
+      "name": "Executive Summary",
+      "present": false,
+      "min_length_ok": false,
+      "char_count": 0
+    },
+    {
+      "name": "Clinical Presentation",
+      "present": true,
+      "min_length_ok": false,
+      "char_count": 0
+    },
+    {
+      "name": "Imaging Findings",
+      "present": true,
+      "min_length_ok": false,
+      "char_count": 0
+    },
+    {
+      "name": "Differential Diagnosis",
+      "present": true,
+      "min_length_ok": false,
+      "char_count": 0
+    },
+    {
+      "name": "Pathophysiology",
+      "present": false,
+      "min_length_ok": false,
+      "char_count": 0
+    },
+    {
+      "name": "Tumor Grading",
+      "present": false,
+      "min_length_ok": false,
+      "char_count": 0
+    },
+    {
+      "name": "Clinical Implications",
+      "present": false,
+      "min_length_ok": false,
+      "char_count": 0
+    },
+    {
+      "name": "Management Plan",
+      "present": false,
+      "min_length_ok": false,
+      "char_count": 0
+    },
+    {
+      "name": "Next Steps",
+      "present": true,
+      "min_length_ok": false,
+      "char_count": 0
+    },
+    {
+      "name": "Educational Pearls",
+      "present": true,
+      "min_length_ok": false,
+      "char_count": 0
+    },
+    {
+      "name": "References",
+      "present": false,
+      "min_length_ok": false,
+      "char_count": 0
+    }
+  ],
+  "issues": [
+    {
+      "tier": "Tier1-Structure",
+      "severity": "ERROR",
+      "message": "Required section missing: 'QUICK CLINICAL DECISION'"
+    },
+    {
+      "tier": "Tier1-Structure",
+      "severity": "ERROR",
+      "message": "Required section missing: 'Executive Summary'"
+    },
+    {
+      "tier": "Tier1-Structure",
+      "severity": "WARNING",
+      "message": "Section 'Clinical Presentation' is present but very short (0 chars) – may be a placeholder"
+    },
+    {
+      "tier": "Tier1-Structure",
+      "severity": "WARNING",
+      "message": "Section 'Imaging Findings' is present but very short (0 chars) – may be a placeholder"
+    },
+    {
+      "tier": "Tier1-Structure",
+      "severity": "WARNING",
+      "message": "Section 'Differential Diagnosis' is present but very short (0 chars) – may be a placeholder"
+    },
+    {
+      "tier": "Tier1-Structure",
+      "severity": "ERROR",
+      "message": "Required section missing: 'Pathophysiology'"
+    },
+    {
+      "tier": "Tier1-Structure",
+      "severity": "ERROR",
+      "message": "Required section missing: 'Tumor Grading'"
+    },
+    {
+      "tier": "Tier1-Structure",
+      "severity": "ERROR",
+      "message": "Required section missing: 'Clinical Implications'"
+    },
+    {
+      "tier": "Tier1-Structure",
+      "severity": "ERROR",
+      "message": "Required section missing: 'Management Plan'"
+    },
+    {
+      "tier": "Tier1-Structure",
+      "severity": "WARNING",
+      "message": "Section 'Next Steps' is present but very short (0 chars) – may be a placeholder"
+    },
+    {
+      "tier": "Tier1-Structure",
+      "severity": "WARNING",
+      "message": "Section 'Educational Pearls' is present but very short (0 chars) – may be a placeholder"
+    },
+    {
+      "tier": "Tier1-Structure",
+      "severity": "ERROR",
+      "message": "Required section missing: 'References'"
+    },
+    {
+      "tier": "Tier2-Diagnostic",
+      "severity": "WARNING",
+      "message": "Could not extract urgency level from QUICK CLINICAL DECISION section"
+    },
+    {
+      "tier": "Tier3-Medical",
+      "severity": "WARNING",
+      "message": "Expected medical terms not found for 'meningioma': ['seizure']"
+    },
+    {
+      "tier": "Tier4-Confidence",
+      "severity": "INFO",
+      "message": "Confidence aligned: DL=100.0%, LLM label='high' → expected range 90%–100%"
+    },
+    {
+      "tier": "Overall",
+      "severity": "ERROR",
+      "message": "Report FAILED validation. Overall score 0.56 is below threshold 0.65."
+    }
+  ],
+  "extracted_diagnosis": "meningioma",
+  "extracted_urgency": null,
+  "extracted_confidence_text": "high",
+  "semantic_similarity": 0.6581,
+  "spacy_entities": [],
+  "spacy_model_name": "en_core_sci_sm",
+  "sentence_model_name": "all-MiniLM-L6-v2"
+}

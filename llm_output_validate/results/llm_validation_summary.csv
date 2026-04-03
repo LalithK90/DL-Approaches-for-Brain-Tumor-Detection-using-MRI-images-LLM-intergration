@@ -1,6 +1,9 @@
 timestamp,model_name,predicted_class,model_confidence,tier1_structure_score,tier2_diagnostic_consistent,tier3_medical_plausibility_score,tier4_confidence_aligned,overall_score,overall_pass,extracted_diagnosis,extracted_urgency,extracted_confidence_text,semantic_similarity,error_count,warning_count
-2026-04-01T11:33:09.677613,propose_balanced,glioma,0.91,0.0833,True,1.0,True,0.6333,False,glioma,urgent,high,0.5056,1,11
-2026-04-01T11:34:37.806054,propose_balanced,glioma,0.91,0.0,True,1.0,True,0.6,False,glioma,stat,high,0.5056,1,12
-2026-04-01T11:35:40.665878,propose_balanced,glioma,0.91,1.0,True,1.0,True,1.0,True,glioma,urgent,high,0.5056,0,0
-2026-04-01T11:47:25.817582,propose_balanced,glioma,0.91,1.0,True,1.0,True,1.0,True,glioma,urgent,high,0.5056,0,0
-2026-04-01T11:50:41.191197,propose_balanced,glioma,0.91,1.0,True,1.0,True,1.0,True,glioma,urgent,high,0.5056,0,0
+2026-04-02T21:11:33.813339,propose_imbalanced,glioma,1.0,0.0,True,0.4,True,0.48,False,glioma,urgent,high,0.579,10,4
+2026-04-02T21:11:34.113910,propose_imbalanced,glioma,1.0,0.0,True,0.6,True,0.52,False,glioma,,high,0.4477,8,7
+2026-04-02T21:11:34.405866,propose_imbalanced,meningioma,1.0,0.0,True,0.6,True,0.52,False,meningioma,,high,0.6201,10,5
+2026-04-02T21:11:34.671181,propose_imbalanced,meningioma,1.0,0.0,True,0.8,True,0.56,False,meningioma,,high,0.6581,8,7
+2026-04-02T21:11:34.990837,propose_imbalanced,notumor,0.9735,0.0,True,0.25,True,0.45,False,notumor,,high,0.4886,10,5
+2026-04-02T21:11:35.181281,propose_imbalanced,notumor,1.0,0.0,True,0.25,True,0.45,False,notumor,,high,0.4658,9,6
+2026-04-02T21:11:35.489044,propose_imbalanced,pituitary,1.0,0.0,True,0.6,True,0.52,False,pituitary,,high,0.6595,9,6
+2026-04-02T21:11:35.740129,propose_imbalanced,pituitary,1.0,0.0,True,0.4,True,0.48,False,pituitary,,high,0.5404,10,5

@@ -306,7 +306,7 @@ def _write_benchmark_txt(
 
         w(f"  [{status}] {fname}")
         w(f"         True class  : {true_cls:<12}  Predicted : {pred_cls}")
-        w(f"         DL conf     : {conf:.1%:<10}  LLM conf label : {conf_lbl}")
+        w(f"         DL conf     : {f'{conf:.1%}':<10}  LLM conf label : {conf_lbl}")
         w(f"         Score       : {score:.4f}    T1:{t1:.0%}  T2:{t2}  T3:{t3:.0%}  T4:{t4}")
         w(f"         LLM diag    : {diag}         Urgency : {urgency}")
 
