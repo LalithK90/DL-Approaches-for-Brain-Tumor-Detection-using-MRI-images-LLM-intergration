@@ -628,15 +628,22 @@ def _query_vector_db(
 
 
 
-def _call_ollama_model(model_name: str, message: str, image_path: Optional[str] = None) -> Optional[str]:
+def _call_ollama_model(model_name: str, message: str, image_path: Optional[str] = None, system: Optional[str] = None) -> Optional[str]:
     try:
-        messages = [{'role': 'user', 'content': message}]
+        messages = []
 
+        # System prompt sent separately — not prepended to user message.
+        # This reduces per-request token prefill cost significantly.
+        if system:
+            messages.append({'role': 'system', 'content': system})
+
+        user_msg = {'role': 'user', 'content': message}
         if image_path:
             if not os.path.exists(image_path):
                 logging.error(f"Image not found at path: {image_path}")
                 return None
-            messages[0]['images'] = [image_path]
+            user_msg['images'] = [image_path]
+        messages.append(user_msg)
 
         logging.info(f"Calling model '{model_name}'...")
         response = ollama.chat(model=model_name, messages=messages)
@@ -698,7 +705,10 @@ def get_text_reasoning(message: str, image_path: str) -> Optional[str]:
             final_response = _call_openrouter_model(augmented_prompt)
         else:
             final_response = _call_ollama_model(
-                model_name=model_name, message=augmented_prompt)
+                model_name=model_name,
+                message=augmented_prompt,
+                system=COMMON_PROMPT_MESSAGE,
+            )
     else:
         # Handle long prompt with chunking and refining
         logging.info(f"Prompt is too long ({len(augmented_prompt)} chars). Chunking and using refine strategy.")
@@ -842,13 +852,13 @@ def _call_groq_model(prompt: str) -> Optional[str]:
 
 
 def get_medical_report_from_image_medgemma(message: str, image_path: str) -> Optional[str]:
-    prompt = (
-        f"{MEDGEMMA_IMAGE_PROMPT}" +
-        f"USER QUESTION: {message}"
-    )
     logging.info(f"Calling MedGemma model with image {image_path}")
     response = _call_ollama_model(
-        model_name=MEDGEMMA_MODEL_NAME, message=prompt, image_path=image_path)
+        model_name=MEDGEMMA_MODEL_NAME,
+        message=f"USER QUESTION: {message}",
+        image_path=image_path,
+        system=MEDGEMMA_IMAGE_PROMPT,
+    )
     if response:
         store_in_vector_db(model_name=MEDGEMMA_MODEL_NAME,
                            prompt=message,
@@ -860,13 +870,12 @@ def get_medical_report_from_image_medgemma(message: str, image_path: str) -> Opt
 
 
 def get_medical_report_from_text_medgemma(message: str, image_path: str) -> Optional[str]:
-    prompt = (
-        f"{COMMON_PROMPT_MESSAGE}" +
-        f"USER QUESTION: {message}"
-    )
     logging.info(f"Calling MedGemma model with text")
     response = _call_ollama_model(
-        model_name=MEDGEMMA_MODEL_NAME, message=prompt)
+        model_name=MEDGEMMA_MODEL_NAME,
+        message=f"USER QUESTION: {message}",
+        system=COMMON_PROMPT_MESSAGE,
+    )
     if response:
         store_in_vector_db(model_name=MEDGEMMA_MODEL_NAME,
                            prompt=message,
@@ -878,13 +887,13 @@ def get_medical_report_from_text_medgemma(message: str, image_path: str) -> Opti
 
 
 def get_image_description_llama3_vision(message: str, image_path: str) -> Optional[str]:
-    prompt = (
-        f"{COMMON_PROMPT_MESSAGE}" +
-        f"USER QUESTION: {message}"
-    )
     logging.info(f"Calling Llama3.2 Vision model with image")
     response = _call_ollama_model(
-        model_name=MEDGEMMA_MODEL_NAME, message=prompt, image_path=image_path)
+        model_name=MEDGEMMA_MODEL_NAME,
+        message=f"USER QUESTION: {message}",
+        image_path=image_path,
+        system=COMMON_PROMPT_MESSAGE,
+    )
     if response:
         store_in_vector_db(model_name=MEDGEMMA_MODEL_NAME,
                            prompt=message,
