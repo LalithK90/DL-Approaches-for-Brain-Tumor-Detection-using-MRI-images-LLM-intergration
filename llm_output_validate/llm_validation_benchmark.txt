@@ -1,6 +1,6 @@
 ========================================================================
   LLM OUTPUT VALIDATION BENCHMARK REPORT
-  Generated  : 2026-04-05 00:09:52
+  Generated  : 2026-04-05 01:58:33
   Input CSV  : llm_outputs.csv
   Results    : llm_output_validate/results/
   Threshold  : 65%  (minimum overall score to PASS)
@@ -63,13 +63,13 @@ METHODOLOGY
 ========================================================================
   Total samples  : 8
   Skipped        : 0  (empty llm_output)
-  Passed         : 2  (25.0%)
-  Failed         : 6  (75.0%)
+  Passed         : 8  (100.0%)
+  Failed         : 0  (0.0%)
 
-  Avg Overall Score  : 0.5750
-  Avg Tier 1 (Struct): 3.1%
+  Avg Overall Score  : 0.9625
+  Avg Tier 1 (Struct): 99.0%
   Avg Tier 2 (Diag)  : 100.0%
-  Avg Tier 3 (Med)   : 46.2%
+  Avg Tier 3 (Med)   : 86.2%
   Avg Tier 4 (Conf)  : 100.0%
 
 ========================================================================
@@ -77,150 +77,67 @@ METHODOLOGY
 ========================================================================
   Class          N  Pass  Pass%  Overall     T1     T2     T3     T4
   ----------------------------------------------------------------------
-  glioma         2     0    0%    0.5250    0%   100%    30%   100%
-  meningioma     2     1   50%    0.6500    0%   100%    80%   100%
-  notumor        2     0    0%    0.5125    0%   100%    25%   100%
-  pituitary      2     1   50%    0.6125   12%   100%    50%   100%
+  glioma         2     2  100%    1.0000  100%   100%   100%   100%
+  meningioma     2     2  100%    0.9375   96%   100%    80%   100%
+  notumor        2     2  100%    0.9375  100%   100%    75%   100%
+  pituitary      2     2  100%    0.9750  100%   100%    90%   100%
 
 ========================================================================
   INDIVIDUAL SAMPLE RESULTS
 ========================================================================
 
-  [FAIL] Te-gl_0016.jpg
-         True class  : GLIOMA        Predicted : GLIOMA
-         DL conf     : 100.0%      LLM conf label : —
-         Score       : 0.5500    T1:0%  T2:Y  T3:40%  T4:Y
-         LLM diag    : glioma         Urgency : —
-         [ERROR]   Required section missing: 'QUICK CLINICAL DECISION'
-         [ERROR]   Required section missing: 'Executive Summary'
-         [ERROR]   Required section missing: 'Pathophysiology'
-         [ERROR]   Required section missing: 'Tumor Grading'
-         [ERROR]   Required section missing: 'Clinical Implications'
-         [ERROR]   Required section missing: 'Educational Pearls'
-         [ERROR]   Required section missing: 'References'
-         [WARNING] Section 'Clinical Presentation' is present but very short (0 chars) – may be a placeholder
-         [WARNING] Section 'Imaging Findings' is present but very short (0 chars) – may be a placeholder
-         [WARNING] ... and 5 more warning(s)
-
-  [FAIL] Te-gl_0212.jpg
+  [PASS] Te-glTr_0006.jpg
          True class  : GLIOMA        Predicted : GLIOMA
          DL conf     : 100.0%      LLM conf label : high
-         Score       : 0.5000    T1:0%  T2:Y  T3:20%  T4:Y
-         LLM diag    : glioma         Urgency : urgent
-         [ERROR]   Required section missing: 'QUICK CLINICAL DECISION'
-         [ERROR]   Required section missing: 'Executive Summary'
-         [ERROR]   Required section missing: 'Clinical Presentation'
-         [ERROR]   Required section missing: 'Pathophysiology'
-         [ERROR]   Required section missing: 'Tumor Grading'
-         [ERROR]   Required section missing: 'Clinical Implications'
-         [ERROR]   Required section missing: 'Management Plan'
-         [ERROR]   Required section missing: 'Educational Pearls'
-         [ERROR]   Required section missing: 'References'
-         [WARNING] Section 'Imaging Findings' is present but very short (0 chars) – may be a placeholder
-         [WARNING] Section 'Differential Diagnosis' is present but very short (0 chars) – may be a placeholder
-         [WARNING] ... and 2 more warning(s)
+         Score       : 1.0000    T1:100%  T2:Y  T3:100%  T4:Y
+         LLM diag    : glioma         Urgency : stat
 
-  [FAIL] Te-me_0182.jpg
+  [PASS] Te-gl_0058.jpg
+         True class  : GLIOMA        Predicted : GLIOMA
+         DL conf     : 100.0%      LLM conf label : —
+         Score       : 1.0000    T1:100%  T2:Y  T3:100%  T4:Y
+         LLM diag    : glioma         Urgency : stat
+
+  [PASS] Te-me_0038.jpg
          True class  : MENINGIOMA    Predicted : MENINGIOMA
          DL conf     : 100.0%      LLM conf label : —
-         Score       : 0.6000    T1:0%  T2:Y  T3:60%  T4:Y
-         LLM diag    : meningioma         Urgency : —
-         [ERROR]   Required section missing: 'QUICK CLINICAL DECISION'
-         [ERROR]   Required section missing: 'Executive Summary'
-         [ERROR]   Required section missing: 'Clinical Presentation'
-         [ERROR]   Required section missing: 'Pathophysiology'
-         [ERROR]   Required section missing: 'Tumor Grading'
-         [ERROR]   Required section missing: 'Clinical Implications'
-         [ERROR]   Required section missing: 'Management Plan'
-         [ERROR]   Required section missing: 'Educational Pearls'
-         [ERROR]   Required section missing: 'References'
-         [WARNING] Section 'Imaging Findings' is present but very short (0 chars) – may be a placeholder
-         [WARNING] Section 'Differential Diagnosis' is present but very short (0 chars) – may be a placeholder
-         [WARNING] ... and 3 more warning(s)
+         Score       : 0.9750    T1:92%  T2:Y  T3:100%  T4:Y
+         LLM diag    : meningioma         Urgency : urgent
+         [WARNING] Section 'QUICK CLINICAL DECISION' is present but very short (0 chars) – may be a placeholder
 
-  [PASS] Te-me_0295.jpg
+  [PASS] Te-me_0107.jpg
          True class  : MENINGIOMA    Predicted : MENINGIOMA
-         DL conf     : 100.0%      LLM conf label : —
-         Score       : 0.7000    T1:0%  T2:Y  T3:100%  T4:Y
-         LLM diag    : meningioma         Urgency : —
-         [ERROR]   Required section missing: 'Executive Summary'
-         [ERROR]   Required section missing: 'Clinical Presentation'
-         [ERROR]   Required section missing: 'Pathophysiology'
-         [ERROR]   Required section missing: 'Tumor Grading'
-         [ERROR]   Required section missing: 'Clinical Implications'
-         [ERROR]   Required section missing: 'Management Plan'
-         [ERROR]   Required section missing: 'Educational Pearls'
-         [ERROR]   Required section missing: 'References'
-         [WARNING] Section 'QUICK CLINICAL DECISION' is present but very short (0 chars) – may be a placeholder
-         [WARNING] Section 'Imaging Findings' is present but very short (0 chars) – may be a placeholder
-         [WARNING] ... and 3 more warning(s)
-
-  [FAIL] Te-no_0048.jpg
-         True class  : NOTUMOR       Predicted : NOTUMOR
-         DL conf     : 100.0%      LLM conf label : —
-         Score       : 0.5125    T1:0%  T2:Y  T3:25%  T4:Y
-         LLM diag    : notumor         Urgency : —
-         [ERROR]   Required section missing: 'QUICK CLINICAL DECISION'
-         [ERROR]   Required section missing: 'Executive Summary'
-         [ERROR]   Required section missing: 'Pathophysiology'
-         [ERROR]   Required section missing: 'Tumor Grading'
-         [ERROR]   Required section missing: 'Clinical Implications'
-         [ERROR]   Required section missing: 'Next Steps'
-         [ERROR]   Required section missing: 'Educational Pearls'
-         [ERROR]   Required section missing: 'References'
-         [WARNING] Section 'Clinical Presentation' is present but very short (0 chars) – may be a placeholder
-         [WARNING] Section 'Imaging Findings' is present but very short (0 chars) – may be a placeholder
-         [WARNING] ... and 4 more warning(s)
-
-  [FAIL] Te-no_0257.jpg
-         True class  : NOTUMOR       Predicted : NOTUMOR
-         DL conf     : 100.0%      LLM conf label : high
-         Score       : 0.5125    T1:0%  T2:Y  T3:25%  T4:Y
-         LLM diag    : notumor         Urgency : —
-         [ERROR]   Required section missing: 'Executive Summary'
-         [ERROR]   Required section missing: 'Pathophysiology'
-         [ERROR]   Required section missing: 'Tumor Grading'
-         [ERROR]   Required section missing: 'Clinical Implications'
-         [ERROR]   Required section missing: 'Management Plan'
-         [ERROR]   Required section missing: 'Next Steps'
-         [ERROR]   Required section missing: 'Educational Pearls'
-         [ERROR]   Required section missing: 'References'
-         [WARNING] Section 'QUICK CLINICAL DECISION' is present but very short (0 chars) – may be a placeholder
-         [WARNING] Section 'Clinical Presentation' is present but very short (0 chars) – may be a placeholder
-         [WARNING] ... and 4 more warning(s)
-
-  [FAIL] Te-pi_0071.jpg
-         True class  : PITUITARY     Predicted : PITUITARY
          DL conf     : 99.9%       LLM conf label : high
-         Score       : 0.5500    T1:0%  T2:Y  T3:40%  T4:Y
-         LLM diag    : pituitary         Urgency : —
-         [ERROR]   Required section missing: 'QUICK CLINICAL DECISION'
-         [ERROR]   Required section missing: 'Executive Summary'
-         [ERROR]   Required section missing: 'Pathophysiology'
-         [ERROR]   Required section missing: 'Tumor Grading'
-         [ERROR]   Required section missing: 'Clinical Implications'
-         [ERROR]   Required section missing: 'Management Plan'
-         [ERROR]   Required section missing: 'Educational Pearls'
-         [ERROR]   Required section missing: 'References'
-         [WARNING] Section 'Clinical Presentation' is present but very short (0 chars) – may be a placeholder
-         [WARNING] Section 'Imaging Findings' is present but very short (0 chars) – may be a placeholder
-         [WARNING] ... and 4 more warning(s)
+         Score       : 0.9000    T1:100%  T2:Y  T3:60%  T4:Y
+         LLM diag    : meningioma         Urgency : urgent
+         [WARNING] Expected medical terms not found for 'meningioma': ['dural', 'surgery']
 
-  [PASS] Te-pi_0185.jpg
+  [PASS] Te-no_0266.jpg
+         True class  : NOTUMOR       Predicted : NOTUMOR
+         DL conf     : 100.0%      LLM conf label : high
+         Score       : 0.9375    T1:100%  T2:Y  T3:75%  T4:Y
+         LLM diag    : no tumor         Urgency : routine
+         [WARNING] Expected medical terms not found for 'notumor': ['no evidence']
+
+  [PASS] Te-no_0167.jpg
+         True class  : NOTUMOR       Predicted : NOTUMOR
+         DL conf     : 100.0%      LLM conf label : high
+         Score       : 0.9375    T1:100%  T2:Y  T3:75%  T4:Y
+         LLM diag    : no tumor         Urgency : routine
+         [WARNING] Expected medical terms not found for 'notumor': ['no evidence']
+
+  [PASS] Te-pi_0261.jpg
+         True class  : PITUITARY     Predicted : PITUITARY
+         DL conf     : 100.0%      LLM conf label : —
+         Score       : 1.0000    T1:100%  T2:Y  T3:100%  T4:Y
+         LLM diag    : pituitary         Urgency : urgent
+
+  [PASS] Te-pi_0297.jpg
          True class  : PITUITARY     Predicted : PITUITARY
          DL conf     : 100.0%      LLM conf label : high
-         Score       : 0.6750    T1:25%  T2:Y  T3:60%  T4:Y
-         LLM diag    : pituitary         Urgency : —
-         [ERROR]   Required section missing: 'QUICK CLINICAL DECISION'
-         [ERROR]   Required section missing: 'Pathophysiology'
-         [ERROR]   Required section missing: 'Tumor Grading'
-         [ERROR]   Required section missing: 'Clinical Implications'
-         [ERROR]   Required section missing: 'Management Plan'
-         [ERROR]   Required section missing: 'Educational Pearls'
-         [ERROR]   Required section missing: 'References'
-         [WARNING] Section 'Clinical Presentation' is present but very short (0 chars) – may be a placeholder
-         [WARNING] Section 'Imaging Findings' is present but very short (0 chars) – may be a placeholder
-         [WARNING] ... and 2 more warning(s)
+         Score       : 0.9500    T1:100%  T2:Y  T3:80%  T4:Y
+         LLM diag    : pituitary         Urgency : urgent
+         [WARNING] Expected medical terms not found for 'pituitary': ['cortisol']
 
 ========================================================================
   BENCHMARK INTERPRETATION GUIDE

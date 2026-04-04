@@ -1,0 +1,105 @@
+{
+  "timestamp": "2026-04-05T01:56:25.233946",
+  "predicted_class": "glioma",
+  "model_confidence": 1.0,
+  "model_name": "propose_imbalanced",
+  "tier1_structure_score": 1.0,
+  "tier2_diagnostic_consistent": true,
+  "tier3_medical_plausibility_score": 1.0,
+  "tier4_confidence_aligned": true,
+  "overall_score": 1.0,
+  "overall_pass": true,
+  "sections": [
+    {
+      "name": "QUICK CLINICAL DECISION",
+      "present": true,
+      "min_length_ok": true,
+      "char_count": 384
+    },
+    {
+      "name": "Executive Summary",
+      "present": true,
+      "min_length_ok": true,
+      "char_count": 416
+    },
+    {
+      "name": "Clinical Presentation",
+      "present": true,
+      "min_length_ok": true,
+      "char_count": 341
+    },
+    {
+      "name": "Imaging Findings",
+      "present": true,
+      "min_length_ok": true,
+      "char_count": 1212
+    },
+    {
+      "name": "Differential Diagnosis",
+      "present": true,
+      "min_length_ok": true,
+      "char_count": 809
+    },
+    {
+      "name": "Pathophysiology",
+      "present": true,
+      "min_length_ok": true,
+      "char_count": 348
+    },
+    {
+      "name": "Tumor Grading",
+      "present": true,
+      "min_length_ok": true,
+      "char_count": 402
+    },
+    {
+      "name": "Clinical Implications",
+      "present": true,
+      "min_length_ok": true,
+      "char_count": 292
+    },
+    {
+      "name": "Management Plan",
+      "present": true,
+      "min_length_ok": true,
+      "char_count": 459
+    },
+    {
+      "name": "Next Steps",
+      "present": true,
+      "min_length_ok": true,
+      "char_count": 260
+    },
+    {
+      "name": "Educational Pearls",
+      "present": true,
+      "min_length_ok": true,
+      "char_count": 395
+    },
+    {
+      "name": "References",
+      "present": true,
+      "min_length_ok": true,
+      "char_count": 48
+    }
+  ],
+  "issues": [
+    {
+      "tier": "Tier4-Confidence",
+      "severity": "INFO",
+      "message": "Confidence aligned: DL=100.0%, LLM label='high' → expected range 90%–100%"
+    },
+    {
+      "tier": "Overall",
+      "severity": "INFO",
+      "message": "Report PASSED validation. Overall score: 1.00"
+    }
+  ],
+  "extracted_diagnosis": "glioma",
+  "extracted_urgency": "stat",
+  "extracted_confidence_text": "high",
+  "semantic_similarity": 0.4919,
+  "spacy_entities": [],
+  "spacy_model_name": "en_core_sci_sm",
+  "sentence_model_name": "all-MiniLM-L6-v2"
+}

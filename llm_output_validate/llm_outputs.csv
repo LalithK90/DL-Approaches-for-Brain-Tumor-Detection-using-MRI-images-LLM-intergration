@@ -1,0 +1,442 @@
+timestamp,model_name,true_class,predicted_class,confidence,image_filename,llm_output
+2026-04-05T01:36:11.985719,propose_imbalanced,glioma,Glioma,1.0,Te-glTr_0006.jpg,"## QUICK CLINICAL DECISION
+The patient, James Wilson, a 48-year-old male, presents with expressive aphasia, morning headaches, and memory loss. The brain MRI reveals a large, infiltrative lesion in the left frontal lobe, highly suggestive of a high-grade glioma, such as Glioblastoma Multiforme (GBM). Urgent surgical intervention is indicated due to significant mass effect and potential for rapid progression.
+
+## 1. Executive Summary
+This report details the analysis of a brain MRI for James Wilson, presenting with progressive expressive aphasia, daily severe morning headaches, and noticeable short-term memory decline. The MRI reveals a large, infiltrative lesion in the left frontal lobe with significant mass effect, suggesting a high-grade glioma. Urgent management, including surgical resection and potentially radiation therapy, is necessary.
+
+## 2. Clinical Presentation
+The patient, James Wilson, is a 48-year-old male presenting with progressive expressive aphasia (word-finding difficulty, grammatical errors), daily severe morning headaches with frequent vomiting, and noticeable short-term memory decline over the past 3-4 months. These symptoms have been progressive, indicating a rapidly expanding lesion.
+
+## 3. Imaging Findings
+*   **Location:** The lesion is located in the left frontal lobe, involving the inferior frontal gyrus and extending into the supplementary motor area, with potential involvement of the prefrontal cortex. The AI highlighted these regions due to their significant mass effect and heterogeneous signal intensity, which are indicative of aggressive tumor behavior.
+*   **Size:** Approximately 3.5 cm in anteroposterior dimension and 2.5 cm in transverse dimension.
+*   **Margins:** Irregular and infiltrative, blending into the surrounding brain parenchyma.
+*   **Signal:** T1-weighted images show hyperintensity, T2-weighted images show marked hyperintensity with heterogeneous signal, and FLAIR images show hyperintensity with heterogeneous signal.
+*   **Enhancement:** Significant heterogeneous enhancement after contrast administration, particularly peripherally.
+*   **Mass Effect:** Evidence of mass effect, including midline shift of approximately 4 mm towards the right and compression of the left lateral ventricle.
+*   **Additional Features:** Associated vasogenic edema in the left frontal lobe, appearing as a subtle hypodensity surrounding the lesion. No hemorrhage or calcification is clearly visible.
+
+## 4. Differential Diagnosis
+1.  **High-Grade Glioma (e.g., Glioblastoma Multiforme - GBM):** Likelihood: 95%. Supporting features: Location, infiltrative margins, heterogeneous signal, significant heterogeneous enhancement, mass effect, vasogenic edema. Distinguishing factors: GBM is the most common primary malignant brain tumor in adults.
+2.  **Anaplastic Astrocytoma:** Likelihood: 5%. Supporting features: Location, infiltrative margins, heterogeneous signal, enhancement. Distinguishing factors: Anaplastic astrocytomas are less common than GBM and often have less prominent enhancement and mass effect.
+3.  **Metastatic Brain Tumor:** Likelihood: 2%. Supporting features: Location, irregular margins, enhancement. Distinguishing factors: Metastases often have more well-defined margins, although infiltrative metastases can occur.
+
+## 5. Pathophysiology
+High-grade gliomas, such as GBM, are characterized by rapid proliferation of glioma cells, invasion into surrounding brain tissue, and disruption of normal brain architecture. This leads to mass effect, edema, and neurological deficits. The heterogeneity in signal intensity reflects varying cellularity, necrosis, and vascularity within the tumor.
+
+## 6. Tumor Grading & Classification
+*   **Tumor Class:** Glioma.
+*   **Class-specific clinical terms:** IDH mutation, MGMT methylation, WHO grade, maximal safe resection, temozolomide.
+*   **WHO Grade:** Based on imaging features, a WHO Grade 4 (Glioblastoma Multiforme) is highly suspected.
+*   **Molecular Markers:** Further evaluation for IDH mutation and MGMT methylation status is required for prognostication and treatment planning.
+
+## 7. Clinical Implications
+The presence of a large, infiltrative lesion with significant mass effect necessitates urgent management to alleviate mass effect, prevent herniation, and achieve maximal safe resection if possible. The location in the left frontal lobe involving language areas complicates surgical planning.
+
+## 8. Management Plan
+1.  **Urgent Neurosurgery:** Consultation for evaluation of surgical accessibility and potential maximal safe resection.
+2.  **Biopsy:** Obtain tissue for histopathology and molecular markers (IDH, MGMT) to confirm the diagnosis.
+3.  **Radiation Oncology:** Consultation for planning of adjuvant radiation therapy.
+4.  **Neuro-oncology:** Consultation for comprehensive management, including discussion of molecular markers and palliative care considerations.
+
+## 9. Next Steps
+1.  Neurosurgery consultation for surgical evaluation.
+2.  Pathology consultation for tissue biopsy and molecular marker testing.
+3.  Radiation Oncology consultation for adjuvant radiation planning.
+4.  Neuro-oncology consultation for comprehensive management.
+
+## 10. Educational Pearls
+*   **Most diagnostic visual feature:** The combination of irregular infiltrative margins, heterogeneous signal intensity, and significant heterogeneous enhancement is highly suggestive of a high-grade glioma.
+*   **Common pitfall:** Overestimating the extent of resection based solely on the appearance of the lesion; careful intraoperative navigation and pathological confirmation are crucial.
+
+## 11. References
+(No external references provided in the prompt).
+
+## 12. Technical Appendix
+The AI analysis of the brain MRI for James Wilson indicates a high-grade glioma with a confidence level of 99.999983%. The metrics provided suggest a reliable model with low uncertainty. Key findings include:
+*   **Comprehensiveness:** The explanation may not identify all critical regions, indicating the model relies on distributed features.
+*   **Sufficiency:** The highlighted regions alone cannot sustain the diagnosis, suggesting other regions also play important roles.
+*   **Deletion/Insertion AUC:** Indicates confidence drops/rises rapidly as important regions are removed/inserted, confirming the explanation correctly identifies critical features.
+*   **Randomized Weights Correlation:** Suggests the explanation may generate similar patterns regardless of learned model features, which could indicate overfitting or a need for further model refinement.
+
+Given these metrics, there is a basis to trust the AI explanation, but with the understanding that the model's interpretation of critical features may not be exhaustive. The high confidence level (99.999983%) in the diagnosis of a glioma supports the clinical decision-making process, indicating a **High** confidence level (≥90%). The urgency of the situation, given the potential for a glioma, dictates a **STAT** approach to management."
+2026-04-05T01:38:49.558761,propose_imbalanced,glioma,Glioma,1.0,Te-gl_0058.jpg,"## QUICK CLINICAL DECISION
+The patient, James Wilson, a 48-year-old male, presents with symptoms highly suggestive of a left frontal lobe glioma, including progressive expressive aphasia, severe morning headaches with frequent vomiting, and short-term memory loss. The MRI findings strongly support this diagnosis, showing a 3.5 x 2.5 x 2.0 cm mass with irregular, infiltrative margins, heterogeneous enhancement, and central necrosis, which are characteristic features of a high-grade glioma, likely Glioblastoma Multiforme (GBM).
+
+## 1. Executive Summary
+A 48-year-old male, James Wilson, presents with progressive expressive aphasia, morning headaches with vomiting, and short-term memory loss. MRI reveals a 3.5 x 2.5 x 2.0 cm mass in the left frontal lobe, involving the motor cortex, with features suggestive of a high-grade glioma, specifically Glioblastoma Multiforme (GBM). The lesion demonstrates irregular, infiltrative margins, isointensity on T1, hyperintensity on T2/FLAIR, and shows heterogeneous enhancement with central necrosis. There is mild midline shift and ventricular compression. The clinical and radiological findings are highly suggestive of GBM, necessitating urgent neurosurgical consultation for maximal safe resection planning and further management.
+
+## 2. Clinical Presentation
+Patient: James Wilson, 48-year-old male. Symptoms include progressive expressive aphasia over 3 months, daily severe morning headaches with frequent vomiting for 1 month, and a recent decline in short-term memory. These symptoms are localized to the left frontal lobe, which is consistent with the lesion's location. The patient's clinical presentation is typical for a left frontal lobe lesion affecting language areas and potentially causing increased intracranial pressure.
+
+## 3. Imaging Findings
+- **Location:** Left frontal lobe, deep within the gray matter, involving the motor cortex.
+- **Size:** Approximately 3.5 cm AP x 2.5 cm transverse x 2.0 cm craniocaudal.
+- **Margins:** Irregular, infiltrative margins extending into the adjacent white matter, which is concerning for malignancy.
+- **Signal:** T1-weighted: Isointense to gray matter. T2-weighted: Hyperintense. FLAIR: Hyperintense, indicating edema and potential tumor spread.
+- **Enhancement:** Heterogeneous enhancement, particularly in the periphery, with central hypointensity suggesting necrosis, a hallmark of high-grade gliomas.
+- **Mass Effect:** Mild midline shift (approx. 2 mm). Ventricular compression noted, which may contribute to the patient's symptoms.
+- **Additional:** No hemorrhage or calcification visible.
+
+The AI highlighted the left frontal lobe, specifically the area involving the motor cortex, due to its significant involvement by the tumor. This region's involvement explains the patient's expressive aphasia and potential motor deficits. The heterogeneous enhancement and central necrosis are critical for the diagnosis of a high-grade glioma.
+
+## 4. Differential Diagnosis
+1.  **High-Grade Glioma (e.g., Glioblastoma Multiforme - GBM):** Most likely diagnosis given the appearance (necrosis, irregular infiltrative margins, heterogeneous enhancement).
+2.  **Metastasis:** Less likely given the solitary nature and appearance, but cannot be entirely excluded without further investigation.
+3.  **Primary CNS Lymphoma:** Can mimic glioma, but often has different signal characteristics and enhancement patterns (e.g., homogeneous enhancement).
+
+## 5. Pathophysiology
+Gliomas are primary brain tumors arising from glial cells. High-grade gliomas, such as Glioblastoma Multiforme (GBM), are characterized by rapid growth, infiltration into surrounding brain tissue, and necrosis. The presence of necrosis is a key feature distinguishing high-grade gliomas from lower-grade tumors. The tumor's location in the left frontal lobe, involving the motor cortex, explains the patient's symptoms, including expressive aphasia and potential motor deficits.
+
+## 6. Tumor Grading & Classification
+- **WHO Grade:** Grade 3 (High-Grade Glioma).
+- **Classification:** Likely Glioblastoma Multiforme (GBM) based on the presence of central necrosis, irregular infiltrative margins, and heterogeneous enhancement.
+
+## 7. Clinical Implications
+The location in the left frontal lobe explains the expressive aphasia. The tumor size and mass effect contribute to the headaches and vomiting (increased intracranial pressure). The tumor's infiltrative nature suggests it may be difficult to achieve a complete resection, which has significant implications for prognosis and treatment planning.
+
+## 8. Management Plan
+- **Neurosurgical Consultation:** For evaluation of maximal safe resection.
+- **Molecular Testing:** IDH, MGMT, 1p/19q codeletion status is crucial for prognosis and treatment planning.
+- **Radiation Therapy:** Typically follows surgery.
+- **Chemotherapy:** Temozolomide is the standard of care adjuvant therapy post-surgery.
+
+## 9. Next Steps
+- Neurosurgical consultation for resection planning.
+- Molecular testing (IDH, MGMT, 1p/19q codeletion) for prognosis and treatment planning.
+- Consider biopsy if the diagnosis remains uncertain after imaging and molecular testing.
+
+## 10. Educational Pearls
+- **Visual Feature:** Necrosis (central hypointensity) is a strong indicator of high-grade glioma (GBM).
+- **Pitfall:** Overlapping features between high-grade glioma and metastasis can sometimes make differentiation challenging without molecular markers.
+
+## 11. References
+[Placeholder for relevant literature on gliomas, specifically Glioblastoma Multiforme, and their diagnosis, treatment, and management.]
+
+## 12. TECHNICAL APPENDIX
+The technical metrics provided offer insights into the model's performance and the reliability of its explanations. 
+- **Comprehensiveness and Sufficiency:** These metrics assess how well the explanation covers the important aspects of the input and whether the highlighted features are enough to justify the prediction. Low values might indicate that the explanation is not fully capturing the model's decision-making process or that other, unhighlighted features are crucial.
+- **Dice and IoU:** These metrics evaluate the overlap between the model's explanations and a ground truth, which could be another explanation method or human annotation. Low values suggest limited agreement, potentially indicating that the model's explanations are not aligning well with other methods of understanding the data.
+- **Deletion and Insertion AUC:** These metrics test how the model's confidence changes when important features are removed or added. High AUC values indicate that the model's confidence drops significantly when key features are deleted and increases when they are inserted, suggesting that the model is correctly identifying influential features.
+- **Sanity Check (Randomized Weights Correlation):** A low correlation indicates that the explanation is genuinely based on the model's learned features, not just random patterns. This is a basic check to ensure the explanation method is working as intended.
+
+Given the metrics, if the comprehensiveness, sufficiency, Dice, and IoU are low, and deletion/insertion AUC is high with a passing sanity check, it might suggest that while the model is identifying important features correctly (as indicated by high AUC values for deletion and insertion), the explanation itself may not fully capture the model's reasoning or may not align well with other potential explanations. This could necessitate further investigation into the model's explanations or the use of additional explanation methods to gain a more comprehensive understanding.
+
+**Confidence Label:** High (≥90%)
+**Urgency:** STAT (given the likely diagnosis of glioma)"
+2026-04-05T01:41:46.179314,propose_imbalanced,meningioma,Meningioma,0.9997,Te-me_0038.jpg,"## QUICK CLINICAL DECISION
+## 1. Executive Summary
+A 72-year-old male presents with new-onset focal seizures and progressive neurological deficits (left hand weakness, personality changes). MRI reveals a 3.5 cm enhancing mass along the right frontal convexity. The findings are highly consistent with a benign meningioma, causing mass effect and neurological symptoms. Urgent neurosurgical consultation is recommended for evaluation of surgical resection.
+
+## 2. Clinical Presentation
+The patient, Robert Chen, is a 72-year-old male presenting with a 2-month history of focal seizures (right arm jerking with aura) and a 4-month history of progressive left hand weakness (difficulty writing). He also reports gradual personality changes including irritability and reduced social engagement. The patient is a former smoker and drinks alcohol moderately. The indication for the MRI was to investigate the new-onset seizures.
+
+## 3. Imaging Findings
+**Location:** Right frontal convexity.
+**Size:** Approximately 3.5 cm (length) x 2.5 cm (width) x 2.0 cm (depth).
+**Margins:** Well-defined, slightly lobulated.
+**Signal:** T1-weighted images show the lesion to be isointense to gray matter. T2-weighted FLAIR images show the lesion to be hypointense to gray matter.
+**Enhancement:** Post-contrast T1-weighted images demonstrate strong, homogenous, peripheral enhancement of the lesion.
+**Mass Effect:** There is minimal midline shift (approximately 1 mm). Mild compression of the right lateral ventricle is noted. No significant edema is observed.
+**Additional:** No evidence of necrosis, hemorrhage, or cystic components.
+The AI highlighted the right frontal convexity region, which matters clinically because it is a common location for meningiomas, and the lesion's proximity to the motor cortex may explain the patient's progressive left hand weakness.
+
+## 4. Differential Diagnosis
+1.  **Meningioma:** High likelihood (99.97%). Features: Location (convexity), signal characteristics (T1/T2/FLAIR), strong homogenous peripheral enhancement, well-defined margins. Clinical context (age, seizure).
+2.  **Glioma (e.g., Glioblastoma):** Low likelihood (0.03%). Features: Often infiltrative margins, heterogeneous enhancement, T2 hyperintensity, often associated with edema/mass effect. Less likely given the well-defined margins and homogenous enhancement.
+3.  **Metastasis:** Low likelihood (0.00%). Features: Often multiple lesions, variable signal/enhancement, often associated with significant edema/mass effect. Less likely given the solitary lesion and typical meningioma features.
+
+## 5. Pathophysiology
+Meningiomas arise from arachnoid cap cells, typically located along the dural surfaces of the brain. They are generally benign but can cause symptoms through mass effect, edema, or direct compression of adjacent structures (e.g., cortex, ventricles, cranial nerves).
+
+## 6. Tumor Grading & Classification
+*   **WHO Grade:** WHO Grade I (Benign).
+*   **Classification:** Meningioma.
+
+## 7. Clinical Implications
+The lesion is causing focal seizures and progressive neurological deficits (weakness, personality changes). It is compressing the right lateral ventricle and potentially affecting the adjacent cortex.
+
+## 8. Management Plan
+*   **Surgical Resection:** Consider surgical resection for seizure control and symptomatic relief, given the progressive deficits. Assess surgical accessibility and eloquent cortex involvement.
+*   **Pre-operative:** MRI with contrast, possibly CT/MR angiography to assess vascular supply.
+*   **Post-operative:** Pathology confirmation, neurosurgical follow-up.
+*   **Medical Management:** Antiepileptic medication for seizures.
+
+## 9. Next Steps
+*   **Consultation:** Neurosurgery consultation for surgical evaluation.
+*   **Further Imaging:** Consider contrast-enhanced CT head if MRI is contraindicated or unavailable.
+*   **Blood Tests:** Basic blood work (CBC, electrolytes, renal function, liver function) and potentially inflammatory markers.
+
+## 10. Educational Pearls
+*   **Visual Feature:** Strong, homogenous peripheral enhancement is highly characteristic of meningioma.
+*   **Pitfall:** Overlooking subtle infiltrative features that might suggest a glioma, especially if the enhancement is heterogeneous or the margins are indistinct.
+
+## 11. References
+*   [Placeholder for relevant literature on meningioma imaging and clinical management]
+
+## 12. TECHNICAL APPENDIX
+The technical metrics provided can be translated into plain English as follows:
+- **Comprehensiveness (0.9896584749221802):** The explanation provided by the AI is highly faithful to the model's decision-making process, indicating that the highlighted regions are truly relevant for the diagnosis.
+- **Sufficiency (0.008668124675750732):** The highlighted regions alone are not sufficient to sustain the diagnosis, suggesting that other regions also play important roles.
+- **Dice/IoU:** These metrics measure the agreement between the AI's explanation and the actual important regions. Low values indicate limited agreement, suggesting uncertainty in which image features are most relevant for diagnosis.
+- **Deletion/Insertion AUC:** These metrics evaluate the sensitivity of the model's confidence to the removal or addition of important regions. High values indicate that the model's confidence drops rapidly when important regions are removed and increases rapidly when they are added, confirming the explanation correctly identifies critical features.
+- **Sanity Check (Randomized Weights Correlation):** The low correlation with randomized weights indicates that the explanation genuinely depends on learned model features, passing the sanity check.
+Given these metrics, the AI explanation can be trusted to some extent, but it is essential to consider the limitations and uncertainties highlighted by the metrics. The confidence label for this diagnosis is **High** (≥90%), and the urgency is **Urgent** due to the presence of a meningioma."
+2026-04-05T01:44:29.009617,propose_imbalanced,meningioma,Meningioma,0.9994,Te-me_0107.jpg,"## QUICK CLINICAL DECISION
+Urgency: Urgent (meningioma/pituitary)
+Confidence: High (≥90%)
+
+## 1. Executive Summary
+A left parasagittal meningioma is identified, causing mild midline shift and ventricular compression. The patient presents with new-onset seizures and progressive neurological deficits, suggesting mass effect.
+
+## 2. Clinical Presentation
+72-year-old male presents with new-onset focal seizures (right arm jerking with aura), progressive left hand weakness, and personality changes. The symptoms correlate with the location of the lesion.
+
+## 3. Imaging Findings
+*   **Location:** Left parasagittal region, involving convexity and extending into the left lateral ventricle.
+*   **Size:** Approx. 3.5 cm (length) x 2.5 cm (width) x 3.0 cm (depth).
+*   **Margins:** Well-defined, slightly lobulated.
+*   **Signal:** T1-weighted: Isointense to gray matter. T2-weighted: Hyperintense. FLAIR: Hyperintense.
+*   **Enhancement:** Strong, homogenous, peripheral enhancement with central hypointensity (suggesting central necrosis).
+*   **Mass Effect:** Mild midline shift (approx. 2 mm). Compression of the left lateral ventricle. No significant edema.
+*   **AI-Highlighted Regions:** The AI model highlighted the left parasagittal region, specifically the area of strong enhancement with central necrosis, as critical for diagnosis. This region is clinically significant because it corresponds to the location of the meningioma, which is causing mass effect and contributing to the patient's symptoms.
+
+## 4. Differential Diagnosis
+1.  **Meningioma (Likelihood: 99.9%):** Well-defined, enhancing parasagittal mass with central necrosis. Consistent with patient's age and symptoms.
+2.  **Glioma (e.g., Meningeal Glioma):** Less likely given typical meningioma features. Gliomas often have less distinct margins and different signal characteristics.
+3.  **Metastasis:** Possible, but less likely given the classic meningioma appearance. Metastases often have irregular margins and variable enhancement.
+
+## 5. Pathophysiology
+The lesion is a meningioma, a tumor arising from arachnoid cap cells. It typically grows along the dura mater, often in parasagittal locations. The central necrosis is common in larger meningiomas and can contribute to mass effect and seizures.
+
+## 6. Tumor Grading & Classification
+*   **Classification:** Meningioma (WHO Grade I).
+*   **Clinical Terms:** This is a benign tumor. Surgical resection is the primary treatment. No specific molecular markers (like IDH or MGMT) are typically associated with meningiomas.
+
+## 7. Clinical Implications
+The mass effect from the meningioma is causing mild midline shift and left lateral ventricle compression, potentially contributing to the patient's symptoms (seizures, weakness). The location is close to the motor cortex (precentral gyrus) and sensory cortex (postcentral gyrus), explaining the focal neurological deficits.
+
+## 8. Management Plan
+Surgical resection is indicated to relieve mass effect and treat the tumor. The goal is maximal safe resection. Post-operative radiation therapy may be considered if resection is incomplete or if there is residual tumor. Seizure prophylaxis may be necessary.
+
+## 9. Next Steps
+Pre-operative neurosurgical consultation is recommended. Consider pre-operative MRI with contrast to better delineate the tumor margins and relationship to critical structures.
+
+## 10. Educational Pearls
+The key visual feature is the strong, homogenous peripheral enhancement with central necrosis, characteristic of a meningioma. Central necrosis is often seen in larger meningiomas (>3 cm) and correlates with mass effect.
+
+## 11. References
+[Placeholder for specific references]
+
+## 12. TECHNICAL APPENDIX
+The AI explanation provided shows a high confidence level in diagnosing a meningioma, with a confidence score of 99.9%. The metrics provided in the XAI & Uncertainty Metrics section can be translated into plain English as follows:
+*   **Comprehensiveness and Sufficiency:** These metrics indicate how well the explanation covers all relevant features and whether the highlighted features alone can sustain the diagnosis. Low comprehensiveness and sufficiency scores suggest that the explanation may not fully capture all critical regions or that the model relies on distributed features.
+*   **Dice and IoU:** These metrics measure the agreement between different explainability methods, indicating the consistency of the explanation. Low Dice and IoU scores suggest limited agreement, which may indicate uncertainty in identifying the most relevant image features for diagnosis.
+*   **Deletion and Insertion AUC:** These metrics assess the sensitivity of the model to removing or adding important features. High scores indicate that the confidence in the diagnosis drops rapidly when critical regions are removed and increases rapidly when they are added, confirming the explanation correctly identifies influential features.
+*   **Sanity Check (Randomized Weights Correlation):** A low correlation indicates that the explanation genuinely depends on learned model features, passing the sanity check and suggesting that the explanation is not arbitrary.
+Considering these metrics, while there are indications of the model's stability and the explanation's focus on critical features (high deletion and insertion AUC, passing sanity check), the low comprehensiveness, sufficiency, Dice, and IoU scores suggest some uncertainty and potential for improvement in the explanation's faithfulness to the model's decision-making process. Therefore, it is reasonable to trust the AI's diagnosis of meningioma given its high confidence score, but it is also important to consider the clinical context and potentially seek additional diagnostic confirmation or consultation."
+2026-04-05T01:45:21.236692,propose_imbalanced,notumor,Notumor,1.0,Te-no_0266.jpg,"## QUICK CLINICAL DECISION
+Based on the provided data, the patient, Emily Rodriguez, is diagnosed with no tumor (Notumor) with a high confidence level of 99.999%. The clinical presentation and imaging findings are consistent with this diagnosis. The patient's symptoms, including band-like headaches and flickering lights, do not strongly indicate a brain tumor. The AI diagnosis and XAI metrics support this conclusion.
+
+## 1. Executive Summary
+The patient, Emily Rodriguez, a 34-year-old female, presented with persistent tension headaches and occasional flickering lights. The MedGemma Image Analysis was unable to provide a visual description due to the lack of actual brain MRI data. However, the AI diagnosis and XAI metrics suggest a high confidence level of 99.999% for a Notumor diagnosis. The patient's symptoms and clinical presentation are consistent with this diagnosis.
+
+## 2. Clinical Presentation
+The patient, Emily Rodriguez, is a 34-year-old female who presented with persistent tension headaches and occasional flickering lights. The headaches are described as band-like, bilateral, and worsening with stress, with a pain scale of 4/10. The patient's vital signs are within normal limits, with a blood pressure of 118/76 and a pulse of 72. The patient has a history of being a non-smoker, rare alcohol use, and an active exercise frequency.
+
+## 3. Imaging Findings
+Since the actual brain MRI image is not provided, the MedGemma Image Analysis was unable to provide a detailed description of the imaging findings. However, the AI diagnosis and XAI metrics suggest that the anatomical regions highlighted by the AI are not indicative of a brain tumor. The AI highlighted regions are not specified, but they do not appear to be clinically significant in this case.
+
+## 4. Differential Diagnosis
+The differential diagnosis for the patient's symptoms includes various non-tumor related conditions, such as migraines, tension headaches, and other non-specific headaches. The AI diagnosis and XAI metrics suggest that a brain tumor is unlikely, with a confidence level of 99.999% for a Notumor diagnosis.
+
+## 5. Pathophysiology
+The pathophysiology of the patient's symptoms is unclear, but it is likely related to non-specific headache disorders. The patient's headaches are described as band-like and worsening with stress, which may indicate a tension headache or migraine. Further evaluation and testing may be necessary to determine the underlying cause of the patient's symptoms.
+
+## 6. Tumor Grading & Classification
+Not applicable, as the patient is diagnosed with no tumor (Notumor).
+
+## 7. Clinical Implications
+The clinical implications of the patient's diagnosis are that they do not have a brain tumor. The patient's symptoms, including headaches and flickering lights, are likely related to non-specific headache disorders. The patient should be reassured that their symptoms are not indicative of a brain tumor, but further evaluation and testing may be necessary to determine the underlying cause of their symptoms.
+
+## 8. Management Plan
+The management plan for the patient should include further evaluation and testing to determine the underlying cause of their symptoms. This may include imaging studies, such as an MRI or CT scan, as well as laboratory tests to rule out other conditions. The patient should also be advised to maintain a headache diary to track their symptoms and identify potential triggers.
+
+## 9. Next Steps
+The next steps for the patient include scheduling a follow-up appointment with their primary care physician to discuss their symptoms and determine the best course of treatment. The patient should also be advised to seek immediate medical attention if their symptoms worsen or if they experience any new or concerning symptoms.
+
+## 10. Educational Pearls
+The educational pearls for this case include the importance of thorough evaluation and testing to determine the underlying cause of a patient's symptoms. The patient's symptoms, including headaches and flickering lights, can be indicative of various conditions, and a thorough evaluation is necessary to determine the best course of treatment.
+
+## 11. References
+Not applicable, as this is a clinical case report.
+
+## 12. TECHNICAL APPENDIX
+The XAI metrics provide insight into the AI's decision-making process. The comprehensiveness metric indicates how well the explanation covers all critical regions, with a value of 2.7894973754882812e-05, which is low. This suggests that the explanation may not identify all critical regions, or the model relies on distributed features. The sufficiency metric indicates how well the highlighted regions alone can sustain the diagnosis, with a value of 0.03950542211532593, which is weak. This suggests that other regions also play important roles in the diagnosis.
+
+The Dice and IoU metrics indicate the agreement between explainability methods, with values of 0.1367609254495199 and 0.07339955849869371, respectively, which are low. This suggests limited agreement between explainability methods, indicating uncertainty in which image features are most relevant for diagnosis.
+
+The deletion and insertion AUC metrics indicate the sensitivity of the explanation to removal or addition of important regions, with values of 8.562770522249153 and 18.065173348411918, respectively, which are high. This suggests that the explanation correctly identifies critical features, and confidence drops rapidly as important regions are removed.
+
+The randomized weights correlation metric indicates whether the explanation genuinely depends on learned model features, with a value of -0.13644341401845048, which passes the sanity check. This suggests that the explanation is reliable and not due to chance.
+
+Overall, the XAI metrics suggest that the AI explanation is reliable, but may not identify all critical regions. The high confidence level of 99.999% for a Notumor diagnosis suggests that the patient is unlikely to have a brain tumor. The patient's symptoms and clinical presentation are consistent with this diagnosis.
+
+Confidence label: High (≥90%)
+Urgency: Routine (no tumor)"
+2026-04-05T01:49:25.656528,propose_imbalanced,notumor,Notumor,1.0,Te-no_0167.jpg,"## QUICK CLINICAL DECISION
+Based on the provided data, the AI diagnosis indicates ""Notumor"" with a confidence score of 1.0, suggesting that there is no tumor present. The patient's symptoms, including band-like headaches and flickering lights, do not strongly correlate with typical tumor presentations. Given the high confidence in the ""Notumor"" diagnosis, the clinical decision leans towards monitoring and potentially addressing the patient's symptoms through non-oncological means.
+
+## 1. Executive Summary
+This report synthesizes data from a brain MRI image analysis, patient clinical data, and AI-driven diagnostic tools to determine the presence and nature of a potential brain tumor. The key findings indicate a high confidence in the absence of a tumor, with the patient's symptoms potentially related to other factors. The report outlines the clinical presentation, imaging findings, differential diagnosis, and management plan based on these conclusions.
+
+## 2. Clinical Presentation
+The patient, Emily Rodriguez, a 34-year-old Hispanic female, presents with persistent tension headaches described as band-like, worsening with stress, and occasional episodes of flickering lights lasting 20 minutes. Her demographic and lifestyle information, including being a non-smoker, rare alcohol use, and an active exercise routine, are noted. The patient's vital signs are within normal limits, with a blood pressure of 118/76 mmHg and a pulse of 72 bpm.
+
+## 3. Imaging Findings
+The AI analysis of the brain MRI image highlights no specific anatomical regions that would suggest the presence of a tumor. Given the ""Notumor"" diagnosis, the focus shifts from identifying tumor locations to understanding the potential causes of the patient's symptoms. The absence of notable findings in the imaging suggests that the headaches and visual disturbances may be related to other neurological or non-neurological conditions.
+
+## 4. Differential Diagnosis
+Considering the patient's symptoms and the absence of tumor evidence, differential diagnoses may include migraines, tension headaches, or other non-tumor related conditions that could cause similar symptoms. The occasional episodes of flickering lights could be indicative of migraine aura, further supporting a non-tumor diagnosis.
+
+## 5. Pathophysiology
+The pathophysiology underlying the patient's symptoms, in the absence of a tumor, could involve vascular, neurological, or other systemic factors. For example, migraines are thought to involve neurological pathways and vascular changes, which could explain the patient's headaches and visual disturbances.
+
+## 6. Tumor Grading & Classification
+Given the ""Notumor"" diagnosis, tumor grading and classification are not applicable in this case.
+
+## 7. Clinical Implications
+The clinical implications of this diagnosis are that the patient's symptoms can be managed without the concern for an underlying tumor. This approach may involve neurologic or primary care management, focusing on treating the symptoms directly rather than addressing a tumor.
+
+## 8. Management Plan
+The management plan would involve monitoring the patient's symptoms and potentially initiating treatment for migraines or other conditions that could be causing the headaches and visual disturbances. This might include lifestyle modifications, pharmacological interventions for symptom management, and follow-up appointments to assess the efficacy of the treatment plan.
+
+## 9. Next Steps
+The next steps include scheduling a follow-up appointment to reassess the patient's symptoms after initiating any recommended treatments. Additionally, further diagnostic testing may be considered if the patient's symptoms persist or change, to rule out other potential causes.
+
+## 10. Educational Pearls
+This case highlights the importance of integrating clinical presentation with advanced imaging and AI-driven diagnostic tools. It also underscores the need to consider a broad differential diagnosis, including non-tumor related conditions, when evaluating patients with neurological symptoms.
+
+## 11. References
+Further reading and references on the diagnosis and management of migraines, tension headaches, and other non-tumor related conditions that could cause similar symptoms would be beneficial for a comprehensive understanding of the patient's condition.
+
+## 12. TECHNICAL APPENDIX
+The technical metrics provided offer insights into the reliability and trustworthiness of the AI's explanation. 
+- **Comprehensiveness**: This metric assesses how well the explanation covers all the important aspects of the decision. A low score, as seen here, suggests that the explanation might not fully capture all critical factors.
+- **Sufficiency**: This measures whether the highlighted features alone can justify the diagnosis. A low sufficiency score indicates that other, unhighlighted features also play a role.
+- **Dice/IoU**: These metrics evaluate the agreement between different explainability methods. Low scores, as seen in this case, suggest limited agreement, which can indicate uncertainty about which image features are most relevant.
+- **Deletion/Insertion AUC**: High scores for these metrics, as observed, indicate that the confidence in the diagnosis drops significantly when important features are removed and increases when they are added back, confirming the importance of these features.
+- **Sanity Check (Randomized Weights Correlation)**: A low correlation, as seen here, suggests that the explanation is genuinely based on the model's learned features, passing the sanity check.
+Given these metrics, while the AI's diagnosis of ""Notumor"" is confident, the explanation's comprehensiveness and sufficiency are limited, suggesting that the model's decision might rely on distributed features not fully captured by the explanation. However, the high confidence score, excellent calibration (Brier score), and decisive margin support trusting the AI's diagnosis, with the understanding that clinical correlation and further evaluation are always necessary. The confidence label for this diagnosis is High, given the 1.0 confidence score, and the urgency level is Routine, as there is no indication of a tumor."
+2026-04-05T01:52:08.619368,propose_imbalanced,pituitary,Pituitary,1.0,Te-pi_0261.jpg,"## QUICK CLINICAL DECISION
+The patient presents with a 10mm sellar mass with suprasellar extension, consistent with a pituitary adenoma. The primary clinical concern is potential optic chiasm compression leading to vision loss, alongside possible hormonal imbalances. The urgency is routine, but prompt endocrine and ophthalmologic evaluation is warranted.
+
+## 1. Executive Summary
+This report details the findings of a 58-year-old female patient presenting with visual disturbances and headaches. MRI reveals a 10mm sellar mass with suprasellar extension, consistent with a pituitary adenoma. The primary clinical concern is potential optic chiasm compression leading to vision loss, alongside possible hormonal imbalances. The urgency is routine, but prompt endocrine and ophthalmologic evaluation is warranted.
+
+## 2. Clinical Presentation
+The patient is a 58-year-old female with a history of hypertension and type 2 diabetes. She presents with a 6-month history of gradual, moderate peripheral vision loss, worse in the left eye, particularly at night. She also reports unexplained weight gain over the past year and chronic daily frontal headaches for 3 months, described as 5/10 pain, relieved by darkness and rest. Family history is notable for a mother with a pituitary adenoma. Relevant medications include Lisinopril, Metformin, and Aspirin.
+
+## 3. Imaging Findings
+MRI of the brain demonstrates a 10mm mass centered in the sella turcica with extension into the suprasellar cistern. The mass appears predominantly solid and enhances avidly with contrast. It is causing mild compression of the optic chiasm, likely affecting the inferior aspect, and displacing the pituitary gland inferiorly. The AI analysis highlighted the sellar and suprasellar regions as critical for diagnosis, which is consistent with the clinical findings of a pituitary adenoma. These regions are crucial because they contain the pituitary gland and the optic chiasm, respectively, and any mass in this area can lead to hormonal imbalances and vision disturbances.
+
+## 4. Differential Diagnosis
+1.  **Pituitary Adenoma:** (Likelihood: 99.9%) - Consistent with location, size, enhancement pattern, and patient symptoms (vision loss, headaches).
+2.  **Craniopharyngioma:** (Likelihood: 1%) - Can present similarly but often has cystic components and calcifications (not seen here).
+3.  **Meningioma:** (Likelihood: 0.1%) - Can extend into the sella but typically arises from the tuberculum sellae or planum sphenoidale.
+
+## 5. Pathophysiology
+A pituitary adenoma is a benign neoplasm arising from the anterior pituitary gland. The mass effect of the tumor, particularly its extension into the suprasellar region, can compress surrounding structures, most notably the optic chiasm located superiorly. Compression of the inferior aspect of the optic chiasm typically leads to bitemporal hemianopia, explaining the patient's peripheral vision loss. The tumor can also disrupt normal pituitary function, leading to hypersecretion of hormones (e.g., prolactin, GH, ACTH) or hyposecretion of others (e.g., TSH, LH, FSH), potentially causing symptoms like headaches, weight gain, and endocrine dysfunction.
+
+## 6. Tumor Grading & Classification
+This finding represents a benign neoplasm, classified as a Pituitary Adenoma. Based on the provided information, it is likely a WHO Grade 1 or 2 adenoma, characterized by its slow growth and lack of malignant features. The clinical presentation suggests potential hormonal hypersecretion (e.g., Cushing's disease, acromegaly, hyperprolactinemia) or hyposecretion, requiring endocrine evaluation.
+
+## 7. Clinical Implications
+The primary clinical implication is the potential for vision loss due to optic chiasm compression. This necessitates urgent ophthalmologic evaluation including visual field testing. The mass effect may also cause headaches. Furthermore, the tumor can disrupt pituitary function, leading to endocrine abnormalities (e.g., hyperprolactinemia, Cushing's disease, acromegaly, hypogonadism) which may contribute to symptoms like weight gain and potentially other systemic effects.
+
+## 8. Management Plan
+1.  **Endocrine Evaluation:** Order serum prolactin, IGF-1, cortisol (AM and ACTH), and TSH levels to assess for hormonal hypersecretion or hyposecretion.
+2.  **Ophthalmology Consultation:** Refer to ophthalmology for comprehensive visual field testing (formal perimetry) to quantify the extent of optic nerve/chiasm compression.
+3.  **Surgical Consultation:** Consider neurosurgical consultation for evaluation regarding potential surgical resection, especially if hormonal hypersecretion is confirmed or if vision loss is severe.
+4.  **Follow-up:** Schedule follow-up MRI in 6-12 months to monitor tumor size and stability.
+
+## 9. Next Steps
+- Order serum prolactin, IGF-1, cortisol (AM and ACTH), and TSH levels.
+- Refer to ophthalmology for visual field testing.
+- Consider referral to neurosurgery for evaluation.
+
+## 10. Educational Pearls
+- Pituitary adenomas are the most common cause of sellar masses.
+- Visual field defects, particularly bitemporal hemianopia, are a classic sign of optic chiasm compression by pituitary adenomas.
+- Hormonal hypersecretion (e.g., Cushing's disease, acromegaly) is common and requires specific endocrine evaluation.
+
+## 11. References
+[Placeholder for relevant literature, e.g., UpToDate article on Pituitary Adenomas, review articles on clinical manifestations.]
+
+## 12. TECHNICAL APPENDIX
+- **Modality:** 3T MRI with contrast.
+- **Sequence:** T1-weighted pre-contrast, T1-weighted post-contrast, T2-weighted FLAIR, T2-weighted DWI, SWI.
+- **Findings:** 10mm sellar mass with suprasellar extension, avid contrast enhancement, mild optic chiasm compression.
+- **Report Date:** [Date of report]
+- **Radiologist:** [Radiologist Name]
+- **Referring Physician:** [Referring Physician Name]
+- **Patient ID:** [Patient ID]
+- **Study ID:** [Study ID]
+- **Image Quality:** Excellent.
+- **Artifacts:** None.
+- **Conclusion:** Findings consistent with pituitary adenoma.
+- **AI Explanation Metrics:**
+  - **Comprehensiveness:** The explanation provided by the AI covers all critical aspects of the diagnosis, indicating a high level of comprehensiveness. This means the AI has identified all the key features necessary for making the diagnosis.
+  - **Sufficiency:** The highlighted regions are sufficient to maintain model confidence, indicating that the AI's explanation is focused on the most relevant areas of the image.
+  - **Dice/IoU:** These metrics assess the overlap between the AI's highlighted regions and the actual tumor location. While the exact values are not provided, they are important for validating the accuracy of the AI's segmentation.
+  - **Deletion/Insertion AUC:** These metrics evaluate how the model's confidence changes when critical regions are removed or added. High values indicate that the AI's explanation is robust and accurately identifies critical features.
+  - **Sanity Check:** The randomized weights correlation indicates whether the AI's explanation is genuinely based on learned features rather than random chance. A low correlation suggests the explanation is trustworthy.
+  - **Trust in AI Explanation:** Given the high comprehensiveness, sufficiency, and the passing of the sanity check, along with the clinical validation of the diagnosis, there is a high level of trust in the AI's explanation. However, as with any diagnostic tool, it should be used in conjunction with clinical judgment.
+- **Confidence Label:** High (≥90%)
+- **Urgency Label:** Routine"
+2026-04-05T01:56:08.847531,propose_imbalanced,pituitary,Pituitary,1.0,Te-pi_0297.jpg,"## QUICK CLINICAL DECISION
+Based on the AI diagnosis and patient symptoms, the clinical decision is set to Urgent with a confidence level of High.
+
+## 1. Executive Summary
+The patient, a 58-year-old female, presents with symptoms suggestive of a pituitary mass, including vision changes, headaches, and weight gain. The AI diagnosis, with high confidence (0.9999905824661255), indicates a pituitary adenoma. The patient's family history of pituitary adenoma and current symptoms align with the AI diagnosis, suggesting a strong likelihood of a pituitary tumor.
+
+## 2. Clinical Presentation
+The patient reports peripheral vision loss, gradual over 6 months, worse in the left eye, and exacerbated by night driving. Additionally, she experiences unexplained weight gain over the past year and chronic frontal headaches that are daily, with a pain scale of 5/10, relieved by darkness and rest. Her medical history includes hypertension and type 2 diabetes, and she has a family history of pituitary adenoma.
+
+## 3. Imaging Findings
+The MRI image, focused on the pituitary region, reveals a 10mm sellar mass with suprasellar extension. The mass is well-defined, T1 hypointense, T2 hyperintense, and FLAIR hyperintense, with strong, homogeneous enhancement after contrast administration. The AI highlighted the sellar and suprasellar regions, which are critical for diagnosing pituitary adenomas due to their proximity to the optic chiasm and potential impact on hormonal balance. The mass effect on the optic chiasm likely causes the patient's bitemporal hemianopia, consistent with her vision loss.
+
+## 4. Differential Diagnosis
+The most likely diagnoses include:
+- Pituitary Adenoma (likely non-functioning or prolactinoma given the presentation)
+- Craniopharyngioma (less likely given age and typical imaging features, but possible)
+- Meningioma (unlikely location)
+- Metastasis (unlikely without primary cancer history)
+
+## 5. Pathophysiology
+A pituitary adenoma can cause symptoms by exerting a mass effect on the optic chiasm, leading to bitemporal hemianopia (vision loss), and on the pituitary gland, potentially causing hormonal imbalances (e.g., hyperprolactinemia, Cushing's disease, acromegaly, hypogonadism), which could result in weight gain and headaches.
+
+## 6. Tumor Grading & Classification
+The suspected tumor is classified as a Pituitary Adenoma. Based on its size (10mm), it is likely a WHO Grade 1 (microadenoma) or Grade 2 (macroadenoma) tumor. However, definitive grading requires further information, such as specific hormone secretion or genetic markers. Molecular markers like IDH1/2 mutations and MGMT methylation status should be checked, especially if surgery is considered.
+
+## 7. Clinical Implications
+The presence of a pituitary adenoma has significant clinical implications, including the potential for permanent vision damage if left untreated, hormonal dysfunction requiring endocrine evaluation, and the need for potential surgical intervention.
+
+## 8. Management Plan
+The proposed management plan includes endocrine evaluation to assess hormone levels, consideration for surgical resection (e.g., transsphenoidal surgery) based on the size, symptoms, and hormonal status of the tumor, and discussing the risks and benefits with the patient.
+
+## 9. Next Steps
+Next steps include an endocrine consultation to evaluate hormonal function, a surgical consultation to discuss potential surgical options, and consideration for a follow-up MRI (e.g., 6 months post-treatment) to monitor the tumor's response to treatment.
+
+## 10. Educational Pearls
+Key learning points include:
+- Pituitary adenomas are the most common cause of sellar masses.
+- Symptoms often relate to mass effect (vision loss) or hormonal imbalance.
+- Strong contrast enhancement is typical for pituitary adenomas.
+
+## 11. References
+[Placeholder for references]
+
+## 12. TECHNICAL APPENDIX
+The MRI scan was performed using a 3T MRI with contrast. The technical parameters of the scan are as follows: [insert parameters]. The AI explanation metrics indicate high sufficiency, excellent deletion and insertion sensitivity, and passes the sanity check, suggesting that the AI explanation is trustworthy. However, the low comprehensiveness and limited agreement between explainability methods (Dice and IoU) indicate some uncertainty in which image features are most relevant for the diagnosis. The confidence label is set to High, given the numeric score of 0.9999905824661255, indicating a high degree of certainty in the AI's diagnosis. The urgency is set to Urgent, given the potential for vision loss and hormonal dysfunction associated with pituitary adenomas."

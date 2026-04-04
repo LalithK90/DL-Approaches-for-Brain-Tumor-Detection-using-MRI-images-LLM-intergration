@@ -1,0 +1,110 @@
+{
+  "timestamp": "2026-04-05T01:58:32.416525",
+  "predicted_class": "notumor",
+  "model_confidence": 1.0,
+  "model_name": "propose_imbalanced",
+  "tier1_structure_score": 1.0,
+  "tier2_diagnostic_consistent": true,
+  "tier3_medical_plausibility_score": 0.75,
+  "tier4_confidence_aligned": true,
+  "overall_score": 0.9375,
+  "overall_pass": true,
+  "sections": [
+    {
+      "name": "QUICK CLINICAL DECISION",
+      "present": true,
+      "min_length_ok": true,
+      "char_count": 458
+    },
+    {
+      "name": "Executive Summary",
+      "present": true,
+      "min_length_ok": true,
+      "char_count": 454
+    },
+    {
+      "name": "Clinical Presentation",
+      "present": true,
+      "min_length_ok": true,
+      "char_count": 461
+    },
+    {
+      "name": "Imaging Findings",
+      "present": true,
+      "min_length_ok": true,
+      "char_count": 438
+    },
+    {
+      "name": "Differential Diagnosis",
+      "present": true,
+      "min_length_ok": true,
+      "char_count": 332
+    },
+    {
+      "name": "Pathophysiology",
+      "present": true,
+      "min_length_ok": true,
+      "char_count": 305
+    },
+    {
+      "name": "Tumor Grading",
+      "present": true,
+      "min_length_ok": true,
+      "char_count": 96
+    },
+    {
+      "name": "Clinical Implications",
+      "present": true,
+      "min_length_ok": true,
+      "char_count": 275
+    },
+    {
+      "name": "Management Plan",
+      "present": true,
+      "min_length_ok": true,
+      "char_count": 370
+    },
+    {
+      "name": "Next Steps",
+      "present": true,
+      "min_length_ok": true,
+      "char_count": 277
+    },
+    {
+      "name": "Educational Pearls",
+      "present": true,
+      "min_length_ok": true,
+      "char_count": 292
+    },
+    {
+      "name": "References",
+      "present": true,
+      "min_length_ok": true,
+      "char_count": 250
+    }
+  ],
+  "issues": [
+    {
+      "tier": "Tier3-Medical",
+      "severity": "WARNING",
+      "message": "Expected medical terms not found for 'notumor': ['no evidence']"
+    },
+    {
+      "tier": "Tier4-Confidence",
+      "severity": "INFO",
+      "message": "Confidence aligned: DL=100.0%, LLM label='high' → expected range 90%–100%"
+    },
+    {
+      "tier": "Overall",
+      "severity": "INFO",
+      "message": "Report PASSED validation. Overall score: 0.94"
+    }
+  ],
+  "extracted_diagnosis": "no tumor",
+  "extracted_urgency": "routine",
+  "extracted_confidence_text": "high",
+  "semantic_similarity": 0.4658,
+  "spacy_entities": [],
+  "spacy_model_name": "en_core_sci_sm",
+  "sentence_model_name": "all-MiniLM-L6-v2"
+}

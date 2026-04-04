@@ -1,0 +1,110 @@
+{
+  "timestamp": "2026-04-05T01:58:31.451214",
+  "predicted_class": "meningioma",
+  "model_confidence": 0.9997,
+  "model_name": "propose_imbalanced",
+  "tier1_structure_score": 0.9167,
+  "tier2_diagnostic_consistent": true,
+  "tier3_medical_plausibility_score": 1.0,
+  "tier4_confidence_aligned": true,
+  "overall_score": 0.975,
+  "overall_pass": true,
+  "sections": [
+    {
+      "name": "QUICK CLINICAL DECISION",
+      "present": true,
+      "min_length_ok": false,
+      "char_count": 0
+    },
+    {
+      "name": "Executive Summary",
+      "present": true,
+      "min_length_ok": true,
+      "char_count": 404
+    },
+    {
+      "name": "Clinical Presentation",
+      "present": true,
+      "min_length_ok": true,
+      "char_count": 437
+    },
+    {
+      "name": "Imaging Findings",
+      "present": true,
+      "min_length_ok": true,
+      "char_count": 906
+    },
+    {
+      "name": "Differential Diagnosis",
+      "present": true,
+      "min_length_ok": true,
+      "char_count": 700
+    },
+    {
+      "name": "Pathophysiology",
+      "present": true,
+      "min_length_ok": true,
+      "char_count": 266
+    },
+    {
+      "name": "Tumor Grading",
+      "present": true,
+      "min_length_ok": true,
+      "char_count": 76
+    },
+    {
+      "name": "Clinical Implications",
+      "present": true,
+      "min_length_ok": true,
+      "char_count": 200
+    },
+    {
+      "name": "Management Plan",
+      "present": true,
+      "min_length_ok": true,
+      "char_count": 430
+    },
+    {
+      "name": "Next Steps",
+      "present": true,
+      "min_length_ok": true,
+      "char_count": 302
+    },
+    {
+      "name": "Educational Pearls",
+      "present": true,
+      "min_length_ok": true,
+      "char_count": 270
+    },
+    {
+      "name": "References",
+      "present": true,
+      "min_length_ok": true,
+      "char_count": 87
+    }
+  ],
+  "issues": [
+    {
+      "tier": "Tier1-Structure",
+      "severity": "WARNING",
+      "message": "Section 'QUICK CLINICAL DECISION' is present but very short (0 chars) – may be a placeholder"
+    },
+    {
+      "tier": "Tier4-Confidence",
+      "severity": "INFO",
+      "message": "Could not extract confidence label (High/Medium/Low) from LLM report"
+    },
+    {
+      "tier": "Overall",
+      "severity": "INFO",
+      "message": "Report PASSED validation. Overall score: 0.97"
+    }
+  ],
+  "extracted_diagnosis": "meningioma",
+  "extracted_urgency": "urgent",
+  "extracted_confidence_text": null,
+  "semantic_similarity": 0.5095,
+  "spacy_entities": [],
+  "spacy_model_name": "en_core_sci_sm",
+  "sentence_model_name": "all-MiniLM-L6-v2"
+}

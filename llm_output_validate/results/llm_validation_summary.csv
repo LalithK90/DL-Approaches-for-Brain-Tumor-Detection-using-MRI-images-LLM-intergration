@@ -1,0 +1,17 @@
+timestamp,model_name,predicted_class,model_confidence,tier1_structure_score,tier2_diagnostic_consistent,tier3_medical_plausibility_score,tier4_confidence_aligned,overall_score,overall_pass,extracted_diagnosis,extracted_urgency,extracted_confidence_text,semantic_similarity,error_count,warning_count
+2026-04-05T01:56:25.233946,propose_imbalanced,glioma,1.0,1.0,True,1.0,True,1.0,True,glioma,stat,high,0.4919,0,0
+2026-04-05T01:56:25.571125,propose_imbalanced,glioma,1.0,1.0,True,1.0,True,1.0,True,glioma,stat,,0.5847,0,0
+2026-04-05T01:56:25.904355,propose_imbalanced,meningioma,0.9997,0.9167,True,1.0,True,0.975,True,meningioma,urgent,,0.5095,0,1
+2026-04-05T01:56:26.169332,propose_imbalanced,meningioma,0.9994,1.0,True,0.6,True,0.9,True,meningioma,urgent,high,0.5308,0,1
+2026-04-05T01:56:26.530088,propose_imbalanced,notumor,1.0,1.0,True,0.75,True,0.9375,True,no tumor,routine,high,0.4009,0,1
+2026-04-05T01:56:26.805071,propose_imbalanced,notumor,1.0,1.0,True,0.75,True,0.9375,True,no tumor,routine,high,0.4658,0,1
+2026-04-05T01:56:27.265537,propose_imbalanced,pituitary,1.0,1.0,True,1.0,True,1.0,True,pituitary,urgent,,0.7347,0,0
+2026-04-05T01:56:27.533588,propose_imbalanced,pituitary,1.0,1.0,True,0.8,True,0.95,True,pituitary,urgent,high,0.6401,0,1
+2026-04-05T01:58:30.735081,propose_imbalanced,glioma,1.0,1.0,True,1.0,True,1.0,True,glioma,stat,high,0.4919,0,0
+2026-04-05T01:58:31.079839,propose_imbalanced,glioma,1.0,1.0,True,1.0,True,1.0,True,glioma,stat,,0.5847,0,0
+2026-04-05T01:58:31.451214,propose_imbalanced,meningioma,0.9997,0.9167,True,1.0,True,0.975,True,meningioma,urgent,,0.5095,0,1
+2026-04-05T01:58:31.727887,propose_imbalanced,meningioma,0.9994,1.0,True,0.6,True,0.9,True,meningioma,urgent,high,0.5308,0,1
+2026-04-05T01:58:32.142617,propose_imbalanced,notumor,1.0,1.0,True,0.75,True,0.9375,True,no tumor,routine,high,0.4009,0,1
+2026-04-05T01:58:32.416525,propose_imbalanced,notumor,1.0,1.0,True,0.75,True,0.9375,True,no tumor,routine,high,0.4658,0,1
+2026-04-05T01:58:32.836823,propose_imbalanced,pituitary,1.0,1.0,True,1.0,True,1.0,True,pituitary,urgent,,0.7347,0,0
+2026-04-05T01:58:33.057265,propose_imbalanced,pituitary,1.0,1.0,True,0.8,True,0.95,True,pituitary,urgent,high,0.6401,0,1
