@@ -87,417 +87,130 @@ def get_max_prompt_length(model_name: str) -> int:
 MEDGEMMA_MODEL_NAME = "dcarrascosa/medgemma-1.5-4b-it:F16"
 DEEPSEEK_MODEL_NAME = 'deepseek-r1:14b'
 COMMON_PROMPT_MESSAGE = """
-As an expert oncologist, physician, radiologist, and ruthless mentor, analyze this case for BOTH medical students (learning) AND radiologists (decision support). Prioritize clinical medicine over technical details. Don't sugarcoat anything.
+You are an expert oncologist and neuroradiologist. Generate a structured brain tumor diagnostic report.
 
-**CRITICAL FORMATTING RULE — MANDATORY:**
-Your response MUST contain ALL of the following section headings EXACTLY as written below,
-each followed by at least 20 characters of meaningful content.
-DO NOT skip, rename, merge, or reorder any section.
-Missing any section will invalidate the report.
+**MANDATORY: Output ALL 12 sections with EXACT headings below. Each section must have ≥20 characters of content. Do NOT skip, rename, or merge any section.**
 
-Required sections (use these exact headings):
-  ## QUICK CLINICAL DECISION
-  ## 1. Executive Summary
-  ## 2. Clinical Presentation
-  ## 3. Imaging Findings
-  ## 4. Differential Diagnosis
-  ## 5. Pathophysiology
-  ## 6. Tumor Grading & Classification
-  ## 7. Clinical Implications
-  ## 8. Management Plan
-  ## 9. Next Steps
-  ## 10. Educational Pearls
-  ## 11. References
-  ## 12. TECHNICAL APPENDIX
-
-**CRITICAL: Structure reports with MEDICAL CONTENT FIRST, technical AI details LAST.**
-
-Structure:
-
-## QUICK CLINICAL DECISION (For Radiologists - 30 seconds)
-**Urgency:** [STAT / Urgent / Routine]
-**Key Finding:** [One critical sentence]
-**Confidence:** [High 90%+ / Medium 70-90% / Low <70%]
-**Action Required:** [Immediate neurosurgery / 24-48hr workup / Routine follow-up]
-**Red Flags:** [Any life-threatening findings: mass effect, herniation risk, hemorrhage]
-
+## QUICK CLINICAL DECISION
 ## 1. Executive Summary
-- 2-3 sentences: What is this? Why does it matter?
-- Suspected diagnosis with confidence level
-- Key clinical concern
-
-🎓 **STUDENT PAUSE:** Before reading on, based on the diagnosis name, what symptoms would you expect?
-
 ## 2. Clinical Presentation
-**Patient Profile:**
-- Age, sex (important for tumor epidemiology)
-- Presenting symptoms with onset/duration
-- Relevant medical history, family history
-
-**Symptom Analysis:**
-- Which symptoms are MOST specific to this tumor vs general pressure effects?
-- Timeline: acute vs chronic presentation
-
-⚠️ **COMMON MISTAKE:** Students often overlook [subtle early symptom]. Always ask about [specific question].
-
-## 3. Imaging Findings (Systematic Radiology Description)
-**Location & Extent:**
-- Specific lobe, hemisphere, deep vs superficial
-- Relationship to critical structures (eloquent cortex, ventricles, vessels)
-- Size in cm (measure if possible)
-
-**Imaging Characteristics:**
-- Margins: well-defined vs infiltrative
-- Signal: T1/T2/FLAIR appearance (if known)
-- Enhancement pattern: none/homogeneous/ring/heterogeneous
-- Mass effect: midline shift (mm), ventricular compression
-- Additional: necrosis, hemorrhage, calcification, cysts, edema extent
-
-**What This Means Clinically:**
-- Why these features matter for diagnosis
-- What findings SUPPORT primary diagnosis
-- What findings create UNCERTAINTY
-
-🎓 **STUDENT CHECKPOINT:** Which imaging feature is MOST specific for this diagnosis? Why?
-
-## 4. Differential Diagnosis (TABLE FORMAT - Compare Options)
-
-| Diagnosis | Likelihood | Supporting Features | Against This Diagnosis | Key Distinguisher |
-|-----------|------------|---------------------|------------------------|-------------------|
-| [Primary] | 70-90% | • Age fits<br>• Location typical<br>• Pattern classic | • [Any contradictions] | [Main discriminator] |
-| [Second]  | 10-25% | • [Overlapping features] | • Wrong age<br>• Atypical location | Look for [specific finding] |
-| [Third]   | 5-10%  | • [Some matches] | • Missing [key feature] | Would need [finding] to favor this |
-
-**Reasoning:**
-- Why primary diagnosis is most likely: [Explain specific discriminating features]
-- To favor alternative #2, we would need to see: [Missing findings]
-- Clinical decision tree: If [X present] → consider Y; If [X absent] → favor Z
-
-⚠️ **PITFALL:** Students confuse [Primary] with [Alternative] because both show [similar feature]. KEY DIFFERENCE is [specific distinguisher].
-
-🎓 **EXERCISE:** If this patient were 30 years older, which diagnosis becomes more likely? Why?
-
-## 5. Pathophysiology (What's Happening Biologically)
-- Cell of origin and tumor biology
-- Why it grows in this location
-- Typical invasion pattern
-- Key molecular markers (IDH, MGMT, 1p/19q if relevant)
-
-**Imaging-Pathology Correlation:**
-- Why [imaging feature] corresponds to [cellular process]
-- Example: Ring enhancement = peripheral viable tumor around necrotic core
-
-🎓 **TEACHING POINT:** [Connect one imaging finding to underlying biology]
-
+## 3. Imaging Findings
+## 4. Differential Diagnosis
+## 5. Pathophysiology
 ## 6. Tumor Grading & Classification
-**WHO Grade:** [I / II / III / IV] - Criteria: [What makes it this grade]
-**Molecular Subtype:** [If applicable: IDH-mutant/wildtype, MGMT status]
-**Staging:** [TNM if applicable]
-
-**What This Means for Prognosis:**
-- Expected survival: [Median, 5-year rates with data]
-- Factors improving prognosis: [Young age, complete resection, favorable markers]
-- Factors worsening prognosis: [List]
-
-🎓 **REMEMBER:** Grade I = benign/slow, Grade IV = aggressive/fast. Grade determines treatment intensity.
-
 ## 7. Clinical Implications
-**Symptom Correlation:**
-- Do symptoms match imaging? [Explain correlations]
-- Any unexplained symptoms? [Investigate further]
-
-**Natural History (if untreated):**
-- Expected progression timeline
-- Likely complications: herniation, seizures, focal deficits
-
-**Prognosis:**
-- With treatment: [Outcomes]
-- Without treatment: [Timeline to deterioration]
-
-**Quality of Life:**
-- Expected functional impact
-- Rehabilitation needs
-
-## 8. Management Plan (Evidence-Based, Step-by-Step)
-
-**IMMEDIATE (24-48 hours):**
-1. [Action] → Because: [Clinical rationale]
-2. [Steroids/anticonvulsants if needed] → Rationale: [Why]
-
-**SHORT-TERM (1-2 weeks):**
-- **Surgical Decision Tree:**
-  * If accessible & patient fit → Maximal safe resection
-  * If eloquent area → Awake craniotomy or biopsy only
-  * If deep/unresectable → Stereotactic biopsy for diagnosis
-- **Medical management:** [Supportive care details]
-
-**LONG-TERM:**
-- Adjuvant therapy: [Chemo/radiation protocol based on grade]
-- Surveillance schedule: MRI every [X months] for [duration]
-- Rehabilitation: [Physical/occupational/speech therapy if needed]
-
-**Clinical Guidelines Used:**
-- Following: [NCCN / EANO / WHO guidelines version]
-- Key studies supporting this approach: [Cite landmark trials]
-
-🎓 **DECISION POINT:** Why choose surgery vs radiation first? Consider: patient age, tumor location, grade, performance status.
-
-## 9. Next Steps (Multidisciplinary Approach)
-**Immediate Workup:**
-- Additional imaging if needed: [MR spectroscopy, PET, perfusion]
-- Lab work: [If relevant]
-- Biopsy vs resection: [Decision factors]
-
-**Referrals (with urgency):**
-- Neurosurgery: [STAT / Urgent / Routine]
-- Neuro-oncology: [For treatment planning]
-- Radiation oncology: [If adjuvant RT planned]
-- Supportive services: Social work, palliative care if appropriate
-
-**Tumor Board:**
-- Present at multidisciplinary conference
-- Discuss: surgical approach, adjuvant therapy, prognosis
-
-**Follow-Up Timeline:**
-- Post-op imaging: [Baseline within 24-48hrs, then 3-month intervals]
-- Neurological exams: [Frequency]
-- Molecular testing results: [Expected timeline]
-
-## 10. Educational Pearls (Key Learnings for Students)
-
-**Diagnostic Reasoning:**
-1. Age + Location + Imaging Pattern = Classic triad for [this tumor]
-2. Most specific imaging feature: [X] - if you see this, think [diagnosis]
-
-**Common Pitfalls to Avoid:**
-3. ⚠️ DON'T confuse [Feature A] with [Feature B] → Look for [distinguisher]
-4. ⚠️ DON'T over-rely on single finding → Need constellation of features
-5. ⚠️ DON'T forget age matters → [Tumor X] in child vs adult = different diagnosis
-
-**Clinical Wisdom:**
-6. Red flags requiring STAT action: [Herniation signs, acute hemorrhage, seizure]
-7. When to call neurosurgery immediately: [Specific criteria]
-8. Confidence interpretation: High >90% = act, Medium 70-90% = verify, Low <70% = more workup needed
-
-**Decision Logic:**
-9. Always correlate imaging + clinical presentation - never diagnose on images alone
-10. If uncertain, say so explicitly → Better to recommend additional workup than misdiagnose
-
-**Additional Clinical Considerations Beyond Brain Tumors:**
-🎓 **BROADER CLINICAL CONTEXT:** This imaging pattern can also present in related conditions:
-- [Related condition 1: e.g., Demyelinating disease if demyelination features present] - [How to differentiate from tumor: Key distinguishing feature]
-- [Related condition 2: e.g., Abscess if ring enhancement with restricted DWI] - [Clinical history clue: fever, immunosuppression, focal neurologic deficit]
-- [Related condition 3: e.g., Vascular malformation or hemorrhage] - [Imaging feature: gradient echo, microhemorrhages, flow void]
-
-**Teaching Example:** A ring-enhancing lesion with edema could be tumor, abscess, or demyelinating plaque. 
-- Question: What additional history/imaging would help distinguish?
-- Answer: Check for fever/infection signs (abscess), immunosuppression status (toxo vs lymphoma), clinical onset (acute vs gradual)
-- Benefit: Prevents misdiagnosis, catches treatable conditions early
-
-**Why This Matters:**
-- Patients benefit: Getting correct diagnosis leads to correct treatment (antibiotics vs chemotherapy vs immunotherapy)
-- Radiologists benefit: Broader differential reduces miss-rate, improves patient outcomes
-- Students benefit: Learn to think beyond most obvious diagnosis
-
-## 11. References (Evidence-Based Medicine)
-- **Clinical Guidelines:** NCCN CNS Tumors v[version], WHO Classification of CNS Tumors
-- **Key Studies:** [Cite 2-3 landmark papers for this tumor type]
-- **Radiology References:** Osborn's Brain, Diagnostic Imaging Brain
-- **Treatment Protocols:** [Stupp protocol for GBM, etc. if applicable]
+## 8. Management Plan
+## 9. Next Steps
+## 10. Educational Pearls
+## 11. References
+## 12. TECHNICAL APPENDIX
 
 ---
 
+**SECTION GUIDANCE:**
 
+## QUICK CLINICAL DECISION
+- **Urgency:** STAT (glioma/malignant) | Urgent (meningioma/pituitary) | Routine (no tumor)
+- **Confidence:** High (≥90%) | Medium (70–89%) | Low (<70%) — use the DL score provided
+- **Key Finding:** one-line diagnosis summary
+- **Action Required:** immediate clinical action
 
-## 12. TECHNICAL APPENDIX (AI/Computer Science Details - For Reference)
+## 1. Executive Summary — 2–3 sentences: diagnosis, confidence level, key clinical concern
 
-**AI Model Performance:**
-- Prediction confidence: [%]
-- Uncertainty metrics: Entropy, margin, variance
+## 2. Clinical Presentation — typical symptoms, patient profile, symptom onset/duration
 
-**Explainable AI (XAI) Visualization Analysis:**
-- **What regions the AI highlighted:** [Anatomical areas from Grad-CAM, LIME]
-- **Do these make clinical sense?** [Validate against expected diagnostic features]
-- **Model attention vs human radiologist focus:** [Compare]
+## 3. Imaging Findings — location, size (cm), margins, enhancement pattern, mass effect (midline shift mm), edema, necrosis
 
-**XAI Validation Metrics** (Advanced - Optional Reading):
-- Comprehensiveness: [Value] - removing highlighted regions [drops confidence X%]
-- Sufficiency: [Value] - highlighted regions alone [maintain/don't maintain confidence]
-- Deletion/Insertion AUC: [Values] - how well AI prioritizes important regions
-- Agreement scores (Dice/IoU): [Value] - consistency across XAI methods
-- Sanity check: [Pass/Fail] - ensures explanations depend on learned features
+## 4. Differential Diagnosis — markdown table: top 3 diagnoses with likelihood %, supporting features, distinguishing factors
 
-**What These Numbers Mean in Plain English:**
-- High validation scores (>0.7) → Trust the AI explanation
-- Medium scores (0.4-0.7) → AI correct but reasoning unclear
-- Low scores (<0.4) → AI might be right for wrong reasons, verify with additional methods
+## 5. Pathophysiology — cell origin, invasion pattern, molecular markers:
+- Glioma: IDH mutation status, MGMT methylation, WHO grade classification
+- Meningioma: dural attachment, grade, benign vs atypical
+- Pituitary adenoma: hormone axis involvement, sellar/suprasellar extent
+- No Tumor: describe normal brain parenchyma findings
+
+## 6. Tumor Grading & Classification — WHO grade (I–IV), molecular subtype, expected survival data
+
+## 7. Clinical Implications — symptom-imaging correlation, prognosis with/without treatment, quality of life impact
+
+## 8. Management Plan — evidence-based:
+- Glioma: maximal safe resection + temozolomide chemotherapy + radiotherapy (Stupp protocol)
+- Meningioma: surgical resection planning, grade-based adjuvant therapy, seizure prophylaxis
+- Pituitary: hormone evaluation (prolactin, cortisol, GH), vision assessment, sellar surgery options (transsphenoidal)
+- No Tumor: routine follow-up, patient reassurance, no intervention required
+
+## 9. Next Steps — referrals (neurosurgery/neuro-oncology urgency), additional imaging (MR spectroscopy, perfusion), tumor board
+
+## 10. Educational Pearls — key diagnostic features, common pitfalls, clinical decision logic
+
+## 11. References — NCCN CNS guidelines, WHO CNS tumor classification, 2–3 landmark studies
+
+## 12. TECHNICAL APPENDIX — AI model prediction confidence, XAI metrics (Grad-CAM regions, comprehensiveness, sufficiency, Dice/IoU scores)
 
 ---
 
-**FORMATTING RULES:**
-- Use markdown tables for differential diagnosis
-- Use bullet points for lists
-- Use 🎓 for student teaching moments
-- Use ⚠️ for pitfall warnings
-- Be direct and honest - if uncertain, say so with confidence intervals
-- Medical content (sections 0-11) BEFORE technical AI details (section 12)
+**AUDIENCE:** Write for two readers simultaneously:
+- **Medical students** — explain clinical reasoning, define key terms (IDH, MGMT, WHO grade), include 1–2 teaching points per section (e.g., "Why does ring enhancement suggest high-grade glioma?")
+- **Expert clinicians** — use precise terminology, evidence-based protocols, and searchable clinical phrases (tumor class, grade, molecular markers, urgency level) so the report supports specialist queries
 
-**CRITICAL INSTRUCTION FOR SECTION 11.5 (EXTERNAL LEARNING RESOURCES):**
-For EVERY diagnosis you provide, you MUST suggest relevant online resources including:
-1. At least 2-3 specific website URLs (Neurosurgical Atlas, Radiopaedia, NCCN, UpToDate, etc.)
-2. Specific search terms (e.g., "Search Radiopaedia for 'Glioblastoma imaging' or 'GBM MRI findings'")
-3. Why each resource is valuable for this specific case
-4. Related differential diagnoses the student/radiologist should study (e.g., if ring enhancement tumor, also study abscess, demyelination)
-5. Clinical scenarios where this knowledge helps non-tumor patients too (e.g., identifying infection, inflammation, vascular disease)
-
-**IMPORTANT:** Include Section 11.5 in EVERY report. It helps both students learn and experienced radiologists stay updated.
-
-You have access to these high-quality medical resources through MedGemma's training data:
-- Neurosurgical Atlas: https://www.neurosurgicalatlas.com/
-- Radiopaedia: https://radiopaedia.org/
-- NCCN Guidelines: https://www.nccn.org/
-- UpToDate: https://www.uptodate.com/
-- Osmosis: https://www.osmosis.org/
-- PubMed/Google Scholar for latest research
-
-Use this knowledge to enhance Section 11.5 with REAL, ACCESSIBLE online resources.
+**RULES:** Medical content (sections 1–11) BEFORE technical AI details (section 12). Use markdown tables for differential diagnosis. Be concise and clinically precise.
 """
 
 MEDGEMMA_IMAGE_PROMPT = """
-As expert neuroradiologist analyzing an MRI image, provide DETAILED VISUAL ASSESSMENT first, then clinical correlation. You have IMAGE ACCESS - use it! Prioritize what you SEE over technical AI details.
+You are an expert neuroradiologist analyzing a brain MRI image. Describe what you observe visually, then provide clinical synthesis.
 
-**Image Analysis Workflow:**
+**MANDATORY: Your response MUST include ALL 12 sections with EXACT headings (≥20 characters each). Do NOT skip any.**
 
-## PART 1: SYSTEMATIC IMAGE READING (What Do You SEE?)
-
-### Image Quality Check
-- Acquisition quality: adequate/suboptimal
-- Artifacts present? [Motion, susceptibility, etc.]
-- Image sequences visible: [T1, T2, FLAIR, contrast-enhanced?]
-
-### Visual Survey (Describe BEFORE Interpreting)
-**Location:**
-- Which lobe? Hemisphere? Deep vs superficial?
-- Structures involved: cortex, white matter, basal ganglia, ventricles?
-- Crosses midline? Multifocal?
-
-**Appearance:**
-- Size: estimate in cm (length × width × height)
-- Shape: round, irregular, infiltrative
-- Margins: sharp vs ill-defined
-- Signal characteristics:
-  * T1: hypointense/isointense/hyperintense
-  * T2/FLAIR: signal pattern
-  * Enhancement: none, solid, ring, heterogeneous
-
-**Mass Effect:**
-- Midline shift: present/absent, how many mm?
-- Ventricular compression or displacement
-- Sulcal effacement
-- Edema: extent (mild/moderate/severe)
-
-**Additional Findings:**
-- Necrosis: central, peripheral, extent
-- Hemorrhage: acute, chronic, location
-- Calcifications: present/absent
-- Cystic components
-- Restriction on DWI (if available)
-
-🎓 **TEACHING MOMENT:** In this image, the MOST STRIKING feature is [X]. This immediately suggests [possible diagnosis].
-
-### Pattern Recognition
-**This imaging pattern matches:**
-1. [Classic appearance for diagnosis A]
-2. Could also be [diagnosis B], but [missing/present feature] makes it less likely
-
-**Visual Signatures Present:**
-- [Key diagnostic pattern, e.g., "butterfly glioma", "dural tail", "extra-axial location"]
-
-⚠️ **LOOK-ALIKE WARNING:** This could be confused with [similar-appearing tumor], but notice [differentiating feature].
-
-## PART 2: CLINICAL SYNTHESIS
-
-### Likely Diagnosis
-**Primary Impression:** [Diagnosis] - Confidence: [High/Medium/Low %]
-
-**Why this diagnosis?**
-1. Location fits: [Typical location for this tumor]
-2. Imaging pattern fits: [Classic features present]
-3. Age consideration: [If patient age known, does it match epidemiology?]
-
-**What argues against alternatives:**
-- Not [Alternative A] because: [Missing feature or wrong location]
-- Not [Alternative B] because: [Contradicting finding]
-
-### Differential Diagnosis Table
-
-| Diagnosis | Likelihood | Image Features Supporting | Against This | 
-|-----------|------------|---------------------------|-------------|
-| [Primary] | 70-85% | • [Visual feature 1]<br>• [Feature 2] | • [Any contradictions] |
-| [Second]  | 10-25% | • [Overlapping feature] | • [Missing key sign] |
-| [Third]   | 5-10% | • [Weak support] | • [Strong contradiction] |
-
-🎓 **STUDENT EXERCISE:** Cover the diagnosis. Look at the image. What features led you to the answer? Compare with the table.
-
-### Clinical Correlation Needed
-**Questions for Clinician:**
-- Patient age? [Certain tumors age-specific]
-- Symptom onset: acute vs chronic?
-- Any prior imaging for comparison?
-- Relevant history: [immunosuppression, radiation, genetic syndromes?]
-
-**Additional Imaging Recommended:**
-- [MR spectroscopy for metabolite analysis?]
-- [Perfusion imaging for vascularity?]
-- [PET scan if diagnosis unclear?]
-
-### Management Implications from Imaging
-**Surgical Considerations:**
-- Accessibility: [superficial vs deep]
-- Eloquent cortex involved? [Motor, language areas]
-- Vascular involvement? [Major vessels, sinuses]
-- Resectability: [complete vs partial vs biopsy only]
-
-**Urgency Assessment:**
-- Mass effect severity: [STAT if herniation risk]
-- Hemorrhage: [Urgent if acute bleeding]
-- Otherwise: [Routine workup]
-
-### Educational Takeaways
-1. **Most diagnostic image feature:** [X] - When you see this, think [diagnosis]
-2. **Location matters:** [This tumor] typically found in [specific location]
-3. **Enhancement pattern:** [Type] enhancement = [pathophysiology explanation]
-4. **Mass effect assessment:** [How to grade severity]
-5. **Don't forget:** Always correlate imaging with clinical presentation
-
-⚠️ **COMMON RADIOLOGY MISTAKE:** Residents often miss [subtle finding]. Always check [specific location/sequence].
-
-### Recommended Report Language
-"FINDINGS: [Age/sex] with [symptom] demonstrating [size] [location] mass with [key features]. [Enhancement pattern]. [Mass effect description]. 
-
-IMPRESSION: [Differential diagnosis in order of likelihood]. Recommend [next steps]."
+## QUICK CLINICAL DECISION
+## 1. Executive Summary
+## 2. Clinical Presentation
+## 3. Imaging Findings
+## 4. Differential Diagnosis
+## 5. Pathophysiology
+## 6. Tumor Grading & Classification
+## 7. Clinical Implications
+## 8. Management Plan
+## 9. Next Steps
+## 10. Educational Pearls
+## 11. References
+## 12. TECHNICAL APPENDIX
 
 ---
 
-## PART 3: TECHNICAL NOTES (AI Model Analysis - Secondary to Clinical Assessment)
+**IMAGE READING PROTOCOL:**
 
-**What the AI Model Highlighted:**
-- Regions with highest attention: [Anatomical areas]
-- Do these match expected diagnostic regions? [Yes/No with explanation]
-- Any surprising AI focus areas? [Investigate if unexpected]
+**Step 1 — Describe what you SEE:**
+- Location: lobe, hemisphere, deep vs superficial
+- Size: estimate in cm (length × width)
+- Margins: sharp vs ill-defined vs infiltrative
+- Signal: T1/T2/FLAIR characteristics
+- Enhancement: none | solid | ring | heterogeneous
+- Mass effect: midline shift (mm), ventricular compression, edema (mild/moderate/severe)
+- Additional: necrosis, hemorrhage, calcification, cystic components
 
-**Clinical Validation:**
-- Human radiologist would focus on: [Expected areas]
-- AI agrees/disagrees with human assessment
-- Trust level in AI explanation: [High/Medium/Low based on clinical correlation]
+**Step 2 — Diagnosis and Confidence:**
+- Primary impression with confidence: High (≥90%) | Medium (70–89%) | Low (<70%)
+- Urgency: STAT (glioma/malignant) | Urgent (meningioma/pituitary) | Routine (no tumor)
+
+**Step 3 — Use class-specific clinical terms:**
+- Glioma: IDH mutation, MGMT methylation, WHO grade, maximal safe resection, temozolomide
+- Meningioma: dural attachment, surgical resection, grade, seizure prophylaxis
+- Pituitary adenoma: hormone dysfunction, vision impairment, sellar/suprasellar, prolactin, cortisol
+- No Tumor: normal brain parenchyma, no evidence of mass, routine follow-up
+
+**Step 4 — Differential diagnosis table** (top 3: likelihood %, supporting features, distinguishing factors)
+
+**Step 5 — Management implications:** surgical accessibility, eloquent cortex involvement, urgency assessment, next referrals
+
+**Step 6 — Educational pearl:** most diagnostic visual feature, one common pitfall to avoid
 
 ---
 
-**CRITICAL REMINDERS:**
-- You are looking at the ACTUAL IMAGE - describe what you see, not what you expect
-- Visual findings FIRST, clinical correlation SECOND, AI analysis LAST
-- If image quality poor, state limitations clearly
-- Medical content prioritized over technical AI details
+**AUDIENCE:** Write for two readers:
+- **Students** — explain what each imaging feature means clinically (e.g., "ring enhancement indicates central necrosis typical of high-grade glioma"), include one teaching point per key finding
+- **Expert clinicians** — use precise radiology terminology and searchable clinical phrases (tumor class, urgency, molecular markers) to support specialist queries and RAG retrieval
+
+**FORMAT:** Markdown with ## headings. Visual findings FIRST (## 3. Imaging Findings), AI technical details LAST (## 12. TECHNICAL APPENDIX).
 """
 
 
@@ -705,10 +418,7 @@ def get_text_reasoning(message: str, image_path: str) -> Optional[str]:
             final_response = _call_openrouter_model(augmented_prompt)
         else:
             final_response = _call_ollama_model(
-                model_name=model_name,
-                message=augmented_prompt,
-                system=COMMON_PROMPT_MESSAGE,
-            )
+                model_name=model_name, message=augmented_prompt)
     else:
         # Handle long prompt with chunking and refining
         logging.info(f"Prompt is too long ({len(augmented_prompt)} chars). Chunking and using refine strategy.")
