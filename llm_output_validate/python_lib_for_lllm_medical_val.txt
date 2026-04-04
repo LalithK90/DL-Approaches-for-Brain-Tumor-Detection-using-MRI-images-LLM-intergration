@@ -1,0 +1,126 @@
+================================================================================
+  PYTHON LIBRARIES — LLM MEDICAL OUTPUT VALIDATION
+  Project : Brain Tumor AI Health Assistant
+  Module  : llm_output_validate/
+================================================================================
+
+--------------------------------------------------------------------------------
+1. spaCy
+--------------------------------------------------------------------------------
+Usage       : Named Entity Recognition (NER) for biomedical text
+            : Detects disease names, drug mentions, and clinical entities in
+            : LLM-generated diagnostic reports
+Models used : en_ner_bc5cdr_md  (scispaCy — disease/chemical NER, preferred)
+            : en_core_sci_sm    (scispaCy — scientific language model, fallback)
+            : en_core_web_sm    (general English NLP, final fallback)
+Install     : pip install spacy
+Package     : https://pypi.org/project/spacy/
+GitHub      : https://github.com/explosion/spaCy
+
+--------------------------------------------------------------------------------
+2. scispaCy
+--------------------------------------------------------------------------------
+Usage       : Biomedical-domain spaCy models for clinical NER
+            : Provides en_ner_bc5cdr_md and en_core_sci_sm model weights
+            : Detects tumor types, medical conditions, and drug names with
+            : higher accuracy than general English models
+Install     : pip install scispacy
+            : pip install https://s3-us-west-2.amazonaws.com/ai2-s2-scispacy/releases/v0.5.4/en_ner_bc5cdr_md-0.5.4.tar.gz
+            : pip install https://s3-us-west-2.amazonaws.com/ai2-s2-scispacy/releases/v0.5.4/en_core_sci_sm-0.5.4.tar.gz
+Package     : https://pypi.org/project/scispacy/
+GitHub      : https://github.com/allenai/scispacy
+
+--------------------------------------------------------------------------------
+3. sentence-transformers
+--------------------------------------------------------------------------------
+Usage       : Semantic similarity measurement between LLM-generated reports
+            : and reference clinical summaries (Tier 3 — Medical Plausibility)
+            : Computes cosine similarity using sentence embeddings
+Model used  : all-MiniLM-L6-v2  (fast, lightweight, good semantic accuracy)
+Install     : pip install sentence-transformers
+Package     : https://pypi.org/project/sentence-transformers/
+GitHub      : https://github.com/UKPLab/sentence-transformers
+HuggingFace : https://huggingface.co/sentence-transformers/all-MiniLM-L6-v2
+
+--------------------------------------------------------------------------------
+4. deepeval
+--------------------------------------------------------------------------------
+Usage       : LLM output evaluation framework (deepeval_llm_validator.py)
+            : Applies four automated metrics to clinical reports:
+            :   - HallucinationMetric  — detects factual hallucinations
+            :   - AnswerRelevancyMetric — checks report relevance to diagnosis
+            :   - BiasMetric           — flags biased clinical language
+            :   - GEval (Medical)      — custom medical terminology completeness
+            : Uses a local Ollama model as the LLM judge (no API key required)
+Install     : pip install deepeval
+Package     : https://pypi.org/project/deepeval/
+GitHub      : https://github.com/confident-ai/deepeval
+Docs        : https://docs.confident-ai.com/
+
+--------------------------------------------------------------------------------
+5. requests
+--------------------------------------------------------------------------------
+Usage       : HTTP communication with local Ollama server
+            : Used by deepeval_llm_validator.py to call Ollama judge model API
+            : Connectivity check before validation starts
+Install     : pip install requests
+Package     : https://pypi.org/project/requests/
+GitHub      : https://github.com/psf/requests
+
+--------------------------------------------------------------------------------
+6. Standard Library (no install required)
+--------------------------------------------------------------------------------
+json        : Parsing and writing validation result files (.json)
+os          : File path handling and directory creation
+re          : Regex-based section extraction from LLM report text
+dataclasses : Structured data containers for validation results
+datetime    : Timestamping result files
+typing      : Type hints (Optional, list)
+csv         : Reading llm_outputs.csv input file
+argparse    : CLI argument parsing in deepeval_llm_validator.py
+pathlib     : Cross-platform path handling
+sys         : Exit codes and error reporting
+
+================================================================================
+  VALIDATION TIER — LIBRARY MAPPING
+================================================================================
+
+Tier 1 — Structural Completeness  (30%)
+  Library : re (standard library)
+  Method  : Regex pattern matching to detect required section headings
+  Checks  : 12 sections present and contain >= 20 characters each
+
+Tier 2 — Diagnostic Consistency   (35%)
+  Library : re (standard library)
+  Method  : Keyword synonym matching for tumor class names and urgency levels
+  Checks  : LLM mentions correct class + urgency matches expected range
+
+Tier 3 — Medical Plausibility     (25%)
+  Library : spaCy / scispaCy  (NER-based term detection)
+            sentence-transformers  (semantic similarity scoring)
+  Method  : Class-specific required term presence + cosine similarity
+            to reference clinical summary (warn if similarity < 0.30)
+
+Tier 4 — Confidence Alignment     (10%)
+  Library : re (standard library)
+  Method  : Extracts LLM confidence label (High/Medium/Low) and compares
+            to DL model numeric prediction score
+
+================================================================================
+  QUICK INSTALL — ALL DEPENDENCIES
+================================================================================
+
+  pip install spacy scispacy sentence-transformers deepeval requests
+
+  # scispaCy biomedical models (optional but recommended):
+  pip install https://s3-us-west-2.amazonaws.com/ai2-s2-scispacy/releases/v0.5.4/en_ner_bc5cdr_md-0.5.4.tar.gz
+  pip install https://s3-us-west-2.amazonaws.com/ai2-s2-scispacy/releases/v0.5.4/en_core_sci_sm-0.5.4.tar.gz
+
+  # General English fallback (if scispaCy not available):
+  python -m spacy download en_core_web_sm
+
+  # Ollama (for deepeval LLM judge — local inference, no API key):
+  https://ollama.com/download
+  ollama pull llama3.2
+
+================================================================================

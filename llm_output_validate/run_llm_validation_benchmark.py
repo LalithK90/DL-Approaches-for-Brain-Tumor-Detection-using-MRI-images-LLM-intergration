@@ -51,7 +51,7 @@ PASS_THRESHOLD = 0.65
 CLASSES = ["glioma", "meningioma", "notumor", "pituitary"]
 
 # Tier weights (must match llm_output_validator.py)
-TIER_WEIGHTS = {"T1": 0.40, "T2": 0.30, "T3": 0.20, "T4": 0.10}
+TIER_WEIGHTS = {"T1": 0.30, "T2": 0.35, "T3": 0.25, "T4": 0.10}
 
 # ---------------------------------------------------------------------------
 # CSV reading
@@ -194,7 +194,7 @@ def _write_benchmark_txt(
     w("  The validator catches structural, diagnostic, medical, and confidence")
     w("  issues — but CANNOT judge prose quality or subtle clinical reasoning.")
     w()
-    w("  Tier 1 — Structural Completeness  (weight 40%)")
+    w("  Tier 1 — Structural Completeness  (weight 30%)")
     w("  ------------------------------------------------")
     w("  All 12 required sections must be present and contain >= 20 characters.")
     w("  Required sections:")
@@ -205,7 +205,7 @@ def _write_benchmark_txt(
     w("    • Management Plan            • Next Steps")
     w("    • Educational Pearls         • References")
     w()
-    w("  Tier 2 — Diagnostic Consistency  (weight 30%)")
+    w("  Tier 2 — Diagnostic Consistency  (weight 35%)")
     w("  ------------------------------------------------")
     w("  The LLM text must mention the DL model's predicted class using at")
     w("  least one accepted synonym.  Urgency level must match expected range.")
@@ -216,7 +216,7 @@ def _write_benchmark_txt(
     w("  pituitary     pituitary/adenoma/sellar/macroadenoma   STAT/Urgent/Routine")
     w("  notumor       no tumor/normal/no evidence             Routine only")
     w()
-    w("  Tier 3 — Medical Plausibility  (weight 20%)")
+    w("  Tier 3 — Medical Plausibility  (weight 25%)")
     w("  ---------------------------------------------")
     w("  Class-specific medical terms must appear in the report.")
     w("  If sentence-transformers is installed, cosine similarity to a")
@@ -233,7 +233,7 @@ def _write_benchmark_txt(
     w("  LLM confidence label extracted and compared to DL numeric score.")
     w("  High   → 90–100%   |   Medium → 70–90%   |   Low → 0–70%")
     w()
-    w("  Overall Score = 0.40 × T1 + 0.30 × T2 + 0.20 × T3 + 0.10 × T4")
+    w("  Overall Score = 0.30 × T1 + 0.35 × T2 + 0.25 × T3 + 0.10 × T4")
     w(f"  PASS if Overall Score >= {PASS_THRESHOLD:.0%}")
     w()
 

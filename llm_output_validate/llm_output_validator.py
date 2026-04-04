@@ -477,14 +477,14 @@ def validate_llm_report( llm_text: str, predicted_class: str, model_confidence: 
         ))
 
     # ---------------------------------------------------------
-    # Overall score  (weighted: structure 40 %, diagnostic 30 %, medical 20 %, conf 10 %)
+    # Overall score  (weighted: structure 30 %, diagnostic 35 %, medical 25 %, conf 10 %)
     # ---------------------------------------------------------
     t2_score = 1.0 if tier2_consistent else 0.0
     t4_score = 1.0 if tier4_aligned else 0.5  # soft penalty only
     overall_score = round(
-        0.40 * tier1_score +
-        0.30 * t2_score +
-        0.20 * tier3_score +
+        0.30 * tier1_score +
+        0.35 * t2_score +
+        0.25 * tier3_score +
         0.10 * t4_score,
         4
     )
