@@ -64,10 +64,12 @@ MODEL_MAX_LENGTHS = {
     "llama3.2-vision:latest": 200000,
     # ~25K tokens (conservatively ~40% of 64K capacity)
     "deepseek-r1:14b": 100000,
-    # OpenRouter DeepSeek (~25K tokens)
-    "deepseek/deepseek-chat-v3-0324:free": 100000,
-    "deepseek-r1-distill-llama-70b": 100000,  # Groq DeepSeek (~25K tokens)
-    "qwen/qwen3-32b": 80000,  # Groq Qwen (~20K tokens, ~40% of 32K capacity)
+    # OpenRouter DeepSeek R1 free (~40K tokens, 164K context)
+    "deepseek/deepseek-r1:free": 160000,
+    # Groq LLaMA 3.3 70B (~50K tokens, 128K context)
+    "llama-3.3-70b-versatile": 500000,
+    # Groq DeepSeek R1 distill (~50K tokens, 128K context)
+    "deepseek-r1-distill-llama-70b": 500000,
 }
 
 
@@ -401,7 +403,7 @@ def get_text_reasoning(message: str, image_path: str) -> Optional[str]:
 
     # Determine which model will be used
     if OPENROUTER_API_KEY:
-        model_name = "deepseek/deepseek-chat-v3-0324:free"
+        model_name = "deepseek/deepseek-r1:free"
     else:
         model_name = DEEPSEEK_MODEL_NAME
 
@@ -463,7 +465,7 @@ def get_text_reasoning(message: str, image_path: str) -> Optional[str]:
 
     # Store the final result in the vector DB
     if final_response:
-        model_name = 'deepseek/deepseek-chat-v3-0324:free' if OPENROUTER_API_KEY else 'deepseek-r1:14b'
+        model_name = 'deepseek/deepseek-r1:free' if OPENROUTER_API_KEY else 'deepseek-r1:14b'
         store_in_vector_db(
             model_name=model_name,
             prompt=message,  # Always store the original, clean user message
@@ -493,7 +495,7 @@ def _call_openrouter_model(prompt: str) -> Optional[str]:
                 "Content-Type": "application/json",
             },
             data=json.dumps({
-                "model": "deepseek/deepseek-chat-v3-0324:free",
+                "model": "deepseek/deepseek-r1:free",
                 "messages": [
                     {"role": "user", "content": prompt}
                 ],
@@ -520,7 +522,7 @@ def _call_groq_model(prompt: str) -> Optional[str]:
         return _call_ollama_model(model_name='deepseek-r1:14b', message=prompt)
 
     # List of models to try in order
-    models_to_try = ["deepseek-r1-distill-llama-70b", "qwen/qwen3-32b"]
+    models_to_try = ["llama-3.3-70b-versatile", "deepseek-r1-distill-llama-70b"]
 
     for model_name in models_to_try:
         try:
