@@ -34,3 +34,13 @@ Total test images:      40
 Image size:             224
 MC Dropout samples (T): 10
 ============================================================
+
+
+
+Inference & Evaluation Environment 
+
+Platform: Local machine
+Hardware: Apple M1 Pro — 8 cores, 17.18 GB RAM, no GPU
+OS: macOS Darwin 25.4.0 (ARM64)
+Python: 3.12.7
+Key Libraries: TensorFlow 2.18, NumPy 1.26.4, OpenCV
