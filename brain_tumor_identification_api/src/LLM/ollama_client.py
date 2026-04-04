@@ -89,6 +89,27 @@ DEEPSEEK_MODEL_NAME = 'deepseek-r1:14b'
 COMMON_PROMPT_MESSAGE = """
 As an expert oncologist, physician, radiologist, and ruthless mentor, analyze this case for BOTH medical students (learning) AND radiologists (decision support). Prioritize clinical medicine over technical details. Don't sugarcoat anything.
 
+**CRITICAL FORMATTING RULE — MANDATORY:**
+Your response MUST contain ALL of the following section headings EXACTLY as written below,
+each followed by at least 20 characters of meaningful content.
+DO NOT skip, rename, merge, or reorder any section.
+Missing any section will invalidate the report.
+
+Required sections (use these exact headings):
+  ## QUICK CLINICAL DECISION
+  ## 1. Executive Summary
+  ## 2. Clinical Presentation
+  ## 3. Imaging Findings
+  ## 4. Differential Diagnosis
+  ## 5. Pathophysiology
+  ## 6. Tumor Grading & Classification
+  ## 7. Clinical Implications
+  ## 8. Management Plan
+  ## 9. Next Steps
+  ## 10. Educational Pearls
+  ## 11. References
+  ## 12. TECHNICAL APPENDIX
+
 **CRITICAL: Structure reports with MEDICAL CONTENT FIRST, technical AI details LAST.**
 
 Structure:

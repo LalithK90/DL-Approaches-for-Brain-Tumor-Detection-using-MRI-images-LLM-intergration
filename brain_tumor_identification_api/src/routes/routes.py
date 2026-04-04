@@ -498,6 +498,24 @@ Translate technical metrics to plain English:
 ✓ Are all claims backed by evidence from provided data sources?
 
 **OUTPUT:** Complete clinical report following structure above, integrating all data sources into cohesive medical narrative with technical details at end.
+
+**MANDATORY SECTION COMPLIANCE — FINAL CHECK:**
+Before submitting your response, verify ALL of the following headings appear EXACTLY
+as written, each with at least 20 characters of content beneath them:
+  ## QUICK CLINICAL DECISION
+  ## 1. Executive Summary
+  ## 2. Clinical Presentation
+  ## 3. Imaging Findings
+  ## 4. Differential Diagnosis
+  ## 5. Pathophysiology
+  ## 6. Tumor Grading & Classification
+  ## 7. Clinical Implications
+  ## 8. Management Plan
+  ## 9. Next Steps
+  ## 10. Educational Pearls
+  ## 11. References
+  ## 12. TECHNICAL APPENDIX
+DO NOT omit any section. DO NOT rename any heading.
     """
 
     resoning_final_report = get_text_reasoning(final_report_prompt_deepsek, filepath)
