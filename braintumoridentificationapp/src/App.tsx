@@ -101,7 +101,7 @@ interface User {
 
 const BrainTumorApp: React.FC<{ user: User; onLogout: () => void }> = ({ user, onLogout }) => {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
-  const [selectedModel, setSelectedModel] = useState<string>('propose_balance');
+  const [selectedModel, setSelectedModel] = useState<string>('propose_balanced');
   const [prediction, setPrediction] = useState<PredictionResult | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [showAlert, setShowAlert] = useState(false);
@@ -117,17 +117,17 @@ const BrainTumorApp: React.FC<{ user: User; onLogout: () => void }> = ({ user, o
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const models = [
-    { value: 'propose_balance', label: 'Proposed Model (Balanced)' },
+    { value: 'propose_balanced', label: 'Proposed Model (Balanced)' },
     { value: 'propose_imbalanced', label: 'Proposed Model (Imbalanced)' },
-    { value: 'ResNet50_balance', label: 'ResNet50 (Balanced)' },
+    { value: 'ResNet50_balanced', label: 'ResNet50 (Balanced)' },
     { value: 'ResNet50_imbalanced', label: 'ResNet50 (Imbalanced)' },
-    { value: 'vgg16_balance', label: 'VGG16 (Balanced)' },
+    { value: 'vgg16_balanced', label: 'VGG16 (Balanced)' },
     { value: 'vgg16_imbalanced', label: 'VGG16 (Imbalanced)' },
-    { value: 'vgg19_balance', label: 'VGG19 (Balanced)' },
+    { value: 'vgg19_balanced', label: 'VGG19 (Balanced)' },
     { value: 'vgg19_imbalanced', label: 'VGG19 (Imbalanced)' },
-    { value: 'GoogleLeNet_balance', label: 'GoogleLeNet (Balanced)' },
+    { value: 'GoogleLeNet_balanced', label: 'GoogleLeNet (Balanced)' },
     { value: 'GoogleLeNet_imbalanced', label: 'GoogleLeNet (Imbalanced)' },
-    { value: 'MobileVNet_balance', label: 'MobileVNet (Balanced)' },
+    { value: 'MobileVNet_balanced', label: 'MobileVNet (Balanced)' },
     { value: 'MobileVNet_imbalanced', label: 'MobileVNet (Imbalanced)' }
   ];
 

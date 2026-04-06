@@ -346,7 +346,8 @@ def _process_image(filepath, model_name):
     img_array = z_score_per_image(np.array([img]))
     model = load_model(model_name)
     if model is None:
-        return None, jsonify({'error': 'Model not found'}), 404
+        current_app.logger.error(f"Model not found: {model_name}")
+        return None, None, None
     return img, img_array, model
 
 def _generate_response_data(filename, predicted_class, confidence_val, patient_info, visuals):
