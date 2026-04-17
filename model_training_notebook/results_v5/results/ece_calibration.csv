@@ -1,0 +1,5 @@
+model,is_proposed,ece
+propose_cnn,True,0.0277
+vgg16,False,0.0365
+vgg19,False,0.0347
+resnet50,False,0.0415

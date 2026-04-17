@@ -1,0 +1,17 @@
+model,class,sensitivity,specificity
+propose_cnn,glioma,0.8075,0.99
+propose_cnn,meningioma,0.94,0.9683
+propose_cnn,notumor,1.0,0.9633
+propose_cnn,pituitary,0.975,0.9858
+vgg16,glioma,0.745,0.9925
+vgg16,meningioma,0.935,0.9283
+vgg16,notumor,1.0,0.9733
+vgg16,pituitary,0.9775,0.9917
+vgg19,glioma,0.75,0.9933
+vgg19,meningioma,0.9325,0.9308
+vgg19,notumor,1.0,0.9708
+vgg19,pituitary,0.97,0.9892
+resnet50,glioma,0.595,0.9267
+resnet50,meningioma,0.5275,0.8825
+resnet50,notumor,0.9475,0.91
+resnet50,pituitary,0.8725,0.9283

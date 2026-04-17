@@ -1,0 +1,5 @@
+model,is_proposed,ins_mean,del_mean,ins_wilcoxon_p,del_wilcoxon_p
+propose_cnn,True,0.7788,0.3687,0.001,0.2334
+vgg16,False,0.5584,0.4717,0.9097,0.8501
+vgg19,False,0.5598,0.4092,0.3804,0.2661
+resnet50,False,0.3997,0.3614,0.2661,0.0923

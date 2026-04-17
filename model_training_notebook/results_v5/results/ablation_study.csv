@@ -1,0 +1,5 @@
+Configuration,Regime,Model,Accuracy (in %),Delta vs Full (%)
+Full model (all components),standard,propose_cnn,93.06,0.0
+No CLAHE preprocessing,standard,propose_cnn,91.5,-1.56
+No augmentation,standard,propose_cnn,92.88,-0.19
+No fine-tuning (frozen backbone only),standard,propose_cnn,92.5,-0.56

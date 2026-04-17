@@ -1,0 +1,9 @@
+test_idx,image_path,true_class,pred_class,confidence,saved_panel
+4,/kaggle/input/datasets/masoudnickparvar/brain-tumor-mri-dataset/Testing/glioma/Te-gl_102.jpg,glioma,pituitary,0.7552,xai_outputs/misclassified/misc_0_trueglioma_predpituitary.tiff
+5,/kaggle/input/datasets/masoudnickparvar/brain-tumor-mri-dataset/Testing/glioma/Te-gl_103.jpg,glioma,notumor,0.9997,xai_outputs/misclassified/misc_1_trueglioma_prednotumor.tiff
+6,/kaggle/input/datasets/masoudnickparvar/brain-tumor-mri-dataset/Testing/glioma/Te-gl_104.jpg,glioma,meningioma,0.9733,xai_outputs/misclassified/misc_2_trueglioma_predmeningioma.tiff
+8,/kaggle/input/datasets/masoudnickparvar/brain-tumor-mri-dataset/Testing/glioma/Te-gl_106.jpg,glioma,meningioma,0.9991,xai_outputs/misclassified/misc_3_trueglioma_predmeningioma.tiff
+11,/kaggle/input/datasets/masoudnickparvar/brain-tumor-mri-dataset/Testing/glioma/Te-gl_109.jpg,glioma,meningioma,0.7912,xai_outputs/misclassified/misc_4_trueglioma_predmeningioma.tiff
+18,/kaggle/input/datasets/masoudnickparvar/brain-tumor-mri-dataset/Testing/glioma/Te-gl_115.jpg,glioma,meningioma,0.9993,xai_outputs/misclassified/misc_5_trueglioma_predmeningioma.tiff
+30,/kaggle/input/datasets/masoudnickparvar/brain-tumor-mri-dataset/Testing/glioma/Te-gl_126.jpg,glioma,pituitary,1.0,xai_outputs/misclassified/misc_6_trueglioma_predpituitary.tiff
+33,/kaggle/input/datasets/masoudnickparvar/brain-tumor-mri-dataset/Testing/glioma/Te-gl_129.jpg,glioma,notumor,1.0,xai_outputs/misclassified/misc_7_trueglioma_prednotumor.tiff

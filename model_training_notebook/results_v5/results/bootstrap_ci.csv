@@ -1,0 +1,5 @@
+model,is_proposed,accuracy (in %),ci_low_95 (in %),ci_high_95 (in %)
+propose_cnn,True,93.06,91.75,94.25
+vgg16,False,91.44,90.12,92.75
+vgg19,False,91.31,89.94,92.56
+resnet50,False,73.56,71.44,75.75

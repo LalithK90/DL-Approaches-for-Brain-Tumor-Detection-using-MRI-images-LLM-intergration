@@ -1,0 +1,5 @@
+model,is_proposed,kappa
+propose_cnn,True,0.9075
+vgg16,False,0.8858
+vgg19,False,0.8842
+resnet50,False,0.6475

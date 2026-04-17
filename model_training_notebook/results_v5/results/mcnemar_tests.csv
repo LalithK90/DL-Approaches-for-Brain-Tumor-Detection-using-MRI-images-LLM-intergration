@@ -1,0 +1,7 @@
+model_1,model_2,statistic,p_value,sig_p05
+propose_cnn,vgg16,7.4405,0.0064,True
+propose_cnn,vgg19,8.2841,0.004,True
+propose_cnn,resnet50,273.2232,0.0,True
+vgg16,vgg19,0.0172,0.8955,False
+vgg16,resnet50,246.1364,0.0,True
+vgg19,resnet50,245.6718,0.0,True

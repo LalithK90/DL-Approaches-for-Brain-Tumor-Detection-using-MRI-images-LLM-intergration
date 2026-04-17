@@ -1,0 +1,5 @@
+Class,Train,Val,Test
+glioma,1244,156,400
+meningioma,1245,155,400
+notumor,1244,156,400
+pituitary,1245,155,400
